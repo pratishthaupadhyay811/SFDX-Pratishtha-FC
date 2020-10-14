@@ -1,0 +1,10 @@
+#AppBodyHeader { display: none; }
+#sidebarCell { display: none; }
+#bodyCell { width: 100%; }
+.zen-pageFooter { display: none; }
+html .brandQuaternaryBgr { background: none!important; }
+html .brandPrimaryBrd { border-color: none!important; }
+body { background: none!important; margin: 0!important; border-radius: 0!important; box-shadow: none!important;}
+.brandPrimaryBrd { border-color: none!important; background-color: none!important; background-image: none!important;}
+.bodyDiv { box-shadow: none!important; }   
+.footerAlign { text-align:center; } 

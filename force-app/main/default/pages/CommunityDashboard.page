@@ -1,0 +1,144 @@
+<apex:page controller="CommunityDashboardController" language="{!portalLanguage}" showHeader="true" sidebar="false" lightningStylesheets="true">
+
+    <apex:slds />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/locale.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <script src="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}"></script>
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    
+    <apex:outputPanel layout="none" rendered="{!NOT(enhancedStylingEnabled)}">
+        <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/jquery/smoothness/jquery-ui.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/datatable/dataTables.jqueryui.css')}" />
+    </apex:outputPanel>
+    
+    <script src="/soap/ajax/32.0/connection.js"></script>
+    
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/vendor_js/jquery/data-table/data-tables-min.js')}"/> 
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/datatable/jquery-dataTable-ui.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/angular/angular.min.1.7.8.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/angular/angular-sanitize-1.7.8.min.js')}"/>
+
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/application_js/community-dashboard.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/application_js/application.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/vendor_js/moment.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/application_js/prototypes.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/application_js/message-directive.js')}"/>
+
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/vendor_js/moment/sorting-datetime-moment.1.10.19.js')}"/>
+
+    <apex:outputPanel layout="none" rendered="{!NOT(enhancedStylingEnabled)}">
+        <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/application_js/inbox-directive.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/application_js/datatable-directive.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/application_js/tablist-directive.js')}"/>
+    </apex:outputPanel>
+
+    <apex:outputPanel layout="none" rendered="{!enhancedStylingEnabled}">
+        <apex:stylesheet value="{!URLFOR($Resource.GPApplicationDesigner,'/application_css/community-dashboard-slds.css')}" />
+        <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/application_js/inbox-directive-slds.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/application_js/datatable-directive-slds.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/application_js/tablist-directive-slds.js')}"/>
+    </apex:outputPanel>
+
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/application_js/dashboard-application.js')}"/>
+    
+    <apex:outputPanel layout="none" rendered="{!NOT(enhancedStylingEnabled)}">
+        <apex:stylesheet value="{!URLFOR(fCDashboardStaticResourceName,fCDashboardStyleSheet)}" />
+    </apex:outputPanel>
+
+    <script>
+    var openTabLabel = '{!JSENCODE($Label.fgm_portal__fc_openitem_label)}' ;
+    var closeTabLabel = '{!JSENCODE($Label.fgm_portal__fc_closeitem_label)}' ;
+    var editLinkLable = '{!JSENCODE($Label.fgm_portal__fc_edit_label)}' ;
+    var viewLinkLabel = '{!JSENCODE($Label.fgm_portal__fc_view_label)}' ;
+    var deleteLinkLabel = '{!JSENCODE($Label.fgm_portal__fc_delete_label)}' ;
+    var amendLinkLabel = '{!JSENCODE($Label.fgm_portal__fc_amend_label)}' ;
+    var FromHeaderLabel = '{!JSENCODE($Label.fgm_portal__fc_granteeinbox_column_from)}' ;
+    var subjectHeaderLabel = '{!JSENCODE($Label.fgm_portal__fc_granteeinbox_column_subject)}' ;
+    var dateheaderLabel = '{!JSENCODE($Label.fgm_portal__fc_granteeinbox_column_date)}' ;
+    var printButtonLabel = '{!JSENCODE($Label.fgm_portal__fc_print_buttonlabel)}' ;
+    var composeMessageLabel = '{!JSENCODE($Label.fgm_portal__fc_composemessage_label)}' ;
+    var deleteButtonlabel = '{!JSENCODE($Label.fgm_portal__fc_delete_buttonlabel)}' ;
+    var backButtonLabel = '{!JSENCODE($Label.fgm_portal__fc_back_buttonlabel)}' ;
+    var emaptyPaginationFooter ='{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_emptypaginationfooter)}';
+    var paginationHeader= '{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_paginationheader)}';
+    var paginationFooter = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_paginationfooter)}';
+    var SearchLabel = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_search)}';
+    var datatableFilterLabel = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatablefilterfromrecords)}';
+    var emaptytableLabel= '{!JSENCODE($Label.fgm_portal__fc_jquery_emptydatatable_errormsg)}';
+    var nextLinkLabel = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_next)}';
+    var previousLinklabel = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_previous)}';
+    var confirmAmendment = '{!JSENCODE($Label.fgm_portal__fc_amendment_confirmationmessage)}';
+    var amendmentEnabled = Boolean('{!JSENCODE(IF(communityAmendmentSetting.IsEnabled__c,'true',''))}');
+    var firstLabel = '{!JSENCODE($Label.fgm_portal__fc_pagination_first_label)}';
+    var lastLabel = '{!JSENCODE($Label.fgm_portal__fc_pagination_last_label)}';
+    var picklistDefaultValueAll = '{!JSENCODE($Label.fgm_portal__fc_picklistdefaultvalue_all)}';
+    var confirmDeleteLabel = '{!JSENCODE($Label.fgm_portal__FC_ConfirmDeleteItems)}';
+    var fieldDataType;
+    var fieldData;
+    var isDeletable;
+    var grReferenceMap;
+    var showDataTableFlg = true;
+    var staticResourcePath = '{!JSENCODE($Resource.GPApplicationDesigner)}';
+    var pageLanguage = '{!JSENCODE($CurrentPage.Language)}';
+    var campaignField = '{!JSENCODE(strRequestCampaignField)}';
+    var currentObject = '';
+    var languageSpecifications = getLanguageSpecifications( pageLanguage );
+    //Add this to Inbox Component
+    </script>
+
+    <apex:form style="max-width: calc(100vw - 40px);">
+         <apex:pagemessages id="errorMsgBlock">
+            </apex:pagemessages>
+        <div class="slds-scope" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <div class="slds-spinner_container" >
+                <div class="slds-spinner--brand slds-spinner slds-spinner--large" role="alert">
+                    <span class="slds-assistive-text">{!$Label.FC_LoadingDashboardLabel}</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+            <div ng-app="dashboardApp" ng-controller="dashboardAppController" class="slds-scope">
+                <div ng-if="showMessageComponent">
+                    <message-component messagewrapper="messageWrapper" show-message-action="showPageMessage"> </message-component>
+                </div>
+                <apex:panelgrid columns="3" width="100%">
+                    <apex:outputPanel rendered="{!NOT(enhancedStylingEnabled)}">
+                        <apex:sectionheader subtitle="{!$Label.fgm_portal__fc_dashboard_headername}" >
+                        </apex:sectionheader>
+                    </apex:outputPanel>
+                    <apex:outputpanel layout="block" 
+                        rendered="{!IF(communitySettingForDashBoard != NULL , communitySettingForDashBoard.IsEnabled__c , false)}">
+                        <div>
+                            <apex:outputField value="{!dashboardInstructionalTextHtml.RichDescription__c}" rendered="{!dashboardInstructionalTextHtml != null}"/>
+                            <apex:outputtext value="{!HTMLENCODE($Label.fgm_portal__gp_dashboardinstructionaltext)}" rendered="{!dashboardInstructionalTextHtml == null}"/>
+                        </div>
+                    </apex:outputpanel>
+                    <apex:outputPanel rendered="{!If((lstUserProfiles.size==2 && showProfileOptions),true,false)}">
+                        <apex:outputPanel layout="none" rendered="{!enhancedStylingEnabled}">
+                            <div class="slds-form-element" style="float: right !important; padding:8px 0;">
+                                <div class="slds-form-element__control">
+                                    <div class="slds-select_container">
+                                        <apex:selectList size="1" styleClass="slds-select" onchange="navigateToCommunity(this);">
+                                            <apex:selectOptions value="{!lstUserProfiles}"></apex:selectOptions>
+                                        </apex:selectList>
+                                    </div>
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+
+                        <apex:outputPanel layout="none" rendered="{!NOT(enhancedStylingEnabled)}">
+                            <apex:selectList id="switchcommunity" size="1"  onchange="navigateToCommunity(this);" style="float: right">
+                                <apex:selectOptions value="{!lstUserProfiles}"></apex:selectOptions>
+                            </apex:selectList>
+                        </apex:outputPanel>
+
+                    </apex:outputPanel>
+                </apex:panelgrid>
+                <div ng-if="isTabsRecieved">
+                    <tablist tabs="tabList" inbox-translations="inboxTranslations" datatable-translations="datatableTranslations" exception="messageWrapper"></tablist>
+                </div>
+            </div>
+        </div>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,91 @@
+<apex:page standardController="GuidestarFieldMapping__c" extensions="GuidestarConfigurationExtension" action="{!initializeConfiguration}">
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/select2/select2-3.4.8.min.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/select2/select2-3.4.8.css')}" />
+    <c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}"/>
+
+    <script type="text/javascript">
+     $(document).ready(function() {
+          $(".mainForm").addClass("GuidestarFieldMapping_margintop");
+          $(".detailList table th").addClass("labelCol_new");
+     });
+    </script>
+
+    <apex:form id="mainForm" styleClass="mainForm">
+        <apex:pageMessages />
+        <apex:panelGrid columns="2" styleClass="config_section"  width="100%">
+            <apex:sectionHeader title="GuideStar Configuration" subtitle="GuideStar Field Mapping"/>
+            <apex:commandButton value="Back To Configuration" styleClass="btn btn-primary" immediate="true" action="{!URLFOR($Page.fcportalManager)}"/>
+        </apex:panelGrid>
+        <apex:outputPanel id="recordTypes">
+            <apex:pageBlock mode="maindetail">
+                <apex:pageBlockSection title="" collapsible="false" columns="1"></apex:pageBlockSection>
+                <apex:pageBlockSection columns="1">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Select Mapping : "></apex:outputLabel>
+                        <apex:SelectList size="1" value="{!selectedRecordType}" styleClass="ddlRecordType">
+                            <apex:selectOption itemValue="" itemLabel=""></apex:selectOption>
+                            <apex:SelectOptions value="{!lstRecordType}"></apex:SelectOptions>
+                            <apex:actionSupport event="onchange" oncomplete="initializeForm()" action="{!initializeFieldsOptions}" reRender="guidestarMapping" status="fillObjectFields"></apex:actionSupport>
+                            <apex:actionStatus id="fillObjectFields">
+                                <apex:facet name="start">
+                                    <apex:outputPanel layout="none">
+                                        <apex:image value="/img/loading.gif" styleClass="loadingimg"></apex:image>
+                                    </apex:outputPanel>
+                                </apex:facet>
+                            </apex:actionStatus>
+                        </apex:SelectList>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:outputPanel>
+        <apex:outputPanel id="guidestarMapping">
+            <apex:pageBlock mode="maindetail" title="{!recordTypeName}" rendered="{!lstGuidestarFields != null && lstGuidestarFields.size > 0 && !showFieldsToMap}">
+                <apex:pageBlockSection title="" collapsible="false" columns="1"></apex:pageBlockSection>
+                <apex:pageBlockButtons location="top">
+                    <apex:actionStatus id="mainStatus">
+                        <apex:facet name="stop">
+                            <apex:outputPanel layout="none">
+                                <apex:commandButton value="Save" action="{!saveRecord}" status="mainStatus" styleClass="btn btn-primary" reRender="mainForm" />
+                                <apex:commandButton value="Cancel" action="{!cancel}"  styleClass="btn btn-primary" reRender="mainForm" immediate="true" />
+                            </apex:outputPanel>
+                        </apex:facet>
+
+                        <apex:facet name="start">
+                            <apex:outputPanel layout="none">
+                                <apex:commandButton value="Saving..." styleClass="btn btn-primary" disabled="true" />
+                                <apex:commandButton value="Saving..." styleClass="btn btn-primary" disabled="true"  />
+                            </apex:outputPanel>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </apex:pageBlockButtons>
+                <apex:pageBlockSection columns="2">
+                    <apex:repeat value="{!lstGuidestarFields}" var="labelValue">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!labelValue}"></apex:outputLabel>
+                            <apex:SelectList size="1" value="{!configurationRecord[mapGuidestarFields[labelValue]]}" styleClass="fieldOptions">
+                                <apex:selectOption itemValue="" itemLabel=""></apex:selectOption>
+                                <apex:SelectOptions value="{!lstFields}"></apex:SelectOptions>
+                            </apex:SelectList>
+                        </apex:pageBlockSectionItem>
+                    </apex:repeat>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:outputPanel>
+
+        <script type="text/javascript">
+            $(document).ready(function() {
+                initializeForm();
+            });
+            function initializeForm(){
+                $('.fieldOptions').select2({
+                    placeholder: "Select Field To Map"
+                });
+                $('.ddlRecordType').select2({
+                    placeholder: "--- Select Mapping ---",
+                    minimumResultsForSearch: -1
+                });
+            }
+        </script>
+    </apex:form>
+</apex:page>

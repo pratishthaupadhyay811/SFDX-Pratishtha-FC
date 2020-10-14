@@ -1,0 +1,1 @@
+<apex:page standardController="Account" extensions="OverrideViewExtension"  action="{!if(IsCommunityuser, communityUrl,URLFOR($Action.Account.View,Account.Id, [retURL=''], true))}" sidebar="false" showHeader="false"></apex:page>

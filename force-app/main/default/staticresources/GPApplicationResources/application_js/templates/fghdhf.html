@@ -1,0 +1,64 @@
+<div class="bootstrap-fc" style="font-size: 13px; border: 1px solid #aaa;margin: 1%;padding: 1%;border-radius: 3px;padding-top: 2%;width:95%;max-width:1250px;min-width: 800px;text-align: left;display: inline-block;background-color: white;">
+	<table class="table table-sm">
+		<tr>
+			<!--<th style="width: 5%">{{tableTranslationSetup.type}}</th>-->
+			<th style="width: 5%;">{{tableTranslationSetup.serialNumber}}</th>
+			<th style="width: 30%;">{{tableTranslationSetup.name}}</th>
+			<th style="width: {{ controlSetup.isEditable ? '40' : '50' }}%;">{{tableTranslationSetup.description}}</th>
+			<th style="width: 15%;">{{tableTranslationSetup.createdDate}}</th>
+			<th style="width: 10%;" ng-show="controlSetup.isEditable">{{tableTranslationSetup.actionColumn}}</th>
+		</tr>
+		<tr ng-show="localAttachments.length <= 0">
+			<td colspan="{{controlSetup.isEditable ? 5 : 4}}">{{tableTranslationSetup.noRecordsFound}}</td>
+		</tr>
+		<tr ng-show="localAttachments.length > 0" ng-repeat="attachment in localAttachments | orderBy: '-createdDate' track by $index">
+			<!--<td>{{attachment.type}}</td>-->
+			<td>{{$index + 1}}</td>
+			<td class="wrapData">
+				<a href="{{attachment.downloadUrlPath}}" target="_blank" style="text-decoration: none;" ng-bind-html="attachment.name"></a>
+			</td>
+			<td class="wrapData" ng-bind-html="attachment.description"></td>
+			<td>{{attachment.createdDate | date : 'MM/dd/yy'}}</td>
+			<td ng-if="controlSetup.isEditable"><a href="" ng-click="confirmDelete( attachment.id, attachment.type, attachment.questionAttachmentId )"  style="text-decoration: none;">{{tableTranslationSetup.deleteAction}}</a></td>
+		</tr>
+	</table>
+	<div class="attachment-uplod-control-container" style="display:inline-block;width:100%;" ng-show="uploadEnabled && isUploadSupported">
+		<textarea ng-if="controlSetup.isDescriptionEnabled" id="{{directiveId}}-description" placeholder="{{fileInputTranslationSetup.descriptionPlaceholder}}" style="width: 100%;font-size: 13px;border-radius: 3px;max-width: 1250px; min-width: 800px;" ng-keydown="countDescriptionLength( $event )" ng-paste="countDescriptionLength()" ng-cut="countDescriptionLength()" maxlength="{{descriptionAllowedLength}}"></textarea>
+		<div ng-if="controlSetup.isDescriptionEnabled" style="text-align: right;margin-top: .5%;display: inline-block;width: 100%;font-style: italic;font-size: 11px;">Angular</div>
+		<br/>
+		<div>
+			<div style="display:inline-block;width:49%;">
+				<label for="{{directiveId}}" class="btn btn-sm btn-primary" style="font-size: 13px;" ng-disabled="progress.isActive">{{fileInputTranslationSetup.choseFileBtn}}</label>
+				<input id="{{directiveId}}" type="file" name="fileUploader" onchange="angular.element(this).scope().getFileFromControl(this)" style="width: 85%;display: none;" ng-disabled="progress.isActive"/>
+				<input type="button" class="btn btn-sm btn-primary" value="{{fileInputTranslationSetup.uploadBtn}}" ng-click="uploadFile()" style="font-size: 13px;" ng-disabled="isUploadDisabled" />
+				<br/><br/>
+				<label style="width: 70%;font-size: 13px;">{{fileInputPath}}</label>
+			</div>
+			<div class="progress-bar-container" ng-show="progress.counter >= 0 && !request.showInfo" style="display: inline-block;width: 50%;text-align: right;">
+				<div style="display: inline-block;width: 100%;">
+					<div class="progress" style="width: 100%;">
+						<div class="progress-bar" style="width:{{progress.counter}}%;"></div>
+					</div>	
+				</div>
+				<br/>
+				<div style="display: inline-block; width: 100%; text-align: left;">
+					<div style="display: inline-block;">{{fileInputTranslationSetup.processingLabel}}</div>
+					<div style="display: inline-block;float: right;">{{progress.counter}}%</div>	
+				</div>
+			</div>	
+			<div class="progress-bar-container" style="display: inline-block;width: 50%;text-align: right;vertical-align: top;" ng-show="request.showInfo">
+				<div style="padding: 1%;text-align: right;">
+					<div style="display: inline-block;height: 20px;">{{request.message}}</div>
+					<span class="glyphicon glyphicon-{{request.status == 'failure' ? 'alert' : 'ok-sign'}}" style="font-size: 20px;color: {{request.status == 'failure' ? 'red' : '#3cb63c'}};" ng-show="request.showInfo"></span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="attachment-uplod-control-container" style="display:inline-block;width:100%;" ng-show="!isUploadSupported">
+		<div style="padding: 1%;text-align: right;">
+			<div style="display: inline-block;height: 20px;">{{localStatusCodes.ie_9_exception}}</div>
+			<span class="glyphicon glyphicon-alert" style="font-size: 20px;color:red;" ></span>
+		</div>
+	</div>
+</div>
+

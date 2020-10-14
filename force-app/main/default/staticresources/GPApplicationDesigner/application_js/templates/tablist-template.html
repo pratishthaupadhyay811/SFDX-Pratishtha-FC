@@ -1,0 +1,38 @@
+<div ng-if="!tabs.isVertical" class="slds-tabs_default" ng-init="tabs.selectedId=tabs.lstTabs[0].tabDetails.Id" id = "tableDir">
+                        <ul class="slds-tabs_default__nav" role="tablist">
+                            <li ng-repeat="tab in tabs.lstTabs" class="slds-tabs_default__item">
+                                <a href="#" ng-click="tabs.selectedId = tab.tabDetails.Id; selectedTab(tab)" class="slds-tabs_default__link">{{tab.tabLabel}}</a>
+                            </li>
+                        </ul>
+                       </div>
+                        <div class="slds-spinner_container" ng-if="isLoading">
+                            <div class="slds-spinner--brand slds-spinner slds-spinner--large" role="alert">
+                              <span class="slds-assistive-text">Loading, Please Wait...</span>
+                              <div class="slds-spinner__dot-a"></div>
+                              <div class="slds-spinner__dot-b"></div>
+                            </div>
+                          </div>
+                        <div ng-if="tabs.isVertical" class="slds-vertical-tabs" id="tabs">
+                        <ul class="slds-vertical-tabs__nav vertical_tabs" role="tablist" style="width:15%">
+                        <li ng-repeat="tab in tabs.lstTabs" class="slds-vertical-tabs__nav-item" ng-class="selectedIndex == $index ? 'slds-active':''">
+                        <a href="#" ng-click="setTab($index) ; selectedTab(tab)" class="slds-vertical-tabs__link " ng-class="selectedIndex == $index ? 'slds-active':''">{{tab.tabLabel}} <span id="countSpan" class="slds-badge" ng-if="tab.tabName == 'Contact'">{{tab.badgeCount}}</span></a>
+                            </li>
+                        </ul>
+                        <div ng-if="currentTab.isSelected" style="width:83%" class="horizontal_tab">
+                            <span ng="isError">{{Error}}</span>
+                            <span><h1>{{currentTab.tabLabel}}</h1></span>
+                           <ul class="slds-tabs_default__nav horizontal_tab_margin" role="tablist" style="margin-left: 2%;" ng-if="currentTab.tabName!='Contact'">
+                               <li ng-repeat="tab in currentTab.lstInternalTabs" class="slds-tabs_default__item"   ng-class="selectedHorizantalIndex == $index ? 'slds-active vertical-tab-bg-color':''">
+                                   <a href="#" ng-click="sethorizantalTab($index) ; showSelectedTabRecords(tab)" class="slds-tabs_default__link">{{tab.tabLabel}}</a>
+                               </li>
+                           </ul>
+                            <div ng-if="renderRlcTable" class="table_container_tablist"  >
+                                <div class="table_div_tablist"><table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_striped" style="width: 1100px; height:100px;  overflow:scroll" delete-record = "delete()" role="grid" dt-table= "data" configuration="configuration" selected-data-item= "selectedDataItem" id="dataTableId" datatable-translations="datatableTranslations"> </table></div>
+                            </div>
+                             </div>
+                            <div ng-if="isInboxTab" style="width:83%" class="tablist_inbox_container">
+                                <span><h1>{{currentTab.tabLabel}}</h1></span>
+                                <inbox-component activities="activityData" inbox-translations="inboxTranslations"></inbox-component>
+                            </div>
+                        </div> 
+

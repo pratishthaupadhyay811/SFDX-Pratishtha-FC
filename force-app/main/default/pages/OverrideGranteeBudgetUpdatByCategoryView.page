@@ -1,0 +1,1 @@
+<apex:page standardController="Grantee_Budget_Update_By_Category__c" extensions="OverrideViewExtension"  action="{!if(IsCommunityuser, communityUrl,URLFOR($Action.FGM_Portal__Grantee_Budget_Update_By_Category__c .View,FGM_Portal__Grantee_Budget_Update_By_Category__c .Id, [retURL=''], true))}"  sidebar="false" showHeader="false"></apex:page>

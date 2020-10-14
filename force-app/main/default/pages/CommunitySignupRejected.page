@@ -1,0 +1,24 @@
+<apex:page standardController="Questions__c" extensions="CommunitySignupRejectExtension" standardStylesheets="false" sidebar="false" showHeader="false" cache="false" language="{!portalLanguage}" >
+   <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-2.1.1.min.js')}" />
+   <c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}"/>
+   <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <script>
+        $("body").addClass("bg-page");
+
+    </script>
+
+    <apex:form id="mainForm" forceSSL="true">
+        <div id="registration" class="container">
+            <div id="registration-wrapper">
+                <apex:image url="{!ImageLogoUrl}" styleClass="logo-home" />
+                <br/><br/>
+                <apex:outputText rendered="{! NOT ISBLANK(FGM_Portal__Questions__c.FGM_Portal__Error_Text__c)}" value="{!Questions__c.Error_Text__c}"></apex:outputText>
+                <apex:outputText rendered="{! ISBLANK(FGM_Portal__Questions__c.FGM_Portal__Error_Text__c)}" value="{!$Label.fgm_portal__signupquiz_rejectionmsg}"></apex:outputText>
+                <br/><br/><br/>
+                 <div class="quiz-footer">
+                    <apex:outputtext value="{!$Label.fgm_portal__signupquizfooter}" > </apex:outputtext>
+                </div>
+            </div>
+        </div>
+    </apex:form>
+</apex:page>

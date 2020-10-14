@@ -1,0 +1,44 @@
+<apex:page controller="CommunitySecureMessageController" language="{!portalLanguage}"  cache="false"  sidebar="false" title="{!$Label.fgm_portal__fc_custommessage_pagetitle}"> <!-- title="Compose Message" -->
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-2.1.1.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/character-count.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/community-application-10.24.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/application_js/community-secure-message.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource, '/application_css/community-secure-message.css')}"/>
+    <c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}"/>
+    <script type="text/javascript">
+    var counterOf = '{!JSENCODE($Label.fgm_portal__fc_character_counter_of)}';
+    var counterCharacters = '{!JSENCODE($Label.fgm_portal__fc_character_counter_character)}';
+    $(document).ready(function() {
+        setcharcount();
+        initialize();
+    });
+    </script>
+    <apex:form id="mainForm" styleClass="apexp_dashboard">
+        <apex:pageMessages id="showmsg" rendered="true" ></apex:pageMessages>
+        <apex:pageBlock id="mainPageBlock" title="{!$Label.fgm_portal__fc_composemessage_label}">
+        <apex:actionRegion ></apex:actionRegion>
+            <apex:pageBlockSection columns="1" id="lblSection">
+                 <apex:selectList value="{!selCampaign}" id="pnlCamp" multiselect="false" size="1" label="{!$Label.fgm_portal__fc_composemessage_campaignfield_label}" styleClass="form-control selectList CommunitySecureMessage_width">
+                    <apex:selectOptions value="{!CampaignList}" html-tabindex="1"/>
+                    <apex:actionSupport event="onchange" action="{!getOppList}"  rerender="pnlOpp,pnlCC" />
+                </apex:selectList>
+                <apex:selectList value="{!selOpportunity}" id="pnlOpp" onchange="clearList();" multiselect="false" size="1" label="{!$Label.fgm_portal__fc_composemessage_opportunityfield_label}" styleClass="form-control selectList CommunitySecureMessage_width" >
+                    <apex:selectOptions value="{!lstOpportunity}" html-tabindex="2"/>
+                    <apex:actionFunction name="getOppTeamMember"  action="{!getOppTeamMember}" rerender="pnlCC" />
+                </apex:selectList>
+                <apex:selectCheckboxes value="{!lstOpportunityTeamMember}" id="pnlCC" label="CC" layout="pageDirection" legendInvisible="false" borderVisible="true">
+                    <apex:selectOptions value="{!lstSelectOpportunityTeamMember}" html-tabindex="3"/>
+                </apex:selectCheckboxes>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection columns="1" id="fieldSection">
+                <apex:inputField id="pnlSubject" value="{!secureMessage.Subject__c}" styleClass="form-control" html-tabindex="4"/>
+                <apex:inputTextarea id="pnlBody" value="{!secureMessage.Body__c}" styleClass="form-control" tabindex="5" html-maxlength="31750"/>
+            </apex:pageBlockSection>
+            <apex:outputPanel layout="block" styleClass="CommunitySecureMessage_center">
+                <apex:commandLink id="btnSend" value="{!$Label.fgm_portal__fc_send_buttonlabel}" styleClass="btnNew btnSend" action="{!sendEmail}" tabindex="6"></apex:commandLink>
+                <apex:outputLink value="/fgm_portal__communitydashboard" styleClass="btnNew btnCnl" tabindex="7">{!$Label.fgm_portal__fc_cancel_buttonlabel}</apex:outputLink>
+            </apex:outputPanel>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,135 @@
+<apex:page standardController="Quiz__c" extensions="QuizDesignFormExtension" showHeader="false" sidebar="true" standardStylesheets="false">
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/fontawesome/font-awesome-4.1.0.min.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/select2/select2-3.4.8.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/select2/select2.min.js')}"/>
+    <c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}"/>
+    <script type="text/javascript">
+     $(document).ready(function() {
+          $(".mainForm").addClass("GuidestarFieldMapping_margintop");
+          $('.apexp').addClass('apexp_dashboard');
+          });
+    </script>
+
+    <apex:form id="mainForm" styleClass="mainForm" >
+    <apex:outputPanel id="quizCreator" rendered="{!AND(ISBLANK(quiz.Id))}">
+        <apex:panelGrid columns="2" styleClass="config_section"  width="100%">
+            <apex:sectionHeader title="Design Page Layout" subtitle="Open an existing Page Layout, or create a new layout"></apex:sectionHeader>
+            <apex:commandButton value="Back To Configuration" styleClass="btn btn-primary" immediate="true" action="{!URLFOR($Page.fcportalManager)}"/>
+        </apex:panelGrid>
+        <apex:pageBlock mode="maindetail">
+            <apex:pageBlockSection title="" collapsible="false" columns="1"></apex:pageBlockSection>
+            <apex:pageMessages ></apex:pageMessages>
+            <apex:pageBlockSection columns="1">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Select Object: "></apex:outputLabel>
+                    <apex:SelectList size="1" value="{!selectedObject}" styleClass="objectOptions">
+                        <apex:selectOption itemValue="" itemLabel="--- Select Object ---"></apex:selectOption>
+                        <apex:SelectOptions value="{!AvailableObjects}"></apex:SelectOptions>
+                        <apex:actionSupport event="onchange" action="{!getRecordType}" oncomplete="initializeForm()" reRender="recordTypeSection" status="fillChildFields"></apex:actionSupport>
+                        <apex:actionStatus id="fillChildFields">
+                            <apex:facet name="start">
+                                <apex:outputPanel layout="none">
+                                    <apex:image value="/img/loading.gif" styleClass="loadingimg"></apex:image>
+                                </apex:outputPanel>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </apex:SelectList>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <apex:outputPanel id="recordTypeSection" styleClass="recordTypeSection">
+            <apex:pageBlock title="Open Existing Page Layout" mode="maindetail" rendered="{!lstExistingLayout != null && lstExistingLayout.size > 0}">
+                <apex:pageBlockSection title="" collapsible="false" columns="1"></apex:pageBlockSection>
+                <apex:pageBlockSection columns="1">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Select Existing PageLayout: "></apex:outputLabel>
+                        <apex:SelectList size="1" value="{!selectedPageLayout}" styleClass="ddlRecordType">
+                            <apex:selectOption itemValue="" itemLabel="--- Select Existing PageLayout ---"></apex:selectOption>
+                            <apex:SelectOptions value="{!lstExistingLayout}"></apex:SelectOptions>
+                        </apex:SelectList>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value=""></apex:outputLabel>
+                        <apex:commandButton value="Open" action="{!OpenExistingPageLayout}" styleClass="btn btn-primary"/>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+
+            <apex:pageBlock mode="maindetail" title="Create New Page Layout" rendered="{!lstRecordType != null && lstRecordType.size > 0}">
+                <apex:pageBlockSection title="" collapsible="false" columns="1"></apex:pageBlockSection>
+                <apex:pageBlockSection columns="1">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Select Portal Type: "></apex:outputLabel>
+                        <apex:SelectList size="1" value="{!PortalType}" styleClass="ddlRecordType">
+                            <apex:SelectOptions value="{!PortalTypes}"></apex:SelectOptions>
+                        </apex:SelectList>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem rendered="{!lstExistingLayout != null && lstExistingLayout.size > 0}">
+                       <apex:outputLabel value="Clone From Existing: "></apex:outputLabel>
+                       <apex:inputCheckbox value="{!IsCloneQuiz}">
+                       <apex:actionSupport event="onchange" reRender="ddlExistingPageLayout" oncomplete="initializeForm()" status="getExistingPageLayout">
+                       </apex:actionSupport>
+                       <apex:actionStatus id="getExistingPageLayout">
+                           <apex:facet name="start">
+                               <apex:outputPanel layout="none">
+                                   <apex:image value="/img/loading.gif" styleClass="loadingimg"></apex:image>
+                               </apex:outputPanel>
+                           </apex:facet>
+                       </apex:actionStatus>
+                       </apex:inputCheckbox>
+                    </apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSection id="ddlExistingPageLayout" columns="1">
+                           <apex:pageBlockSectionItem rendered="{!lstExistingLayout != null && lstExistingLayout.size > 0 && IsCloneQuiz}" labelStyle="width:17.4%">
+                        <apex:outputLabel value="Select Existing Record Type to Clone: "></apex:outputLabel>
+                        <apex:SelectList size="1" value="{!existPageLayout}" styleClass="ddlRecordType">
+                            <apex:selectOption itemValue="" itemLabel="--- Select Existing PageLayout ---"></apex:selectOption>
+                            <apex:SelectOptions value="{!lstExistingLayout}"></apex:SelectOptions>
+                        </apex:SelectList>
+                     </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Select Record Type: "></apex:outputLabel>
+                        <apex:SelectList size="1" value="{!selectedRecordType}" styleClass="ddlRecordType">
+                            <apex:selectOption itemValue="" itemLabel="--- Select RecordType ---"></apex:selectOption>
+                            <apex:SelectOptions value="{!lstRecordType}"></apex:SelectOptions>
+                        </apex:SelectList>
+                    </apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value=""></apex:outputLabel>
+                        <apex:commandButton value="Create New" action="{!createNewPageLayout}" styleClass="btn btn-primary"/>
+                    </apex:pageBlockSectionItem>
+
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:outputPanel>
+    </apex:outputPanel>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            initializeForm();
+        });
+        function initializeForm(){
+            try{
+                $('.objectOptions').select2({
+                    placeholder: "Select Object"
+                });
+            } catch(ex){
+            }
+
+            try{
+                $('.ddlRecordType').select2({
+                    minimumResultsForSearch: -1
+                });
+            } catch(ex){
+            }
+            $('.apexp').addClass('apexp_dashboard');
+            $(".mainForm").addClass("GuidestarFieldMapping_margintop");
+        }
+     </script>
+
+   </apex:form>
+</apex:page>

@@ -1,0 +1,10 @@
+<apex:page standardcontroller="Campaign" extensions="CommunityApplicationExtension" sidebar="false" showHeader="true" standardstylesheets="false" lightningStylesheets="true" language="{!portalLanguage}" action="{!initialize}" >
+<style type="text/css">
+  .headerSearchContainer, #setupLink {
+    display: none !important;
+  }
+</style>
+
+<apex:include pageName="{!$Page.CommunityApplicationInitialized}" rendered="{!initialized}"/>
+
+</apex:page>

@@ -1,0 +1,20 @@
+        tfoot 
+        {
+            display: table-footer-group !important;
+        }
+        .noLink, .noLink:hover 
+        {
+            color: black;
+            text-decoration: none;
+            cursor: default;
+        }
+        .lblFileInput 
+        {
+            width: 185px !important;
+            min-width: 185px !important;
+            max-width: 185px !important;
+            height: 30px !important;
+            border-right: 5px;
+            word-wrap: break-word;
+            margin-right: 2%;
+        }

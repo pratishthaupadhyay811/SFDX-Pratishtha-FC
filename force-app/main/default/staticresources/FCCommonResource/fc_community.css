@@ -1,0 +1,1110 @@
+.headerSearchContainer, a.menuButtonMenuLink[title="My Settings"] {
+	display: none !important ;
+}
+
+ input[type="text"]
+    {   
+        vertical-align: middle;
+        -webkit-border-radius: 4px;
+        -moz-border-radius: 4px;
+        border-radius: 4px;
+    }
+    input[type="radio"],input[type="checkbox"], input[type="radio"] + label, input[type="checkbox"] + label
+    {
+        cursor:pointer;
+    }
+    input[disabled], select[disabled], textarea[disabled], input[readonly], select[readonly], textarea[readonly],input[disabled="disabled"]
+    {
+        cursor: not-allowed !important;
+        background-color: #eeeeee;
+    }
+        
+        /*--------------------------------------------------*\
+                    CSS for Alert box
+        \*--------------------------------------------------*/
+        
+           .bootbox.fade {
+			    opacity: 0;
+			    -webkit-transition: opacity .15s linear;
+			    transition: opacity .15s linear;
+			}
+			     .bootbox.fade.in {
+			        opacity: 1;
+			    }
+			.bootbox .close {
+			    float: right;
+			    font-size: 21px;
+			    font-weight: bold;
+			    line-height: 1;
+			    color: #000;
+			    text-shadow: 0 1px 0 #fff;
+			    opacity: .2;
+			    filter: alpha(opacity=20);
+			}
+			    .bootbox .close:hover, .bootbox .close:focus {
+			        color: #000;
+			        text-decoration: none;
+			        cursor: pointer;
+			        opacity: .5;
+			        filter: alpha(opacity=50);
+			    }
+			.bootbox button.close {
+			    padding: 0;
+			    cursor: pointer;
+			    background: transparent;
+			    border: 0;
+			    -webkit-appearance: none;
+			}
+			.bootbox .modal-open {
+			    overflow: hidden;
+			}
+			    body.modal-open, .modal-open .navbar-fixed-top, .modal-open .navbar-fixed-bottom {
+			        margin-right: 15px;
+			    }
+			.bootbox.modal {
+			    position: fixed;
+			    top: 0;
+			    right: 0;
+			    bottom: 0;
+			    left: 0;
+			    z-index: 1040;
+			    display: none;
+			    overflow: hidden;
+			    //overflow-y: scroll;
+			}
+			    .bootbox.modal.fade .modal-dialog {
+			        -webkit-transform: translate(0,-25%);
+			        -ms-transform: translate(0,-25%);
+			        transform: translate(0,-25%);
+			        -webkit-transition: -webkit-transform .3s ease-out;
+			        -moz-transition: -moz-transform .3s ease-out;
+			        -o-transition: -o-transform .3s ease-out;
+			        transition: transform .3s ease-out;
+			    }
+			    .bootbox.modal.in .modal-dialog {
+			        -webkit-transform: translate(0,0);
+			        -ms-transform: translate(0,0);
+			        transform: translate(0,0);
+			    }
+			.bootbox .modal-dialog {
+			    z-index: 1050;
+			    width: auto;
+			    padding: 10px;
+			    margin-right: auto;
+			    margin-left: auto;
+			}
+			.bootbox .modal-content {
+			    position: relative;
+			    background-color: #fff;
+			    border: 1px solid #999;
+			    border: 1px solid rgba(0,0,0,0.2);
+			    border-radius: 6px;
+			    outline: 0;
+			    -webkit-box-shadow: 0 3px 9px rgba(0,0,0,0.5);
+			    box-shadow: 0 3px 9px rgba(0,0,0,0.5);
+			    background-clip: padding-box;
+			}
+			 .modal-backdrop {
+			    position: fixed;
+			    top: 0;
+			    right: 0;
+			    bottom: 0;
+			    left: 0;
+			    z-index: 1030;
+			    background-color: #000;
+			}
+			     .modal-backdrop.fade {
+			        opacity: 0;
+			        filter: alpha(opacity=0);
+			    }
+			     .modal-backdrop.in {
+			        opacity: .5;
+			        filter: alpha(opacity=50);
+			    }
+			.bootbox .modal-header {
+			    min-height: 16.428571429px;
+			    padding: 15px;
+			    border-bottom: 1px solid #e5e5e5;
+			}
+			    .bootbox .modal-header .close {
+			        margin-top: -2px;
+			    }
+			.bootbox .modal-title {
+			    margin: 0;
+			    line-height: 1.428571429;
+			}
+			.bootbox .modal-body {
+			    position: relative;
+			    padding: 20px;
+			}
+			.bootbox .modal-footer {
+			    padding: 19px 20px 20px;
+			    margin-top: 15px;
+			    text-align: right;
+			    border-top: 1px solid #e5e5e5;
+			}
+			    .bootbox .modal-footer:before, .modal-footer:after {
+			        display: table;
+			        content: " ";
+			    }
+			    .bootbox .modal-footer:after {
+			        clear: both;
+			    }
+			    .bootbox .modal-footer:before, .modal-footer:after {
+			        display: table;
+			        content: " ";
+			    }
+			    .bootbox .modal-footer:after {
+			        clear: both;
+			    }
+			    .bootbox .modal-footer .btn + .btn {
+			        margin-bottom: 0;
+			        margin-left: 5px;
+			    }
+			    .bootbox .modal-footer .btn-group .btn + .btn {
+			        margin-left: -1px;
+			    }
+			    .bootbox .modal-footer .btn-block + .btn-block {
+			        margin-left: 0;
+			    }
+			    .bootbox .modal-footer .btn {
+			    	display: inline-block;
+					padding: 6px 12px;
+					margin-bottom: 0;
+					font-size: 14px;
+					font-weight: normal;
+					line-height: 1.428571429;
+					text-align: center;
+					white-space: nowrap;
+					vertical-align: middle;
+					cursor: pointer;
+					border: 1px solid transparent;
+					border-radius: 4px;
+					-webkit-user-select: none;
+					-moz-user-select: none;
+					-ms-user-select: none;
+					-o-user-select: none;
+					user-select: none;
+					background-image: none;
+			    }
+			    .bootbox .modal-footer .btn-primary {
+					color:#fff;
+					background-color:#428bca;
+					border-color:#357ebd;
+				}
+					
+				.bootbox .modal-footer .btn-primary:hover,.btn-primary:focus,.btn-primary:active,.btn-primary.active,.open .dropdown-toggle.btn-primary {
+					color:#fff;
+					background-color:#3276b1;
+					border-color:#285e8e;
+				}
+					
+				.bootbox .modal-footer .btn-primary.disabled,.btn-primary[disabled],fieldset[disabled] .btn-primary,.btn-primary.disabled:hover,.btn-primary[disabled]:hover,fieldset[disabled] .btn-primary:hover,.btn-primary.disabled:focus,.btn-primary[disabled]:focus,fieldset[disabled] .btn-primary:focus,.btn-primary.disabled:active,.btn-primary[disabled]:active,fieldset[disabled] .btn-primary:active,.btn-primary.disabled.active,.btn-primary[disabled].active,fieldset[disabled] .btn-primary.active {
+					background-color:#428bca;
+					border-color:#357ebd;
+				}
+				
+				.bootbox .modal-footer .btn-default {
+					color:#333;
+					background-color:#fff;
+					border-color:#ccc;
+					}
+					
+				.bootbox .modal-footer .btn-default:hover,.btn-default:focus,.btn-default:active,.btn-default.active,.open .dropdown-toggle.btn-default {
+					color:#333;
+					background-color:#ebebeb;
+					border-color:#adadad;
+					}
+					
+				.bootbox .modal-footer .btn-default.disabled,.btn-default[disabled],fieldset[disabled] .btn-default,.btn-default.disabled:hover,.btn-default[disabled]:hover,fieldset[disabled] .btn-default:hover,.btn-default.disabled:focus,.btn-default[disabled]:focus,fieldset[disabled] .btn-default:focus,.btn-default.disabled:active,.btn-default[disabled]:active,fieldset[disabled] .btn-default:active,.btn-default.disabled.active,.btn-default[disabled].active,fieldset[disabled] .btn-default.active {
+					background-color:#fff;
+					border-color:#ccc;
+					}
+			@media screen and (min-width:768px) {
+			    .bootbox .modal-dialog {
+			        right: auto;
+			        left: 50%;
+			        width: 600px;
+			        padding-top: 30px;
+			        padding-bottom: 30px;
+			    }
+			    .bootbox .modal-content {
+			        -webkit-box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+			        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+			    }
+			}
+            
+         /*--------------------------------------------------*\
+                   End CSS for Alert box
+        \*--------------------------------------------------*/
+        
+        
+         /*--------------------------------------------------*\
+             CSS for Model Pop-Up  relatedListForm-wrapper
+        \*--------------------------------------------------*/
+        
+        
+         .popup .modal {
+                position:fixed;
+                top:10%;
+                left:44%;
+                z-index:1050;
+                width:760px;
+                margin-left:-260px;
+                background-color:#fff;
+                border:1px solid #999;
+                -webkit-border-radius:6px;
+                -moz-border-radius:6px;
+                border-radius:6px;
+                -webkit-box-shadow:0 3px 7px rgba(0,0,0,0.3);
+                -moz-box-shadow:0 3px 7px rgba(0,0,0,0.3);
+                box-shadow:0 3px 7px rgba(0,0,0,0.3);
+                -webkit-background-clip:padding-box;
+                -moz-background-clip:padding-box;
+                background-clip:padding-box;
+                outline:none;
+                overflow-y:auto;
+                bottom: initial;
+                display:"block";
+            }
+            
+            .newOpportunityTeamMemberForm.popup .modal{
+            	width:350px;
+            	margin-left:-120px;
+            }
+            
+            .relatedListForm-wrapper input[type="text"],.mainForm .newOpportunityTeamMemberForm.popup input[type="text"]{
+				min-width: 15em;
+			}
+			.mainForm .newOpportunityTeamMemberForm.popup input[type="text"]{
+				padding:0.3em;
+			}
+                
+            .popup .modal.fade {
+                -webkit-transition:opacity .3s linear, top .3s ease-out;
+                -moz-transition:opacity .3s linear, top .3s ease-out;
+                -o-transition:opacity .3s linear, top .3s ease-out;
+                transition:opacity .3s linear, top .3s ease-out;
+                top:-25%;
+            }
+                
+            .popup .modal.fade.in {
+                top:10%;
+            }
+                
+            .popup .modal-header {
+                border-bottom:none;
+                padding:9px 15px;
+            }
+                
+            .popup .modal-header .close {
+                margin-top:2px;
+                padding: 0;
+                cursor: pointer;
+                background: transparent;
+                border: 0;
+                -webkit-appearance: none;
+                float: right;
+                font-size: 20px;
+                font-weight: bold;
+                line-height: 20px;
+                color: #000000;
+                text-shadow: 0 1px 0 #ffffff;
+                opacity: 0.2;
+                filter: alpha(opacity=20);                
+            }
+                .popup .close:hover,.close:focus {
+                    color:#000;
+                    text-decoration:none;
+                    cursor:pointer;
+                    opacity:0.4;
+                    filter:alpha(opacity=40);
+                }
+        .popup .modal-backdrop {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                z-index: 1040;
+                background-color: #000000;
+                opacity: 0.8;
+            }
+        .relatedListForm-wrapper input[type="text"]{
+            min-width:15em;         
+        }
+        
+        .popup .modal-body {
+                position:relative;
+                overflow-y:auto;
+                max-height:400px;
+                padding:15px;
+            }
+            .popup .modal-header {
+                padding: 9px 15px;
+                border-bottom: 1px solid #eee;
+            }
+
+            .popup  .modal-header h3 {
+                margin: 0;
+                line-height: 30px;
+            }
+
+            .popup .modal-footer {
+                padding: 14px 15px 15px;
+                margin-bottom: 0;
+                text-align: right;
+                background-color: #f5f5f5;
+                border-top: 1px solid #ddd;
+                -webkit-border-radius: 0 0 6px 6px;
+                -moz-border-radius: 0 0 6px 6px;
+                border-radius: 0 0 6px 6px;
+                -webkit-box-shadow: inset 0 1px 0 #ffffff;
+                -moz-box-shadow: inset 0 1px 0 #ffffff;
+                box-shadow: inset 0 1px 0 #ffffff;
+            }
+
+            .popup .modal-footer:before, .popup .modal-footer:after {
+                display: table;
+                content: "";
+                line-height: 0;
+            }
+
+            .popup .modal-footer:after {
+                clear: both;
+            }
+
+            .popup .modal-footer:before, .popup .modal-footer:after {
+                display: table;
+                content: "";
+                line-height: 0;
+            }
+        
+        /*-----------------------------------*\
+               End Model Pop-Up CSS
+         |*-----------------------------------*/
+        
+         /*-----------------------------------*\
+                Common Css for Text Box
+         |*-----------------------------------*/
+            
+            .mainForm textarea,
+            .mainForm input[type="text"],
+            .mainForm input[type="password"],
+             .mainForm input[type="datetime"],
+             .mainForm input[type="datetime-local"],
+             .mainForm input[type="date"],
+             .mainForm input[type="month"],
+             .mainForm input[type="time"],
+             .mainForm input[type="week"],
+             .mainForm input[type="number"],
+             .mainForm input[type="email"],
+             .mainForm input[type="url"],
+            .mainForm input[type="search"],
+            .mainForm input[type="tel"],
+            .mainForm input[type="color"],
+             .mainForm .uneditable-input,            
+             .relatedListFormPopUp textarea,
+            .relatedListFormPopUp input[type="text"],
+             .subForm .uneditable-input,            
+             .subForm textarea,
+             .mainForm select[multiple="multiple"],
+            .subForm input[type="text"],                        
+             .relatedListFormPopUp .uneditable-input {
+              background-color: #ffffff;
+              border: 1px solid #cccccc;
+              -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+                 -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+                      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+              -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
+                 -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
+                   -o-transition: border linear 0.2s, box-shadow linear 0.2s;
+                      transition: border linear 0.2s, box-shadow linear 0.2s;
+                -webkit-border-radius: 4px;
+                    -moz-border-radius: 4px;
+                        border-radius: 4px;
+            }            
+             .mainForm textarea:focus,
+             .mainForm input[type="text"]:focus,
+             .mainForm input[type="password"]:focus,
+             .mainForm input[type="datetime"]:focus,
+             .mainForm input[type="datetime-local"]:focus,
+             .mainForm input[type="date"]:focus,
+             .mainForm input[type="month"]:focus,
+            .mainForm input[type="time"]:focus,
+             .mainForm input[type="week"]:focus,
+             .mainForm input[type="number"]:focus,
+             .mainForm input[type="email"]:focus,
+            .mainForm input[type="url"]:focus,
+             .mainForm input[type="search"]:focus,
+            .mainForm input[type="tel"]:focus,
+            .mainForm input[type="color"]:focus,
+            .mainForm .uneditable-input:focus,
+             .relatedListFormPopUp textarea:focus,
+              .subForm .uneditable-input:focus,            
+             .subForm textarea:focus,
+             .mainForm select:focus,
+            .subForm input[type="text"]:focus,   
+             .relatedListFormPopUp input[type="text"]:focus,
+             .mainForm .select2-container:focus            
+            .relatedListFormPopUp .uneditable-input:focus {
+              border-color: rgba(82, 168, 236, 0.8);
+              outline: 0;
+              outline: thin dotted \9;
+              /* IE6-9 */
+            
+              -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+                 -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+                      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+            }
+            
+            .mainForm input.error{
+           		border-color: rgba(199, 52, 63, 0.8);;
+              outline: 0;
+              outline: thin dotted \9;
+              /* IE6-9 */
+            
+              -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(236, 82, 100, 0.6);
+                 -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(236, 82, 100, 0.6);
+                      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(236, 82, 100, 0.6);
+            }
+           .mainForm select,
+           .relatedListFormPopUp select
+           {
+           	width: auto%;
+			height: auto;
+			padding: 6px 12px;
+			font-size: 14px;
+			line-height: 1.42857143;
+			color: #555;
+			background-color: #fff;
+			background-image: none;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+			box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+			-webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+			-o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+			transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+           }
+           .mainForm .newOpportunityTeamMemberForm.popup select{
+           		min-width:15em;
+           		padding:0.2em;
+           }
+           
+          /*-----------------------------------*\
+                Css for Checkbox to Switch
+         |*-----------------------------------*/
+         
+         .mainForm .switch {
+		  position: relative;
+		  //top: 50%;
+		  //left: 50%;
+		  width: 18%;
+		  height: 36px;
+		  text-align: center;
+		  //margin: -30px 0 0 -75px;
+		  background: #29BE43;
+		  -webkit-transition: all 0.2s ease;
+		  -moz-transition: all 0.2s ease;
+		  -o-transition: all 0.2s ease;
+		  -ms-transition: all 0.2s ease;
+		  transition: all 0.2s ease;
+		  -webkit-border-radius: 25px;
+		  border-radius: 25px;
+		}
+		.mainForm .switch span {
+		  position: absolute;
+		  width: 20px;
+		  height: 4px;
+		  top: 50%;
+		  left: 50%;
+		  margin: -2px 0px 0px -4px;
+		  background: #fff;
+		  display: block;
+		  -webkit-transform: rotate(-45deg);
+		  -moz-transform: rotate(-45deg);
+		  -o-transform: rotate(-45deg);
+		  -ms-transform: rotate(-45deg);
+		  transform: rotate(-45deg);
+		  -webkit-transition: all 0.2s ease;
+		  -moz-transition: all 0.2s ease;
+		  -o-transition: all 0.2s ease;
+		  -ms-transition: all 0.2s ease;
+		  transition: all 0.2s ease;
+		}
+		.mainForm .switch span:after {
+		  content: "";
+		  display: block;
+		  position: absolute;
+		  width: 4px;
+		  height: 12px;
+		  margin-top: -8px;
+		  background: #fff;
+		  -webkit-transition: all 0.2s ease;
+		  -moz-transition: all 0.2s ease;
+		  -o-transition: all 0.2s ease;
+		  -ms-transition: all 0.2s ease;
+		  transition: all 0.2s ease;
+		}
+		.mainForm .switch label {
+		  cursor: pointer;
+		  color: rgba(0,0,0,0.2);
+		  width: 50%;
+		  line-height: 36px;
+		  -webkit-transition: all 0.2s ease;
+		  -moz-transition: all 0.2s ease;
+		  -o-transition: all 0.2s ease;
+		  -ms-transition: all 0.2s ease;
+		  transition: all 0.2s ease;
+		}
+		.mainForm label[data-status="checked"] {
+		  position: absolute;
+		  left: 0px;
+		  height: 20px;
+		}
+		.mainForm label[data-status="unchecked"] {
+		  position: absolute;
+		  right: 0px;
+		}
+		.mainForm input[type="checkbox"]:not(:checked) ~ .switch {
+		  background: #BB4B46;
+		}
+		.mainForm input[type="checkbox"]:not(:checked) ~ .switch span {
+		  background: #fff;
+		  margin-left: -8px;
+		}
+		.mainForm input[type="checkbox"]:not(:checked) ~ .switch span:after {
+		  background: #fff;
+		  height: 20px;
+		  margin-top: -8px;
+		  margin-left: 8px;
+		}
+		.mainForm input[type="checkbox"]:checked ~ .switch label[data-status="checked"] {
+		  color: #fff;
+		}
+		.mainForm input[type="checkbox"]:not(:checked) ~ .switch label[data-status="unchecked"] {
+		  color: #fff;
+		}
+		
+		// css to Back to Conguration button block
+		.mainForm .config_section td+td{
+      		text-align:right !important;
+      	}
+            
+         /*-----------------------------------*\
+                 Css for Buttons
+         |*-----------------------------------*/
+            
+  		.mainForm .pure-button {
+			display:inline;
+			zoom:1;
+			line-height:normal;
+			white-space:nowrap;
+			vertical-align:baseline;
+			text-align:center;
+			cursor:pointer;
+			-webkit-user-drag:none;
+			-webkit-user-select:none;
+			-moz-user-select:none;
+			-ms-user-select:none;
+			user-select:none;
+			font-family:inherit;
+			font-size:105%;
+			font-weight: 500;
+			overflow:visible;
+			color:#444;
+			border:0 rgba(0,0,0,0);
+			background-color:#E6E6E6;
+			text-decoration:none;
+			border-radius:3px;
+			padding:.5em 0em;
+			min-width: 10em;
+		}
+			.mainForm .button-error,
+			.mainForm .button-warning,
+			.mainForm .button-secondary {
+            color: white;
+            border-radius: 5px;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+       	 }
+ 		.mainForm .button-error {
+            background: rgb(202, 60, 60); /* this is a maroon */
+        }
+
+        .mainForm .button-warning {
+            background: rgb(223, 117, 20); /* this is an orange */
+        }
+
+        .mainForm .button-secondary {
+            background: #1797c0; /* this is a light blue */
+        }
+        .mainForm .button-secondary:hover {
+			background: rgb(66, 184, 221);
+		}  
+		
+		.mainForm .primary_btn, .relatedListFormPopUp .primary_btn {
+            border: 1px solid #c5c6c8 !important;
+            -webkit-border-radius: 3px !important;
+            -moz-border-radius: 3px !important;
+            border-radius: 3px !important;
+            color: #404c5b !important;
+            font-size: 1.0em !important;
+            padding: .5em 1.5em !important;
+            font-family: Arial, Helvetica, sans-serif !important;
+        }
+       
+       .mainForm .btn, .relatedListFormPopUp .btn
+       {
+       				display: inline-block;
+					padding: 5px 12px;
+					margin-bottom: 0;
+					font-size: 14px;
+					font-weight: normal;
+					line-height: 1.428571429;
+					text-align: center;
+					white-space: nowrap;
+					vertical-align: middle;
+					cursor: pointer;
+					border: 1px solid transparent;
+					border-radius: 4px;
+					-webkit-user-select: none;
+					-moz-user-select: none;
+					-ms-user-select: none;
+					-o-user-select: none;
+					user-select: none;
+					background-image: none !important;
+					background-color:#0581b7 !important;
+					text-decoration:none;
+					color: #fff;
+			    }
+			    .mainForm .btn-primary, .relatedListFormPopUp .btn-primary {
+					color:#fff ;
+					background-color:#428bca;
+					border-color:#357ebd;
+				}
+					
+				.mainForm .btn-primary:hover,.btn-primary:focus,.btn-primary:active,.btn-primary.active,.open .dropdown-toggle.btn-primary {
+					color:#fff;
+					background-color:#3276b1;
+					border-color:#285e8e;
+				}
+					
+				.mainForm .modal-footer .btn-primary.disabled,.btn-primary[disabled],fieldset[disabled] .btn-primary,.btn-primary.disabled:hover,.btn-primary[disabled]:hover,fieldset[disabled] .btn-primary:hover,.btn-primary.disabled:focus,.btn-primary[disabled]:focus,fieldset[disabled] .btn-primary:focus,.btn-primary.disabled:active,.btn-primary[disabled]:active,fieldset[disabled] .btn-primary:active,.btn-primary.disabled.active,.btn-primary[disabled].active,fieldset[disabled] .btn-primary.active {
+					background-color:#428bca;
+					border-color:#357ebd;
+				}
+				
+				.mainForm .btn-default {
+					color:#333;
+					background-color:#fff;
+					border-color:#ccc;
+					}
+					
+				.mainForm .btn-default:hover,.btn-default:focus,.btn-default:active,.btn-default.active,.open .dropdown-toggle.btn-default {
+					color:#333;
+					background-color:#ebebeb;
+					border-color:#adadad;
+					}
+					
+				.mainForm .btn-default.disabled,.btn-default[disabled],fieldset[disabled] .btn-default,.btn-default.disabled:hover,.btn-default[disabled]:hover,fieldset[disabled] .btn-default:hover,.btn-default.disabled:focus,.btn-default[disabled]:focus,fieldset[disabled] .btn-default:focus,.btn-default.disabled:active,.btn-default[disabled]:active,fieldset[disabled] .btn-default:active,.btn-default.disabled.active,.btn-default[disabled].active,fieldset[disabled] .btn-default.active {
+					background-color:#fff;
+					border-color:#ccc;
+					color: #909090;
+					}
+       
+        .mainForm btn + btn, .relatedListFormPopUp btn + btn{
+            margin-left:1%;
+        }
+        
+        .mainForm .btn-success, .relatedListFormPopUp .btn-success {
+            color: #ffffff !important;
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25) !important;
+            background-color: #5bb75b !important;
+            background-image: -moz-linear-gradient(top, #62c462, #51a351) !important;
+            background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#62c462),
+                to(#51a351)) !important;
+            background-image: -webkit-linear-gradient(top, #62c462, #51a351)
+                !important;
+            background-image: -o-linear-gradient(top, #62c462, #51a351) !important;
+            background-image: linear-gradient(to bottom, #62c462, #51a351)
+                !important;
+            background-repeat: repeat-x !important;
+            border-color: #51a351 #51a351 #387038 !important;
+            border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25)
+                !important;
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff62c462',
+                endColorstr='#ff51a351', GradientType=0) !important;
+            filter: progid:DXImageTransform.Microsoft.gradient(enabled=false)
+                !important;
+        }
+        
+        
+        .mainForm .btn-success:hover,.btn-success:focus,.btn-success:active, .relatedListFormPopUp .btn-success:hover,.btn-success:focus,.btn-success:active {
+            color: #ffffff;
+            background-color: #51a351;
+            *background-color: #499249;
+        }
+        
+        .mainForm .btn-success:active,.btn-success.active, .relatedListFormPopUp .btn-success:active,.btn-success.active {
+            background-color: #408140 \9;
+        }    
+        
+        /*--------------------------------------------------------*\
+                 Css for Dropdown Button (Used for Add tab)
+        \*-----------------------------------------------------------*/
+        
+        
+         .ddl_btn.btn-group{
+        position: relative;
+        display: inline-block;
+       /* font-size: 0; */
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+    .ddl_btn .btn-group > .btn:first-child {
+        margin-left: 0;
+        -webkit-border-bottom-left-radius: 4px;
+        border-bottom-left-radius: 4px;
+        -webkit-border-top-left-radius: 4px;
+        border-top-left-radius: 4px;
+        -moz-border-radius-bottomleft: 4px;
+        -moz-border-radius-topleft: 4px;
+    }
+    .ddl_btn .btn-group > .btn:last-child, .btn-group > .dropdown-toggle {
+        -webkit-border-top-right-radius: 4px;
+        border-top-right-radius: 4px;
+        -webkit-border-bottom-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+        -moz-border-radius-topright: 4px;
+        -moz-border-radius-bottomright: 4px;
+        //margin-top: -2px;
+    }
+    .ddl_btn .btn-group > .btn, .btn-group > .dropdown-menu, .btn-group > .popover {
+        font-size: 14px;
+    }
+    .ddl_btn .btn-group > .btn {
+        position: relative;
+        -webkit-border-radius: 0;
+        -moz-border-radius: 0;
+        border-radius: 0;
+    }
+    .bootstrap_btn
+    {
+        margin: 0px 3px !important;
+    }
+    .ddl_btn .btn:hover,
+    .ddl_btn .btn:focus,
+    .ddl_btn .btn:active,
+    .ddl_btn .btn.active,
+    .ddl_btn .btn.disabled,
+    .ddl_btn .btn[disabled] {
+      color: #333333;
+      background-color: #e6e6e6;
+      *background-color: #d9d9d9;
+    }
+
+    .ddl_btn .btn:active,
+    .ddl_btn .btn.active {
+      background-color: #cccccc \9;
+    }
+    .ddl_btn .btn:hover,
+    .ddl_btn .btn:focus {
+      color: #333333;
+      text-decoration: none;
+      background-position: 0 -15px;
+      -webkit-transition: background-position 0.1s linear;
+     -moz-transition: background-position 0.1s linear;
+       -o-transition: background-position 0.1s linear;
+          transition: background-position 0.1s linear;
+    }
+
+    .ddl_btn .btn:focus {
+      outline: thin dotted #333;
+      outline: 5px auto -webkit-focus-ring-color;
+      outline-offset: -2px;
+    }
+
+    .ddl_btn .btn.active,
+    .ddl_btn .btn:active {
+      background-image: none;
+      outline: 0;
+      -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+         -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+              box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .ddl_btn .btn.disabled,
+    .ddl_btn .btn[disabled] {
+      cursor: default;
+      background-image: none;
+      opacity: 0.65;
+      filter: alpha(opacity=65);
+      -webkit-box-shadow: none;
+         -moz-box-shadow: none;
+              box-shadow: none;
+    }
+    .ddl_btn .btn .caret {
+margin-top: 8px;
+margin-left: 0;
+}
+.ddl_btn .caret {
+display: inline-block;
+width: 0;
+height: 0;
+vertical-align: top;
+border-top: 4px solid #000000;
+border-right: 4px solid transparent;
+border-left: 4px solid transparent;
+content: "";
+}
+
+.ddl_btn .dropdown-menu {
+position: absolute;
+top: 100%;
+left: 0;
+z-index: 1000;
+display: none;
+float: left;
+min-width: 160px;
+padding: 5px 0;
+margin: 2px 0 0;
+list-style: none;
+background-color: #ffffff;
+border: 1px solid #ccc;
+border: 1px solid rgba(0, 0, 0, 0.2);
+-webkit-border-radius: 6px;
+-moz-border-radius: 6px;
+border-radius: 6px;
+-webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+-moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+-webkit-background-clip: padding-box;
+-moz-background-clip: padding;
+background-clip: padding-box;
+}
+.ddl_btn li {
+line-height: 20px;
+margin-left: 0; 
+}
+.btn-group.open .btn.dropdown-toggle {
+background-color: #e6e6e6;
+}
+.btn-group.open .dropdown-toggle {
+background-image: none;
+-webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+-moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.btn-group .dropdown-toggle:active, .btn-group.open .dropdown-toggle {
+outline: 0;
+}
+.dropdown-toggle:active, .open .dropdown-toggle {
+outline: 0;
+}
+.open > .dropdown-menu {
+display: block;
+}
+.dropdown-menu > li > a {
+display: block;
+padding: 3px 20px;
+clear: both;
+font-weight: normal;
+line-height: 20px;
+color: #333333;
+white-space: nowrap;
+text-decoration: none;
+}
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus,
+.dropdown-submenu:hover > a,
+.dropdown-submenu:focus > a {
+  color: #ffffff;
+  text-decoration: none;
+  background-color: #0081c2;
+  background-image: -moz-linear-gradient(top, #0088cc, #0077b3);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0077b3));
+  background-image: -webkit-linear-gradient(top, #0088cc, #0077b3);
+  background-image: -o-linear-gradient(top, #0088cc, #0077b3);
+  background-image: linear-gradient(to bottom, #0088cc, #0077b3);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0077b3', GradientType=0);
+}
+
+.dropdown-menu > .active > a,
+.dropdown-menu > .active > a:hover,
+.dropdown-menu > .active > a:focus {
+  color: #ffffff;
+  text-decoration: none;
+  background-color: #0081c2;
+  background-image: -moz-linear-gradient(top, #0088cc, #0077b3);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0077b3));
+  background-image: -webkit-linear-gradient(top, #0088cc, #0077b3);
+  background-image: -o-linear-gradient(top, #0088cc, #0077b3);
+  background-image: linear-gradient(to bottom, #0088cc, #0077b3);
+  background-repeat: repeat-x;
+  outline: 0;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0077b3', GradientType=0);
+}
+
+  /*--------------------------------------------------------*\
+               END  Css for Dropdown Button (Used for Add tab)
+ \*-----------------------------------------------------------*/
+ 
+ 
+ /*--------------------------------------------------------*\
+          CSS for Print Media
+ \*-----------------------------------------------------------*/
+ 
+ 
+ @media print {
+   .noPrint, .dataTables_filter, .dataTables_info {
+        display:none !important;
+    }
+}
+
+ /* for encoding */
+span[unescape="true"]{
+    visibility: hidden;	
+}  
+        
+/* New CSS by Urmila*/   
+/*Community Landing page start*/ 
+body {
+		font-family: Verdana, Arial, Helvetica, sans-serif !important;
+    	font-size: 12px !important;
+		}
+ #maincontainer {
+        width: 100%;
+        position: relative;
+        margin: 0 auto;
+        }   
+ a {
+            color: #b79405;
+        }
+        span {
+            font-family: verdana;
+            font-size: 12px;
+        }
+        body .bPageTitle .ptBody .pageType {
+            font-size: 12px;
+            font-weight: bold;
+            color: #4A4A56;
+            padding-left: 1px;
+            font-family: verdana;
+        }
+        body .bPageTitle .ptBody .pageDescription {
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.1em;
+            color: #0581b7;
+            font-family: verdana;
+        }
+        .leftbox {
+            float: left;
+            width: 17%;
+            background-color: #0581b7;
+            margin-top: 20px;
+            padding: 25px 10px;
+        }
+        .leftbox h1 {
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-size: 18px;
+            color: #fff;
+            line-height: 30px;
+            font-weight: normal;
+        }
+        .searchkeywordbox {
+            background-color: #e1e1e1;
+            float: left;
+            width: 78%;
+            margin-top: 20px;
+            margin-left: 20px;
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            padding: 10px;
+        } 
+        .searchkeywordbox h4 {
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            color: #000;
+            line-height: 30px;
+        }
+        .searchkeywordbox .radiobox {
+            margin: 10px 0 0px -13px;
+        }
+        .form-control {
+            display: block;
+            width: 98%;
+            height: 25px;
+            padding: 4px 5px;
+            font-size: 12px;
+            line-height: 1.428571429;
+            color: #333333;
+            vertical-align: middle;
+            border: 1px solid #dddddd;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+        }
+        .btn {
+            display: inline-block;
+            border-radius: 6px;
+            background: #0581b7 !important;
+            line-height: 1.5em;
+            text-align: center;
+            text-decoration: none;
+            font-family: Verdana, Arial, Helvetica, sans-serif !important;
+            border: none !important;
+            font-size: 12px;
+            font-weight: bold !important;
+            color: #fff !important;
+            padding: 10px 25px !important;
+        }
+        #rightbox {
+            float: left;
+            border: 1px solid #c5c5c5;
+            width: 78%;
+            min-height: 300px;
+            margin-top: 20px;
+            margin-left: 20px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .campaign-item {
+            padding: 1em 0em;
+            border-bottom: 1px solid #ccc;
+            font-size: 125%;
+        }        
+        .campaign-item a {
+            color: #0581b7;
+        }        
+        .campaign-item h1 {
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            font-weight: normal;
+        }        
+        .campaign-item .deadline {
+            margin: 0.5em 0em;
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-size: 12px;
+        }        
+        .campaign-item .deadline strong {
+            margin-right: 1em;
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+        }        
+        .campaign-item .description {
+            margin-top: 1em;
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+/*Community Landing page End*/
+                 
+        

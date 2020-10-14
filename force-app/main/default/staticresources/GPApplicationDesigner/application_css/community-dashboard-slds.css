@@ -1,0 +1,614 @@
+/* Oktana */
+.headerSearchContainer {
+    display: none !important ;
+  }
+  
+  .left-spacing {
+    margin-left: .25rem;
+  }
+  
+  /* Sidebar */
+  #tabs {
+    padding: 24px 0;
+    background: #f3f2f2;
+    border-radius: 1px;
+  }
+  
+  #tabs a.slds-nav-vertical__action.ng-binding {
+    padding: 16px 24px 16px 32px;
+  }
+  
+  #tabs .slds-nav-vertical__item.slds-is-active .slds-nav-vertical__action {
+    background-color: white;
+    border-top: 1px solid #c9c9c9;
+    border-bottom: 1px solid #c9c9c9;
+    border-right: 1px solid #c9c9c9;
+  }
+  
+  /* Content */
+  .slds-card {
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,.1) !important;
+  }
+  .slds-card .slds-card__header {
+    margin: 0;
+    padding: .75rem 1rem;
+    background-color: #f3f2f2;
+  }
+  
+  .community-dashboard .slds-card .slds-page-header {
+    background-color: #f3f2f2; 
+  }
+  
+  .table_div_tablist {
+    margin-bottom: 16px;
+  }
+  
+  /* Inbox Tab */
+  .inbox-template .slds-media__figure .slds-icon_container,
+  .applications-page .slds-media__figure .slds-icon_container {
+    background-color: #eb707a;
+  }
+  .inbox-template .slds-media__body h1,
+  .applications-page .slds-media__body {
+    margin: auto 0 !important;
+  }
+  .inbox-template .slds-page-header__name,
+  .applications-page .slds-page-header__name {
+    width: 100%;
+  }
+  .inbox-template .slds-page-header__name-title,
+  .applications-page .slds-page-header__name-title {
+    display: flex;
+    width: 100%;
+  }
+  .inbox-template .slds-page-header__name-title .actions,
+  .applications-page .slds-page-header__name-title .actions {
+    margin-left: auto;
+  }
+  
+  .inbox-message-details {
+    display: flex;
+    flex-direction: column;
+    padding: 16px; 
+  }
+  .inbox-message-details #headerSub {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 8px 0;
+  }
+  .inbox-message-details .details .subject {
+    padding: 0 0 16px;
+  }
+  .inbox-message-details .details .sender {
+    display: flex;
+  }
+  .inbox-message-details .details .sender > div {
+    display: flex;
+    flex-direction: column;
+    margin: 4px 0 0 8px;
+    font-size: 14px;
+  }
+  .inbox-message-details .content {
+    margin: 1em 0;
+    padding: 1em 0;
+    border-top: 2px solid #bebebe;
+  }
+  
+  /* Table */
+  .slds-scope .slds-table thead th {
+    background-color: #fafaf9 !important;
+  }
+  .slds-scope .slds-table tbody tr > td {
+    min-width: 32px;
+  }
+  .slds-scope .slds-table tbody tr.even:not(:hover) > td {
+    background-color: white !important;
+  }
+  .slds-scope .slds-table tbody tr.unread {
+    font-weight: bold !important;
+  }
+  
+  /* jQuery Controls above the list */
+  div#tblEmailList_length,
+  div#dataTableId_length {
+    display: none;
+  }
+  
+  .fg-toolbar.ui-toolbar.ui-widget-header.ui-helper-clearfix.ui-corner-tl.ui-corner-tr {
+    display: flex;
+    padding: 16px 24px;
+  }
+  div#tblEmailList_filter,
+  div#dataTableId_filter {
+    margin: 0 0 0 auto;
+  }
+  div#tblEmailList_filter label,
+  div#dataTableId_filter label {
+    display: flex;
+  }
+  div#tblEmailList_filter label input[type="search"],
+  div#dataTableId_filter label input[type="search"] {
+    margin: -5px 0 0 8px;
+    background-color: #fff;
+    border: 1px solid #dddbda;
+    border-radius: 0.25rem;
+    width: 100%;
+    -webkit-transition: border 0.1s linear, background-color 0.1s linear;
+    transition: border 0.1s linear, background-color 0.1s linear;
+    display: inline-block;
+    padding: 0 1rem 0 0.75rem;
+    line-height: 1.875rem;
+    min-height: calc(1.875rem + (1px * 2));
+  }
+  
+  /* jQuery Controls below the list */
+  .fg-toolbar.ui-toolbar.ui-widget-header.ui-helper-clearfix.ui-corner-bl.ui-corner-br {
+    display: flex;
+    margin: 16px 24px;
+  }
+  .inbox-template div#tblEmailList_paginate,
+  .applications-page div#dataTableId_paginate {
+    margin: 0 0 0 auto;
+  }
+  
+  /* Pagination links */
+  .inbox-template .dataTables_paginate > span > a,
+  .applications-page .dataTables_paginate > span > a,
+  .inbox-template a#dataTableId_first,
+  .inbox-template a#dataTableId_last,
+  .inbox-template a#tblEmailList_previous,
+  .inbox-template a#tblEmailList_next,
+  .applications-page a#dataTableId_first,
+  .applications-page a#dataTableId_last,
+  .applications-page a#dataTableId_previous,
+  .applications-page a#dataTableId_next {
+    color: #006DCC;
+    padding: 0.5rem 0.5rem;
+    text-align: center;
+    vertical-align: middle;
+    border-radius: 0.25rem;
+    -webkit-transition: border 0.15s linear;
+    transition: border 0.15s linear;
+  }
+  
+  .inbox-template #tblEmailList .dataTables_empty,
+  .applications-page #dataTableId .dataTables_empty {
+    padding: 8px 0;
+    text-align: center;
+  }
+  
+  /* Applications tab */
+  #dataTableId {
+    display: block;
+    overflow-x: auto;
+    height: 630px !important;
+    width: auto !important;
+  }
+  
+  #dataTableId tr th:first-child, #dataTableId tr th:nth-child(2),
+  #dataTableId tr td:first-child, #dataTableId tr td:nth-child(2) {
+    min-width: 50px !important;
+    max-width: 50px !important;
+  }
+  
+  #dataTableId tr th:not(:first-child):not(:nth-child(2)),
+  #dataTableId tr td:not(:first-child):not(:nth-child(2)) {
+    width: 30% !important;
+  }
+  
+  #dataTableId tbody tr td img {
+    height: 16px;
+  }
+  #dataTableId th.slds-truncate.sorting_disabled.ui-state-default {
+    /* width: 32px !important; */
+    padding: 0 8px;
+  }
+  
+  /* Other tabs */
+  .slds-scope td.col-actions {
+    text-align: right;
+  }
+  
+  .slds-scope td.show-nested-table-btn {
+    width: 64px;
+  }
+
+  .messagePositioning {
+    z-index: 1000;
+    top: 1%;
+    left: 25%;
+    width: 50%;
+    border: unset;
+  }
+
+  .InstructionalTextStyle {
+    float: left;
+    font-size: 14px;
+    padding: 10px;
+    margin-left: 25px;
+    margin-right :8px;
+  }
+
+  .sorting_disabled .DataTables_sort_icon {
+    display: none;
+  }
+
+  .ui-icon {
+    width: 12px;
+    height: 10px;
+    display: inline-block;
+    background-size: 12px auto;
+  }
+
+  .ui-icon-triangle-1-s { background-image: url(/apexpages/slds/latest/assets/icons/utility/down_60.png) }
+  .ui-icon-triangle-1-n { background-image: url(/apexpages/slds/latest/assets/icons/utility/up_60.png) }
+
+  /* End of Oktana CSS
+  
+  .slds-scope *,
+  .slds-scope *:before,
+  .slds-scope *:after {
+    box-sizing: border-box;
+    margin: 2px;
+  }
+  
+  .slds-scope .slds-button_brand,
+  .slds-scope .slds-button--brand {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid rgb(217, 219, 221);
+    transition: border 0.15s linear;
+    background-color: #1797c0 !important;
+    border-color: #1797c0 !important;
+    color: rgb(255, 255, 255);
+    float: right;
+    margin-top: 10px;
+    margin-right: 5px;
+    margin-bottom: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .ui-widget-header {
+    border: none !important;
+    background: none !important;
+    color: #222222;
+    font-weight: bold;
+  }
+  
+  .dataTables_wrapper .ui-widget-header {
+    font-weight: normal;
+  }
+  .slds-scope .slds-vertical-tabs__link {
+    display: block;
+    padding: 0.75rem;
+    color: white;
+  }
+  
+  .slds-scope .slds-vertical-tabs__link:hover {
+    background: rgb(255, 255, 255);
+    color: rgb(22, 50, 92);
+    text-decoration: none;
+    margin-right: 0% !important;
+    margin-left: 0% !important;
+  }
+  
+  .slds-scope .slds-vertical-tabs__nav {
+    width: 12rem;
+    border-right: 1px solid rgb(23, 151, 192);
+    background: rgb(23, 151, 192);
+    border-bottom: none !important;
+    padding: 0.5%;
+    padding-left: 0.7% !important;
+  }
+  
+  .slds-scope img {
+    max-width: 100%;
+    height: 2px;
+    height: 15px;
+  }
+  #profileImage {
+    max-width: 100%;
+    height: 45px;
+    height: 45px;
+  }
+  .slds-scope h1,
+  .slds-scope h2,
+  .slds-scope h3,
+  .slds-scope h4,
+  .slds-scope h5,
+  .slds-scope h6 {
+    display: inherit;
+    font-family: Verdana, Arial, Helvetica, sans-serif !important;
+    font-size: 17px;
+    font-weight: bold !important;
+    color: #0581b7 !important;
+  }
+  
+  .dataTables_wrapper .ui-toolbar {
+    padding: 3px !important;
+  }
+  
+  .search_filter {
+    width: inherit;
+  }
+  
+  body .bPageTitle .ptBody .pageDescription {
+    font-size: 22px;
+    font-weight: normal;
+    line-height: 1.1em;
+  }
+  
+  .ui-icon-triangle-1-n {
+    background-position: 0 -16px;
+    display: none;
+  }
+  
+  .slds-badge {
+    float: right !important;
+    background-color: #92b42c !important;
+    color: white !important;
+    width: 35px !important;
+    height: 20px !important;
+    text-align: center !important;
+    border-radius: 22px !important;
+  }
+  
+  .dataTables_wrapper {
+    position: relative;
+    zoom: 1;
+    width: auto;
+    white-space: nowrap;
+  }
+  
+  .slds-scope .slds-vertical-tabs__nav-item {
+    overflow: hidden;
+    border-bottom: none;
+    color: rgb(107, 109, 112);
+  }
+  
+  .slds-scope .slds-spinner_container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 9050;
+    background-color: rgba(255, 255, 255, 0.75);
+    visibility: visible;
+    opacity: inherit;
+    transition: opacity 0.2s ease, visibility 0s;
+    transition-delay: 0s, 0.3s;
+  }
+  
+  .printableArea_wrapper {
+    background: #e1e1e1 !important;
+    min-height: 105px !important;
+    margin-top: 9px !important;
+  }
+  #headerSub {
+    color: black;
+    font-size: initial;
+    font-family: verdana;
+    font-weight: 900;
+  }
+  
+  .vertical-tab-bg-color {
+    background-color: #1797c0 !important;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .slds-scope .slds-button_destructive,
+  .slds-scope .slds-button--destructive {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid rgb(217, 219, 221);
+    transition: border 0.15s linear;
+    background-color: rgb(23, 151, 192);
+    border-color: rgb(23, 151, 192);
+    color: rgb(255, 255, 255);
+    float: right;
+    margin: 10px;
+  }
+  
+  .slds-scope .slds-button_destructive[disabled],
+  .slds-scope .slds-button--destructive[disabled] {
+    background: rgb(184, 191, 204);
+    border-color: rgba(0, 0, 0, 0);
+    color: rgb(255, 255, 255);
+  }
+  
+  .slds-scope .slds-tabs_default__item,
+  .slds-scope .slds-tabs--default__item {
+    color: rgb(107, 109, 112);
+    position: relative;
+    padding: 0 0.75rem;
+    margin-bottom: -2px;
+    text-transform: inherit;
+    letter-spacing: 0.0625em;
+  }
+  
+  .printableArea_spantext {
+    font-weight: bold;
+    margin-left: 8px;
+  }
+  
+  .unread {
+    font-weight: bold;
+  }
+  
+  .slds-scope .slds-tabs_default__nav,
+  .slds-scope .slds-tabs--default__nav {
+    border-bottom: none !important ;
+    margin-top: 15px;
+  }
+  
+  .expand {
+    content: url("https://www.foundationconnect.org/staticresources/SLDS/icons/utility/chevronup_60.png");
+    height: 15px;
+    max-width: 100%;
+  }
+  
+  .slds-active {
+    background: rgb(255, 255, 255);
+    color: rgb(22, 50, 92) !important;
+  }
+  
+  .vertical-tab-bg-color {
+    background-color: #1797c0 !important;
+    color: white !important;
+  }
+  
+  table.dataTable thead th div.DataTables_sort_wrapper {
+    position: relative;
+    padding-right: 10px;
+    font-size: 0.8125rem;
+    font-weight: bold;
+  }
+  
+  .dataTables_wrapper .dataTables_length,
+  .dataTables_wrapper .dataTables_filter,
+  .dataTables_wrapper .dataTables_info,
+  .dataTables_wrapper .dataTables_processing,
+  .dataTables_wrapper .dataTables_paginate {
+    color: #333333;
+    font-weight: bold;
+  }
+  
+  .slds-scope a:hover,
+  .slds-scope a:focus {
+    text-decoration: none;
+    color: rgb(23, 151, 192);
+  }
+  
+  .slds-scope .slds-tabs_default__item.slds-active .slds-tabs_default__link:hover,
+  .slds-scope .slds-tabs_default__item.slds-active .slds-tabs--default__link:hover,
+  .slds-scope .slds-tabs_default__item.slds-is-active .slds-tabs_default__link:hover,
+  .slds-scope .slds-tabs_default__item.slds-is-active .slds-tabs--default__link:hover,
+  .slds-scope .slds-tabs--default__item.slds-active .slds-tabs_default__link:hover,
+  .slds-scope .slds-tabs--default__item.slds-active .slds-tabs--default__link:hover,
+  .slds-scope .slds-tabs--default__item.slds-is-active .slds-tabs_default__link:hover,
+  .slds-scope .slds-tabs--default__item.slds-is-active .slds-tabs--default__link:hover {
+    color: rgb(249, 249, 249);
+  }
+  
+  .slds-scope .slds-tabs_default__item.slds-active .slds-tabs_default__link,
+  .slds-scope .slds-tabs_default__item.slds-active .slds-tabs--default__link,
+  .slds-scope .slds-tabs_default__item.slds-is-active .slds-tabs_default__link,
+  .slds-scope .slds-tabs_default__item.slds-is-active .slds-tabs--default__link,
+  .slds-scope .slds-tabs--default__item.slds-active .slds-tabs_default__link,
+  .slds-scope .slds-tabs--default__item.slds-active .slds-tabs--default__link,
+  .slds-scope .slds-tabs--default__item.slds-is-active .slds-tabs_default__link,
+  .slds-scope .slds-tabs--default__item.slds-is-active .slds-tabs--default__link {
+    font-weight: 400;
+    color: white;
+  }
+  .slds-scope .slds-tabs_default__nav,
+  .slds-scope .slds-tabs--default__nav {
+    border-bottom: none !important;
+    margin-top: 15px;
+  }
+  
+  .inbox_datetime {
+    float: right;
+  }
+  
+  .inbox_emailbody {
+    white-space: pre-wrap;
+  }
+  
+  .tablist_inbox_container {
+    width: 100%;
+  }
+  .table_div_tablist {
+    border-top: 2px solid #d9dbdd;
+    display: inline-table;
+  }
+  .table_container_tablist {
+    display: -webkit-box;
+  }
+  
+  .horizontal_tab {
+    max-width: 1110px;
+    overflow-x: scroll;
+  }
+  
+  .vertical_tabs {
+    max-height: fit-content;
+    height: 100%;
+  }
+  
+  .slds-scope .slds-select {
+    background-color: rgb(255, 255, 255);
+    border: 1px solid rgb(217, 219, 221);
+    border-radius: 0.25rem;
+    width: 100%;
+    transition: border 0.1s linear, background-color 0.1s linear;
+    height: 50%;
+  }
+  .ui-state-default,
+  .ui-widget-content .ui-state-default,
+  .ui-widget-header .ui-state-default {
+    border: none;
+    font-weight: normal;
+    color: #555555;
+  }
+  
+  .dataTables_wrapper .dataTables_paginate .fg-button {
+    box-sizing: border-box;
+    display: inline-block;
+    min-width: 1.5em;
+    margin-left: 2px;
+    text-align: center;
+    text-decoration: none !important;
+    cursor: pointer;
+    color: #333333 !important;
+    border: 1px solid transparent;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  
+  .dataTables_wrapper .dataTables_paginate .fg-button:last-child {
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    margin-right: 10px;
+  }
+  
+  .dataTables_wrapper .dataTables_paginate .fg-button {
+    box-sizing: border-box;
+    display: inline-block;
+    min-width: 1.5em;
+    margin-left: 5px;
+    text-align: center;
+    text-decoration: none !important;
+    cursor: pointer;
+    color: #333333 !important;
+    border: 1px solid transparent;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  
+  thead th {
+    background-color: #e6e6e6 !important;
+    color: rgb(81, 79, 77);
+    padding: 0.5rem;
+  }
+  
+  .messagePositioning {
+    z-index: 1000;
+    top: 1%;
+    left: 25%;
+    width: 50%;
+    border: unset;
+  }
+  .ModalPadding {
+    padding: 0.4rem;
+  }
+  .borderUnset {
+    border: unset;
+  }
+  */

@@ -1,0 +1,21 @@
+<apex:page showHeader="false" title="{!$Label.site.bandwidth_limit_exceeded}">
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <apex:composition template="StdExceptionTemplate">
+    <apex:define name="icon">
+      <apex:image url="{!URLFOR($Resource.SiteSamples, 'img/warning.png')}"/>
+    </apex:define>
+    <apex:define name="error">
+      <apex:outputText styleClass="title" value="{!$Label.site.limit_exceeded}"/>
+      <br/>
+      <br/>
+      <apex:outputText value="{!$Label.site.sorry_for_inconvenience}"/>
+        <span>
+            <apex:outputText value=" {!$Label.site.get_in_touch}">
+                <apex:param value="mailto:{!$Site.AdminEmailAddress}"/>
+                <apex:param value="{!$Label.site.email_us}"/>
+            </apex:outputText>
+        </span>
+   </apex:define>
+  </apex:composition>
+</apex:page>

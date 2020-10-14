@@ -1,0 +1,241 @@
+<apex:page controller="FCRecordController" sidebar="false" language="{!portalLanguage}" title="{!pageTitle}" action="{!initializeReview}">
+    <div ng-app="uploaddemo" ng-controller="uploaddemocontroller" style="min-width:900px">
+    <script>
+        var engineMethodPath = "FGM_Portal.FCRecordController";
+        var templateBaseUrl = "{!JSENCODE(URLFOR($Resource.GPApplicationResources, 'application_js/'))}";
+        var currentParentObj = '{!JSENCODE(currentParentObject)}';
+        if (currentParentObj == 'FGM_Portal__Amendment__c')
+            var jsQueAttachmentLookup = 'FGM_Portal__Amendment__c';
+        if (currentParentObj == 'FGM_Base__Benchmark__c')
+            var jsQueAttachmentLookup = 'FGM_Portal__Benchmark_del__c';
+        if (currentParentObj == 'FGM_Base__Grantee_Report__c')
+            var jsQueAttachmentLookup = 'FGM_Portal__GranteeReport__c';
+    </script>
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/fontawesome/font-awesome-4.1.0.min.css')}" />
+    <c:GPStaticResourcesComponent isLocal="{!$CurrentPage.Parameters.isLocal}" js="attachments-upload-manager.js,fc-record-attachment-manager.js" ></c:GPStaticResourcesComponent>
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/bootstrap/bootstrap-3.4.1.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/bootbox/bootbox-4.2.0.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/datatable/jqueryui-dataTable-integration.be7019ee387.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/jquery/smoothness/jquery-ui-1.10.3-smoothness.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/datatable/jquery-dataTables-1.10.1.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/datatable/jqueryui-dataTable-integration.be7019ee387.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/fc-record-review.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/community-application-10.24.js')}" />
+    <c:GPStaticResourcesComponent isLocal="{!$CurrentPage.Parameters.isLocal}" js="attachments-upload-manager.js,fc-record-attachment-manager.js" ></c:GPStaticResourcesComponent>
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/pep/pep.js')}" />
+    <apex:sectionheader title="Review/Submit" subtitle="{!application['Name']}"></apex:sectionheader>
+    <c:GlobalResources islocal="{!$CurrentPage.parameters.local}" />
+        <script type="text/javascript">
+        var noRecordsFound = "{!JSENCODE($Label.fgm_portal__fc_noattachmentsmessage)}";
+        var deleteConfirmation = "{!JSENCODE($Label.fgm_portal__fc_confirmdeleteattachment)}";
+        var uploadProcessQueue = [];
+        var isUploadProcessQueueEmpty = function()
+        {
+            if( uploadProcessQueue.length > 0 )
+                return false;
+            else
+                return true;
+        }
+        var appId = "{!JSENCODE($CurrentPage.parameters.Id)}";
+        var srLabel = "{!JSENCODE($Label.fgm_portal__fc_srno_columnheaderlabel)}";
+        var nameLabel = "{!JSENCODE($ObjectType.Attachment.Fields.Name.Label)}"
+        var descriptionLabel = "{!JSENCODE($Label.fgm_portal__fc_fcrecord_attachdescription_label)}";
+        var createdDateLabel = "{!JSENCODE($ObjectType.Attachment.Fields.CreatedDate.Label)}";
+        var actionsLabel = "{!JSENCODE($Label.fgm_portal__fc_action_columnheaderlabel)}";
+        var deleteLabel = "{!JSENCODE($Label.fgm_portal__fc_delete_buttonlabel)}";
+        var uploadLabel="{!JSENCODE($Label.fgm_portal__fc_upload_buttonlabel)}";
+        var chooseFileLabel= "{!JSENCODE($Label.fgm_portal__fc_upload_choosefile_buttonlabel)}";
+        var charactersLabel = "{!JSENCODE($Label.fgm_portal__fc_character_counter_character)}";
+        var characterCountOfLabel = "{!JSENCODE($Label.fgm_portal__fc_character_counter_of)}";
+        var uploadingLabel= "{!JSENCODE($Label.fgm_portal__fc_uploading_label)}";
+        var noFileLabel="{!JSENCODE($Label.fgm_portal__fc_upload_choosefile_statuslabel)}";
+        var zeroByteFileErr = "{!JSENCODE($Label.fgm_portal__fc_zero_byte_file_error_message)}";
+        var iEBrowserSupportErr = "{!JSENCODE($Label.fgm_portal__fc_attachment_internet_explorer_error_message)}";
+        var jsMode = "view";
+        var IsApplicationSubmitted = true ; //IsApplicationSubmitted working same as FCRecord page
+        var uploadAfterSubmit = Boolean('{!JSENCODE(IF($Setup.FGM_Portal__GlobalPortalSettings__c.FGM_Portal__Enable_Attachments_for_Submitted_Appl__c,'true','false'))}');
+        var pageLanguage = "{!JSENCODE(portalLanguage)}";
+        var uploadSuccessMsg = "{!JSENCODE($Label.fgm_portal__fc_file_upload_success_message)}";
+        var fileInfectedMsg = "{!JSENCODE($Label.fgm_portal__fc_infected_file_error_message)}";
+        var extensionNotAllowMsg = "{!JSENCODE($Label.fgm_portal__fc_file_extension_not_allowed)}";
+        var attachmentSizeErrorMsg = "{!JSENCODE($Label.fgm_portal__fc_attachment_size_errormsg)}";
+        var uploadFailureMsg = "{!JSENCODE($Label.fgm_portal__fc_attachmentprocess_errormsg)}";
+        var datatableEmptyPaginationFooter = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_emptypaginationfooter)}';
+        var emptyDatatablePaginationFooterError = '{!JSENCODE($Label.fgm_portal__fc_jquery_emptydatatable_errormsg)}';
+        var datatablePaginationFooter = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_paginationfooter)}';
+        var datatableSearch = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_search)}';
+        var datatableFilterFromRecords = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatablefilterfromrecords)}';
+        var datatableZeroRecords = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatablezerorecords)}';
+        $(document).ready(function () {
+            removeAttributes();
+        });
+    </script>
+    <apex:form forcessl="true" styleclass="mainForm">
+    <apex:variable var="isFrom" value="{!urlParamFrom}" ></apex:variable>
+    <apex:variable var="parentId" value="{!urlParamParentId}" ></apex:variable>
+        <span >
+        <apex:pagemessages id="errorMsgBlock" ></apex:pagemessages>
+
+        <apex:repeat var="requiredQuestion" value="{!requiredQuestionErrors}">
+            <div class="message warningM3" role="alert">
+                <table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding: 0px; margin: 0px">
+                    <tbody>
+                        <tr valign="top">
+                            <td>
+                                <img alt="WARNING" class="msgIcon" src="/s.gif" title="WARNING"/>
+                            </td>
+                            <td class="messageCell">
+                                <div class="messageText">
+                                    <span><h4>Warning</h4></span>
+                                    <p>{!$Label.fgm_portal__fc_required_field_label}</p>
+                                    <p><apex:outputField value="{!requiredQuestion.RichQuestion__c}"/></p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </apex:repeat>
+
+        </span>
+
+        <apex:outputpanel layout="block" styleclass="FCRecordReview_float" rendered="{!NOT(isApplicationSubmitted)}">
+            <apex:commandlink value="{!$Label.fgm_portal__fc_submit_buttonlabel}" styleclass="btn btn-primary" onclick="bootbox.confirm('{! $Label.FC_ConfirmBeforeSubmitApplication}', function(result) { if(result) { submitApplication();  } }); return false;"></apex:commandlink>
+            <apex:actionfunction action="{!submit}" name="submitApplication"></apex:actionfunction>
+        </apex:outputpanel>
+
+        <apex:outputpanel layout="block" styleclass="FCRecordReview_float" >
+            <apex:commandlink action="{!backToRecord}" styleclass="btn btn-primary noPrint"> {!$Label.fgm_portal__back_to_application}</apex:commandlink>
+            <apex:commandlink styleclass="btn btn-primary noPrint" onclick="window.print(); return false;">
+                <i class="fa fa-print FCRecordReview_print"></i>{!$Label.FC_Print_ButtonLabel}
+            </apex:commandlink>
+        </apex:outputpanel>
+        <apex:repeat var="reviewPage" value="{!reviewPageList}">
+            <apex:pageblock title="{!reviewPage.name}" mode="mainDetail" rendered="{!reviewPage.TabType == 'Portal Tab'}">
+                <apex:pageblocksection title="" collapsible="false" columns="1">
+                    <apex:repeat var="reviewQuestion" value="{!reviewPage.reviewQuestionList}">
+                        <apex:pageblocksectionitem labelstyleclass="width40" datastyleclass="width60" rendered="{!reviewQuestion.questionType != 'Attachment'}" id="sectionId">
+                            <apex:outputlabel styleclass="ng-non-bindable"><span ><apex:outputField value="{!reviewQuestion.question.RichQuestion__c}"/></span></apex:outputlabel>
+                            <apex:outputpanel id="panelId" styleclass="ng-non-bindable">
+                                <div >
+                                    <apex:outputfield id="outputFieldId" rendered="{!application[reviewQuestion.field]!=null && (reviewQuestion.strFieldType == 'REFERENCE' || reviewQuestion.strFieldType == 'PICKLIST')}" value="{!application[reviewQuestion.field]}" />
+                                    <apex:outputtext id="outputTextId" rendered="{!application[reviewQuestion.field]!=null && (reviewQuestion.strFieldType != 'REFERENCE' && reviewQuestion.strFieldType != 'PICKLIST')}" value="{!application[HTMLENCODE(reviewQuestion.field)]}" escape="false"/>
+                                </div>
+                            </apex:outputpanel>
+                        </apex:pageblocksectionitem>
+                        <apex:outputpanel rendered="{!reviewQuestion.questionType == 'Attachment'}">
+                            <apex:outputlabel styleclass="labelCol"><span ><apex:outputField value="{!reviewQuestion.question.RichQuestion__c}"/></span></apex:outputlabel>
+                            <apex:outputpanel layout="block" id="uploadAttachment" styleclass="uploadedAttachment">
+                                <apex:outputpanel layout="block" rendered="{!NOT(ISBLANK(application.Id))}" styleclass="pbBody">
+                                    <apex:repeat var="Appattachment" value="{!mapApplicationAttachments[reviewQuestion.questionId]}">
+                                        <apex:pageBlock >
+                                            <div class="uploadManagerComponent" parent-record="{{appQuestionWrapper}}" question-attachment-id="{!Appattachment.strQuestionAttachmentId}" attachments="{{attachment}}" table-translations="{{transationForTable}}" file-input-translations="{{transationForFileUploader}}" initialization-settings="{{initializationSettings}}" question-id="{!reviewQuestion.questionId}" upload-enabled = "false" style="text-align: center"></div>
+                                        </apex:pageBlock>
+                                    </apex:repeat>
+                                </apex:outputpanel>
+                            </apex:outputpanel>
+                        </apex:outputpanel>
+                    </apex:repeat>
+                </apex:pageblocksection>
+            </apex:pageblock>
+
+            <apex:outputpanel id="relatedlistTable" styleclass="relatedlistTable" rendered="{!reviewPage.TabType == 'Related List With Tab'}" >
+                <apex:pageblock title="{!reviewPage.name}" mode="maindetail" rendered="{!(NOT(ISBLANK(application.Id)) && reviewPage.relatedListConfiguration != null)}">
+                    <apex:pageblocksection title="" collapsible="false" columns="1">
+                        <apex:outputpanel layout="block" styleclass="relatedListInstruction">
+                            <span >
+                                <apex:outputField value="{!reviewPage.relatedListConfiguration.record.RichInstructionalText__c}" />
+                            </span>
+                        </apex:outputpanel>
+                        <apex:datatable value="{!reviewPage.relatedListConfiguration.lstRelatedListRecord}" var="relatedlistRecord" styleclass="relatedListTable" rendered="{!if((reviewPage.relatedListConfiguration.strRelatedListObject == 'FGM_Base__Benchmark_Update__c'),FALSE,TRUE)}" >
+                            <apex:repeat var="field" value="{!reviewPage.relatedListConfiguration.listColumnFields}">
+                                <apex:column rendered="{!(reviewPage.relatedListConfiguration.mapColumnFields[field] != null && NOT(ISBLANK(reviewPage.relatedListConfiguration.mapColumnFields[field])))}">
+                                    <apex:facet name="header">{!field}</apex:facet>
+                                    <span >
+                                        <apex:outputtext value="{!relatedlistRecord[reviewPage.relatedListConfiguration.mapColumnFields[field]]}" rendered="{!reviewPage.relatedListConfiguration.mapFieldDescribe[reviewPage.relatedListConfiguration.mapColumnFields[field]] != 'REFERENCE' && reviewPage.relatedListConfiguration.mapFieldDescribe[reviewPage.relatedListConfiguration.mapColumnFields[field]] != 'PICKLIST'}" />
+                                        <apex:outputfield value="{!relatedlistRecord[reviewPage.relatedListConfiguration.mapColumnFields[field]]}" rendered="{!reviewPage.relatedListConfiguration.mapFieldDescribe[reviewPage.relatedListConfiguration.mapColumnFields[field]] == 'REFERENCE' || reviewPage.relatedListConfiguration.mapFieldDescribe[reviewPage.relatedListConfiguration.mapColumnFields[field]] == 'PICKLIST'}" />
+                                    </span>
+                                </apex:column>
+                            </apex:repeat>
+                        </apex:datatable>
+                        <apex:outputPanel >
+                            <apex:datatable value="{!lstBenchmarkUpdateRecords}" var="relatedlistRecord" styleclass="relatedListTable" id="recordTableBU" rendered="{!if((reviewPage.relatedListConfiguration.strRelatedListObject == 'FGM_Base__Benchmark_Update__c'),TRUE,FALSE)}" style="pointer-events: none;">
+                                <apex:repeat var="field" value="{!reviewPage.relatedListConfiguration.listColumnFields}">
+                                    <apex:column rendered="{!(reviewPage.relatedListConfiguration.mapColumnFields[field] != null && NOT(ISBLANK(reviewPage.relatedListConfiguration.mapColumnFields[field])))}">
+                                        <apex:facet name="header">{!field}</apex:facet>
+                                        <apex:outputfield rendered="{!if((BEGINS(reviewPage.relatedListConfiguration.mapColumnFields[field], 'FGM_Base__Benchmark__r')),TRUE,FALSE)}" value="{!relatedlistRecord.objBenchmark[SUBSTITUTE(reviewPage.relatedListConfiguration.mapColumnFields[field],'FGM_Base__Benchmark__r.', '')]}"/>
+                                        <apex:outputfield rendered="{!if(NOT((BEGINS(reviewPage.relatedListConfiguration.mapColumnFields[field], 'FGM_Base__Benchmark__r'))),TRUE,FALSE) && if(lstBenchmarkUpdateRecords.size > 0 , TRUE, FALSE)}" value="{!relatedlistRecord.objBU[reviewPage.relatedListConfiguration.mapColumnFields[field]]}" />
+                                    </apex:column>
+                                </apex:repeat>
+                            </apex:datatable>
+                        </apex:outputPanel>
+                    </apex:pageblocksection>
+                </apex:pageblock>
+            </apex:outputpanel>
+            <apex:pageblock title="{!reviewPage.name}" mode="mainDetail" rendered="{!reviewPage.TabType == 'Grantee Budget Update Tab' && NOT(bHideGRBudgetUpdateTab)}" >
+                <div style="margin-left:5px;margin-bottom:5px;">
+                    <div >
+                        <apex:outputField value="{!reviewPage.relatedListConfiguration.record.RichInstructionalText__c}" />
+                    </div>
+                    <apex:pageblocktable value="{!lstGranteeBudgetUpdate}" var="objGranteeBudgetUpdate" footerclass="footerAlign" style="pointer-events: none;">
+                        <apex:column headervalue="{!$ObjectType.Grantee_Budget_Category__c.fields.Parent_Category__c.Label}" >
+                            <apex:outputField value="{!objGranteeBudgetUpdate.FGM_Portal__Grantee_Budget_Category__r.Parent_Category__c}"></apex:outputField>
+                        </apex:column>
+                        <apex:column headervalue="{!$ObjectType.Grantee_Budget_Update__c.fields.Grantee_Budget_Category__c.Label}">
+                            <apex:outputField value="{!objGranteeBudgetUpdate.Grantee_Budget_Category__c}"></apex:outputField>
+                        </apex:column>
+                        <apex:column headervalue="{!$ObjectType.Grantee_Budget_Update__c.fields.Current_Period_Expenses__c.Label}">
+                            <apex:outputText value="{0,Number,Currency}">
+                                <apex:param value="{!objGranteeBudgetUpdate.Current_Period_Expenses__c}"/>
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headervalue="{!$ObjectType.Grantee_Budget_Update__c.fields.Comment__c.Label}">
+                            <apex:outputField value="{!objGranteeBudgetUpdate.Comment__c}"></apex:outputField>
+                        </apex:column>
+                        <apex:column headervalue="{!$ObjectType.Grantee_Budget_Update__c.fields.Expenditures_to_Date__c.Label}">
+                            <apex:outputText value="{0,Number,Currency}">
+                                <apex:param value="{!objGranteeBudgetUpdate.Expenditures_to_Date__c}"/>
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headervalue="{!$ObjectType.Grantee_Budget_Update__c.fields.Approved_Budget_New__c.Label}">
+                            <apex:outputText value="{0,Number,Currency}">
+                                <apex:param value="{!objGranteeBudgetUpdate.Approved_Budget_New__c}"/>
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headervalue="{!$ObjectType.Grantee_Budget_Update__c.fields.Available_Budget__c.Label}">
+                            <apex:outputText value="{0,Number,Currency}">
+                                <apex:param value="{!objGranteeBudgetUpdate.Available_Budget__c}"/>
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headervalue="{!$ObjectType.Grantee_Budget_Update__c.fields.Percentage_Used__c.Label}">
+                            <apex:outputText value="{!objGranteeBudgetUpdate.Percentage_Used__c}%"></apex:outputText>
+                        </apex:column>
+                        <apex:facet name="footer">
+                            <apex:outputtext value="{!$Label.fgm_portal__fc_budgetupdate_norecords}" rendered="{!not(lstGranteeBudgetUpdate.size>0)}" />
+                        </apex:facet>
+                    </apex:pageblocktable>
+                </div>
+            </apex:pageblock>
+        </apex:repeat>
+        <apex:outputpanel layout="block" styleclass="FCRecordReview_float" rendered="{!NOT(isApplicationSubmitted)}">
+            <apex:commandlink value="{!$Label.fgm_portal__fc_submit_buttonlabel}" styleclass="btn btn-primary" onclick="bootbox.confirm('{! $Label.FC_ConfirmBeforeSubmitApplication}', function(result) { if(result) { submitApplication();  } }); return false;"></apex:commandlink>
+            <apex:actionfunction action="{!submit}" name="submitApplication"></apex:actionfunction>
+        </apex:outputpanel>
+        <apex:outputpanel layout="block" styleclass="FCRecordReview_float">
+            <apex:commandlink action="{!backToRecord}" styleclass="btn btn-primary noPrint"> {!$Label.fgm_portal__back_to_application}</apex:commandlink>
+            <apex:commandlink styleclass="btn btn-primary noPrint" onclick="window.print(); return false;">
+                <i class="fa fa-print FCRecordReview_print"></i>{!$Label.FC_Print_ButtonLabel}
+            </apex:commandlink>
+        </apex:outputpanel>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                relatedListTables();
+              });
+        $("[id$=sortDiv]").addClass("printableHeaders");  /* FCPROD-1601  Print on proposal do not show complete created date (cuts off the margin) */
+        </script>
+
+    </apex:form>
+    </div>
+</apex:page>

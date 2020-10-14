@@ -1,0 +1,70 @@
+<apex:page standardController="Quiz__c" extensions="CommunitySignupQuizExtension" standardStylesheets="false" sidebar="false" showHeader="false" language="{!portalLanguage}" action="{!initialize}">
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+ <c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}"/>
+ <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+ <script>
+ </script>
+    <apex:form id="mainForm" forceSSL="true">
+
+        <div id="registration" class="container">
+            <div id="registration-wrapper">
+                <apex:image url="{!ImageLogoUrl}" styleClass="logo-home" />
+                <hr class="line" />
+                     <apex:messages styleClass="errorMessage" ></apex:messages>
+                <apex:outputPanel layout="block" styleClass="quiz-question" rendered="{!AND(ISBLANK(quizQuestion.Id))}">
+                    <div class="alert alert-danger errorMessage">{!$Label.fgm_portal__fc_communitysignupquiz_errormsg}</div>
+                </apex:outputPanel>
+                <apex:outputPanel layout="block" styleClass="quiz-question" rendered="{!NOT(ISBLANK(quizQuestion.Id))}">
+                    <div class="quiz-question-wrapper">
+                      <div class="question-pre-text hidden-if-empty"><apex:outputField value="{!quizQuestion.FGM_Portal__Question__r.RichPreText__c}"/></div>
+                      <div class="question-sort-order">{!TEXT(questionNumber + 1)}</div>
+                      <apex:outputPanel layout="none" rendered="{!NOT(ISBLANK(quizQuestion.FGM_Portal__Question__r.Help_Tip__c))}">
+                          <div class="question-help-text" data-toggle="tooltip" data-title="{!quizQuestion.FGM_Portal__Question__r.FGM_Portal__Help_Tip__c}">?</div>
+                      </apex:outputPanel>
+                      <div class="question-text"><apex:outputField value="{!quizQuestion.FGM_Portal__Question__r.RichQuestion__c}"/></div>
+                      <div class="question-post-text hidden-if-empty"><apex:outputField value="{!quizQuestion.FGM_Portal__Question__r.RichPostText__c}"/></div>
+                    </div>
+
+                    <div class="quiz-response-wrapper">
+                        <div class="response">
+                            <apex:selectCheckboxes value="{!questionMultiResponseSelectedId }" rendered="{!quizQuestion.FGM_Portal__Question__r.Type__c ='MultiSelect'}" layout="pageDirection">
+                                <apex:selectOptions value="{!lstResponseOptions}"></apex:selectOptions>
+                            </apex:selectCheckboxes>
+                             <apex:selectRadio value="{!questionResponseSelectedId}" rendered="{!quizQuestion.FGM_Portal__Question__r.Type__c ='SingleSelect'}" layout="pageDirection">
+                                <apex:selectOptions value="{!lstResponseOptions}"></apex:selectOptions>
+                            </apex:selectRadio>
+                        </div>
+                    </div>
+                </apex:outputPanel>
+
+                <apex:actionStatus id="mainStatus" rendered="{!NOT(ISBLANK(quizQuestion.Id))}">
+                    <apex:facet name="stop">
+                        <apex:outputPanel layout="none">
+                            <apex:commandButton value="{!IF(quizQuestionList.size > questionNumber + 1, $Label.fgm_portal__fc_next_buttonlabel,$Label.fgm_portal__fc_next_buttonlabel)}" action="{!next}" status="mainStatus" styleClass="btn btnNew"></apex:commandButton>
+                            <apex:outputPanel >&nbsp;or&nbsp;</apex:outputPanel>
+                            <apex:outputLink value="{!$Page.CommunitySignupQuiz}?id={!$CurrentPage.Parameters.id}&ln={!portalLanguage}" style="font-size:14px;">{!$Label.fgm_portal__fc_communitysignupquiz_startover_label}</apex:outputLink>
+                        </apex:outputPanel>
+                    </apex:facet>
+
+                    <apex:facet name="start">
+                        <apex:outputPanel layout="none">
+                            <apex:commandButton value="Processing..." styleClass="btn btn-default disabled" disabled="true"></apex:commandButton>
+                        </apex:outputPanel>
+                    </apex:facet>
+                </apex:actionStatus>
+
+                <div class="quiz-footer">
+               <span style="visibility: visible;"> {!$Label.fgm_portal__signupquizfooter}</span>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $('[data-toggle="tooltip"]').tooltip();
+            });
+
+            $("body").addClass("bg-page");
+        </script>
+    </apex:form>
+</apex:page>

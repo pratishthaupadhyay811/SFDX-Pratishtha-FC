@@ -1,0 +1,94 @@
+ field-row
+        {
+            padding-bottom:2%;
+        }
+        
+        top-bar
+        {
+            padding-bottom:2%;
+        }
+        
+        translation-row
+        {
+            padding-bottom:2%;
+        }
+        
+        a.list-group-item.eziLookup:before
+        {
+            content: '\a';
+            white-space: pre;
+            line-height:0;
+        }
+        
+        .pageDescription, .pageType {
+            color:#2195bb !important;
+        }         
+        
+        .none{
+            display: none;
+        }
+        .margin{
+            margin: 20px;
+        }
+        .spinnerContainer_display{
+            display:block;
+        }
+        .spinnerContainer {
+           display:none;
+           width:100%;
+           height:100%;
+           position:absolute;
+           opacity: 0.75; 
+           z-index: 9999;
+           top:0px;
+           background-color:rgb(247, 221, 221); 
+        }   
+        .spinner {
+          margin: 100px auto;
+          margin-top: 210px;
+          width: 25%;
+          height: 30px;
+          text-align: center;
+          font-size: 12px;
+        }    
+        .spinner > div {
+          margin-left:2px;
+          background-color: #0581b7; 
+          height: 59px;
+          width: 5px;
+          display: inline-block;
+          -webkit-animation: stretchdelay 1.2s infinite ease-in-out;
+          animation: stretchdelay 1.2s infinite ease-in-out;
+        }    
+        .spanText{
+            color: #0581b7;
+        }    
+        .spinner .rect2 {
+          -webkit-animation-delay: -1.1s;
+          animation-delay: -1.1s;
+        }    
+        .spinner .rect3 {
+          -webkit-animation-delay: -1.0s;
+          animation-delay: -1.0s;
+        }    
+        .spinner .rect4 {
+          -webkit-animation-delay: -0.9s;
+          animation-delay: -0.9s;
+        }    
+        .spinner .rect5 {
+          -webkit-animation-delay: -0.8s;
+          animation-delay: -0.8s;
+        }    
+        @-webkit-keyframes stretchdelay {
+          0%, 40%, 100% { -webkit-transform: scaleY(0.4) }  
+          20% { -webkit-transform: scaleY(1.0) }
+        }    
+        @keyframes stretchdelay {
+            0%, 40%, 100% { 
+            transform: scaleY(0.4);
+            -webkit-transform: scaleY(0.4);
+            } 20% {
+            transform: scaleY(1.0);
+            -webkit-transform: scaleY(1.0);
+            }
+        }

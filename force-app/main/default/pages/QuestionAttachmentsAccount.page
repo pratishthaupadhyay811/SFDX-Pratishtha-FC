@@ -1,0 +1,89 @@
+<apex:page showHeader="false" standardStylesheets="false" standardController="Account" extensions="QuestionAttachmentsAccountExtension">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/bootstrap/bootstrap-3.4.1.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/angular/angular.min.1.7.8.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, 'application_js/application.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource, 'vendor_css/bootstrap/bootstrap.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource, 'application_css/application.css')}"/>
+   <apex:form >
+    <div class="container-fluid">
+        <apex:variable value="{!0}" var="rowNum"/>
+        <apex:pageMessages />
+        <apex:pagemessage rendered="{!lstQuestionAttachments == null || lstQuestionAttachments.size <= 0}" severity="Warning" strength="1" summary="{! $Label.FC_NoAttachmentsMessage}"></apex:pagemessage>
+        <apex:repeat value="{!lstQuestionAttachments}" var="qstAttchmnt">
+            <apex:outputpanel rendered = "{! mapAttachCount[qstAttchmnt.questionId] > 0}">
+            <div class="panel-group">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                        <span id="toggleImage{!rowNum+1}" class="question-attachment-cursor" onclick="toggleImage({!rowNum+1},{!rowNum+2},'{!qstAttchmnt.Name}','show');"><apex:image value="{!URLFOR($Resource.FCCommonResource,'images/chevronright_120.png')}" styleClass="question-attachment-height"/></span>
+                            <span id="toggleImage{!rowNum+2}" onclick="toggleImage({!rowNum+2},{!rowNum+1},'{!qstAttchmnt.Name}','hide');" class="question-attachment-cursor question-attachment-display"><apex:image value="{!URLFOR($Resource.FCCommonResource,'images/chevrondown_120.png')}" styleClass="question-attachment-height" /></span>
+                            <apex:variable var="rowNum" value="{!rowNum + 2}"/>
+                            <span class="question-attachment-link"><b>{!qstAttchmnt.question}</b></span>
+                            <span class="question-attachment-span"><b>Number of Attachments - {! mapAttachCount[qstAttchmnt.questionId]}</b></span>
+                        </h4>
+                    </div>
+                    <div id="{!qstAttchmnt.Name}" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <table class="table">
+                                <thead>
+                                    <tr class="question-attachment-link">
+                                        <th>Action</th>
+                                        <th>Title</th>
+                                        <th>Type</th>
+                                        <th>Last Modified</th>
+                                        <th>Created By</th>
+                                    </tr>
+                                </thead>
+                                <tbody >
+                                    <!--first row for Attachments-->
+                                    <apex:repeat value="{!qstAttchmnt.lstAttachments}" var="Attchmnt">
+                                        <tr class="question-attachment-link">
+                                            <td>
+                                                <apex:actionRegion >
+                                                    <apex:outputLink value="/{!Attchmnt.Id}/e?retURL={!URLId}" target="_parent">Edit</apex:outputLink>&nbsp;|&nbsp;
+                                                    <apex:outputLink value="{!URLFOR($Action.Attachment.Download, Attchmnt.Id)}" target="_blank">View</apex:outputLink>&nbsp;|&nbsp;
+                                                    <apex:commandLink value="Delete" onclick="return confirm('Are you sure you want to delete?')" action="{!DeleteAttachment}" rendered="true">
+                                                    <apex:param name="AttachmentId" value="{!Attchmnt.Id}" assignTo="{!varAssignmentId}"/></apex:commandLink>
+                                                </apex:actionRegion>
+                                            </td>
+                                            <td>{!Attchmnt.name}</td>
+                                            <td>Attachment</td>
+                                            <td><apex:outputField value="{!Attchmnt.LastModifiedDate}"/></td>
+                                            <td>{!Attchmnt.CreatedBy.name}</td>
+                                         </tr>
+                                    </apex:repeat>
+                                    <!--Second row for feedAttachments-->
+                                     <apex:repeat value="{!qstAttchmnt.lstContentDocument}" var="contentDocument">
+                                           <apex:outputPanel >
+                                            <tr class="question-attachment-link">
+                                                  <td>
+                                                  <apex:actionRegion >
+                                                        <apex:outputLink value="/{!contentDocument.Id}/d" target="_parent">Preview</apex:outputLink>
+                                                        |
+                                                        <apex:outputlink value="/sfc/servlet.shepherd/version/download/{!contentDocument.ContentVersions[0].Id}?asPdf=false&operationContext=CHATTER" target="_parent"> Download</apex:outputlink>
+                                                        |
+                                                        <apex:commandLink value="Delete" onclick="return confirm('Are you sure you want to delete?')" action="{!DeleteContentAttachment}" rendered="true">
+                                                            <apex:param name="contentDocumentId" value="{!contentDocument.Id}" assignTo="{!varAssignmentId}"/>
+                                                        </apex:commandLink>
+                                                  </apex:actionRegion>
+                                                </td>
+                                                   <td>{!contentDocument.Title}</td>
+                                                   <td>File</td>
+                                                   <td>{!contentDocument.LastModifiedDate}</td>
+                                                   <td>{!contentDocument.CreatedBy.Name}</td>
+                                               </tr>
+                                           </apex:outputPanel>
+                                    </apex:repeat>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </apex:outputpanel>
+        </apex:repeat>
+    </div>
+  </apex:form>
+</apex:page>

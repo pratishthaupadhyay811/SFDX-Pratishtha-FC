@@ -1,0 +1,77 @@
+<apex:page controller="CommunityLandingController" sidebar="false" language="{!portalLanguage}" title="Explore Grant Opportunity" tabstyle="CommunitiesExplore__tab" action="{!initialize}">
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/fonts-googleapis/font-raleway.css')}" />
+    <c:GlobalResources islocal="{!$CurrentPage.parameters.local}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/community-application-10.24.js')}" />
+
+    <script type="text/javascript">
+        // fix sidebar links
+        $(document).ready(function () {
+            $('.mruList .campaignBlock').each(function () {
+                $(this).find('a.campaignMru').attr('href', '{!URLFOR($Page.CommunityCampaign)}?id=' + $(this).attr('data-hovid'));
+                $(this).removeAttr('data-hovid');
+                $("tfoot").addClass("FCRecord_tfoot");
+            });
+            $('.bDetailBlock .pbBody .pbSubheader').addClass("CommunityLanding_borderRemove");
+            $('.pbHeader').addClass("none");
+        });
+    </script>
+
+    <apex:form >
+        <apex:sectionheader title="{!$Label.fgm_portal__fc_exploregrantopportunities_label}" subtitle="{!$Label.fgm_portal__fc_exploregrantopportunities_label}"> </apex:sectionheader>
+        <div id="maincontainer">
+            <apex:pageblock title="" mode="mainDetail">
+                <apex:pagemessages ></apex:pagemessages>
+                <apex:pageblocksection title="" collapsible="false" columns="2"></apex:pageblocksection>
+                <div style="display: table;width: 96vw;height: 100vh;">
+
+                <apex:outputpanel layout="block" styleclass="leftbox">
+                    <div>
+
+                    <h1>
+                        <span >{!$Label.fgm_portal__fc_communitieslanding_customtext}</span>
+                    </h1>
+                        </div>
+                </apex:outputpanel>
+                 <div id="rightbox">
+                <apex:outputpanel layout="block" styleclass="searchkeywordbox" rendered="{!communitySetting.IsEnabled__c}">
+                    <h4>{!$Label.fgm_portal__fc_communitieslanding_searchbox_label}</h4>
+                    <apex:inputtext value="{!filter.find}" styleclass="form-control communitylanding_height"></apex:inputtext>
+                    <apex:selectradio value="{!filter.type}" styleclass="radiobox">
+                        <apex:selectoption itemvalue="Individual" itemlabel="{!$Label.fgm_portal__fc_individual_radiobuttonlabel}"></apex:selectoption>
+                        <apex:selectoption itemvalue="Organization" itemlabel="{!$Label.fgm_portal__fc_organization_radiobuttonlabel}"></apex:selectoption>
+                        <apex:selectoption itemvalue="All" itemlabel="{!$Label.fgm_portal__fc_all_radiobuttonlabel}"></apex:selectoption>
+                    </apex:selectradio>
+                    <apex:outputpanel layout="block">
+                        <apex:commandbutton value="{!$Label.fgm_portal__fc_communitieslanding_searchbuttonlabel}" action="{!search}" styleclass="btnNew"></apex:commandbutton>
+                    </apex:outputpanel>
+                     </apex:outputpanel><br/>
+                <div id="campaignBlock">
+                    <apex:outputpanel layout="block" styleclass="campaign-item" rendered="{!campaignList.size == 0}">
+                        <apex:pagemessage severity="Info" strength="1" summary="{!$Label.fgm_portal__fc_norecordfound_errormsg}"></apex:pagemessage>
+                    </apex:outputpanel>
+                    <!-- Show the campaigns available -->
+                    <apex:repeat var="campaign" value="{!campaignList}" rendered="{!campaignList.size != 0}">
+                        <apex:outputpanel layout="block" styleclass="campaign-item">
+                        <h1><apex:outputlink value="{!$Page.CommunityCampaign}?id={!campaign.Id}">{!mapSobjectAndFieldTranslations[campaign.Id]['Name']}</apex:outputlink> </h1>
+                            <apex:outputpanel layout="block" styleclass="deadline">
+                                <apex:outputtext > <strong>{!$ObjectType.Campaign.Fields.EndDate.Label}</strong> </apex:outputtext>
+                                <apex:outputtext value="{0, date, MMM' 'd' 'yyyy}" rendered="{!NOT(ISBLANK(campaign.EndDate))}">
+                                    <apex:param value="{!campaign.EndDate}"></apex:param>
+                                </apex:outputtext>
+                                <apex:outputtext value="{!$Label.fgm_portal__fc_communitieslanding_noenddate}" rendered="{!AND(ISBLANK(campaign.EndDate))}"></apex:outputtext>
+                            </apex:outputpanel>
+                            <apex:outputpanel layout="block" styleclass="description">
+                            <apex:outputtext style="white-space: pre-wrap" value="{!mapSobjectAndFieldTranslations[campaign.Id]['Description']}"></apex:outputtext>
+
+                            </apex:outputpanel>
+                        </apex:outputpanel>
+                    </apex:repeat>
+                </div>
+                </div>
+                    </div>
+            </apex:pageblock>
+        </div>
+    </apex:form>
+</apex:page>

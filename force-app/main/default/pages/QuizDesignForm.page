@@ -1,0 +1,752 @@
+<apex:page standardController="Quiz__c" extensions="QuizDesignFormExtension"  showHeader="true" sidebar="true" action="{!initialize}" applyBodyTag="false">
+    <apex:slds />
+    <script type="text/javascript">  
+      var isClonedApp = Boolean('{!JSENCODE(IF(isClonedApp,'true','false'))}');
+      var newQuizLanguageLabel = '{!JSENCODE($Label.fgm_portal__fc_new_quiz_language_warning)}';
+    </script>
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/select2/select2-3.4.8.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/select2/select2-3.4.8.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/fontawesome/font-awesome-4.1.0.min.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/bootstrap/bootstrap-3.4.1.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/bootbox/bootbox-4.2.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/tinymce/tinymce.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource,'fc-community.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource,'application_js/quiz-design-form.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'application_css/quiz-design-form.css')}" />
+    <c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}"/>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            initializeQuizDesignForm();
+         });
+    </script>
+    <apex:form >
+        <apex:outputPanel id="mainForm" styleClass="mainForm" rendered="{!NOT(ISBLANK(quiz.Id))}">
+        <apex:actionFunction name="delQuizQuestion" action="{!deleteQuizQuestion}"  oncomplete="return false;" reRender="mainForm">
+            <apex:param name="quizQuestionId" value="" />
+        </apex:actionFunction>
+        <apex:actionPoller action="{!refreshPage}" interval="15" />
+        <apex:actionFunction name="setPortalLanguage" action="{!setPortalLanguage}"/>
+        <apex:selectList id="languagePicklist" value="{!portalLanguage}" multiselect="false" size="1" rendered="true" styleClass="QuizDesignForm_float_R" onfocus="this.oldPortalLanguage = this.value" onchange="checkPortalLanguage(this, '{!quizId}')">
+            <apex:selectOptions value="{!lstLanguageOptions}" />
+        </apex:selectList>
+        <apex:panelGrid columns="2" styleClass="config_section" width="100%">
+            <apex:sectionHeader title="{!SubTitle}" subtitle="{!quiz.Name}"></apex:sectionHeader>
+            <apex:commandButton value="Back To Configuration" styleClass="btn btn-primary" immediate="true" action="{!JSENCODE(URLFOR($Page.fcportalManager))}" />
+        </apex:panelGrid>
+        <apex:pageMessages ></apex:pageMessages>
+        <apex:outputpanel id="outPanel"></apex:outputpanel>
+        <apex:outputpanel id="saveAllModel" styleclass="duplicateRecordPopup" style="display:none;">
+            <div class="bootbox modal fade bootbox-confirm in application_display" tabindex="-1" role="dialog" aria-hidden="false">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <div class="bootbox-body" >
+                                <apex:outputtext value="Do you want to change the mapping for the same question on related applications?" ></apex:outputtext>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <apex:actionFunction name="updateQuestion" action="{!updateClonedQuestion}" reRender="outPanel">
+                                <apex:param name="qqId"  value=""/>
+                            </apex:actionFunction>
+                            <apex:commandlink value="Yes" onclick="doNothing(); return false;" styleclass="btn hideSaveAllModel"/>
+                            <apex:commandlink value="No" onclick="doNothing(); return false;" styleclass="btn hideSaveAllModel"/>
+                            <apex:commandlink value="Cancel" onclick="doNothing(); return false;" styleclass="btn hideSaveAllModel"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop fade in"></div>
+        </apex:outputpanel>
+         <apex:outputpanel id="saveModel" styleclass="duplicateRecordPopup" style="display:none;">
+            <div class="bootbox modal fade bootbox-confirm in application_display" tabindex="-1" role="dialog" aria-hidden="false">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <div class="bootbox-body" >
+                                <strong>WARNING:</strong><apex:outputtext value=" The answers provided from that point forward would not be stored in the same field as answers for the same question on related quizzes."></apex:outputtext>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <apex:commandlink value="Yes" onclick="doNothing(); return false;" styleclass="btn hideSaveModel"/>
+                            <apex:commandlink value="No" onclick="doNothing(); return false;" styleclass="btn hideSaveModel"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop fade in"></div>
+        </apex:outputpanel>
+        <!--- Purpose : To Show the Tabs from RLC Object.   ------------>
+        <apex:outputPanel id="applicationContent">
+            <apex:outputPanel layout="block" styleClass="mainNavbar" id="mainNavbar">
+                <apex:outputPanel layout="block" id="tabSection" styleClass="QuizDesignForm_tabSection">
+                    <apex:repeat var="tab" value="{!tabsList}">
+                        <apex:outputPanel layout="block" styleClass="nav {!IF(selectedTab == tab.Id, 'active','')}" >
+                            <apex:actionStatus id="tabSwitch" >
+                                <apex:facet name="start">
+                                    <apex:outputPanel layout="none">
+                                        <apex:image value="/img/loading.gif" styleClass="loadingimg" ></apex:image>
+                                    </apex:outputPanel>
+                                </apex:facet>
+                            </apex:actionStatus>
+                            <apex:commandLink value="{!tab.Name}" action="{!initializeTabs}" status="tabSwitch" immediate="true" reRender="mainForm,questionSection" oncomplete="initializeJavascript()">
+                                <apex:param name="tabId" value="{!tab.Id}" />
+                                <apex:param name="selectedTab" value="{!tab.Id}" />
+                            </apex:commandLink>
+                            <apex:outputPanel layout="inline" styleClass="QuizDesignForm_edittab">
+                                <apex:commandLink title="Click to edit tab Configuration" action="{!editTab}" immediate="true" styleClass="QuizDesignForm_decoration" oncomplete="settFoot();" reRender="relatedListForm" status="tabSwitch" rendered="{!IF(selectedTab==tab.Id,TRUE,FALSE)}">
+                                    <apex:param name="tabId" value="{!tab.Id}" />
+                                    <i class="fa fa-pencil-square-o"></i>
+                                </apex:commandLink>&nbsp;
+                                <apex:commandLink title="Click to delete the Tab" rendered="{!NOT(tab.ParentObject__c == 'sObject' || tab.LookupField__c == 'sObject') && IF(portalLanguage == 'en_US', TRUE, FALSE)}" action="{!deleteTab}" onClick="return confirmDelete()" immediate="true" styleClass="QuizDesignForm_decoration" status="tabSwitch">
+                                    <apex:param name="tabId" value="{!tab.Id}" />
+                                    <i class="fa fa-trash-o"></i>
+                                </apex:commandLink>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                    </apex:repeat>
+                </apex:outputPanel>
+                <apex:outputPanel layout="block" styleClass="clear"> 
+                    <apex:outputPanel layout="block" styleClass="QuizDesignForm_menuButton" rendered="TRUE">
+                       <apex:outputPanel rendered="{!IF(portalLanguage == 'en_US', IF(selectedObject == 'FGM_Portal__Recommendation_Review__c' && tabsList.size > 0,FALSE,TRUE), FALSE)}">   
+                            <div class="menuButton ddl_btn btn-group">
+                                <span class="menuButtonLabel dropdown-toggle btn btn-primary" data-toggle="dropdown" tabindex="0">Add Tab &nbsp; &nbsp;<i class="fa fa-caret-down"></i></span>
+                                <ul class="dropdown-menu">
+                                    <li><apex:commandLink action="{!addTab}" reRender="relatedListForm" value="Portal Tab" immediate="true" status="mainStatus" rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}">
+                                            <apex:param name="RCLType" value="Portal Tab" />
+                                        </apex:commandLink>
+                                    </li>
+                                    <li><apex:commandLink action="{!addTab}" reRender="relatedListForm" value="Related List with Tab" immediate="true" status="mainStatus" rendered="{!tabsList != null && tabsList.size > 0 && (selectedObject != 'FGM_Portal___Review__c') && IF(portalLanguage == 'en_US', TRUE, FALSE) && hasChildObject == true}">
+                                            <apex:param name="RCLType" value="Related List With Tab" />
+                                        </apex:commandLink>
+                                    </li>
+                                    <li><apex:commandLink action="{!addTab}" reRender="relatedListForm" value="IFrame Tab" immediate="true" status="mainStatus" rendered="{!tabsList != null && tabsList.size > 0 && (selectedObject != 'FGM_Portal__Recommendation_Review__c') && IF(portalLanguage == 'en_US', TRUE, FALSE)}">
+                                            <apex:param name="RCLType" value="IFrame Tab" />
+                                        </apex:commandLink>
+                                    </li>
+                                    <li><apex:commandLink action="{!addTab}" reRender="relatedListForm" value="Grantee Budget Tab" immediate="true" status="mainStatus" rendered="{! isApplicationdesigner && isRequestPortalTab && tabsList != null && tabsList.size > 0 && (selectedObject != 'FGM_Portal__Recommendation_Review__c') && !isBudgetTabExist && IF(portalLanguage == 'en_US', TRUE, FALSE)}">
+                                            <apex:param name="RCLType" value="Grantee Budget Tab" />
+                                        </apex:commandLink>
+                                    </li>
+                                    <li><apex:commandLink action="{!addTab}" reRender="relatedListForm" value="Grantee Budget Update Tab" immediate="true" status="mainStatus" rendered="{! Not(isApplicationdesigner) && (selectedObject == 'FGM_Base__Grantee_Report__c') && (selectedObject != 'FGM_Portal__Recommendation_Review__c') && Not(isBudgetUpdateTabExist) && tabsList != null && tabsList.size > 0  && IF(portalLanguage == 'en_US', TRUE, FALSE)}">
+                                            <apex:param name="RCLType" value="Grantee Budget Update Tab" />
+                                        </apex:commandLink>
+                                    </li>
+                                    <li>
+                                        <apex:commandLink action="{!addTab}" reRender="relatedListForm" value="Organization Tab" immediate="true" status="mainStatus" rendered="{!IF( AND(tabsList != null, tabsList.size > 0, !IsOrgTabPresent, isApplicationdesigner), TRUE, FALSE) }">
+                                            <apex:param name="RCLType" value="Organization Tab" />
+                                        </apex:commandLink>
+                                    </li>
+                                    <li>
+                                        <apex:commandLink action="{!addTab}" reRender="relatedListForm" value="Contact Tab" immediate="true" status="mainStatus" rendered="{!IF( AND(tabsList != null, tabsList.size > 0, !IsContactTabPresent, isApplicationdesigner), TRUE, FALSE) }">
+                                            <apex:param name="RCLType" value="Contact Tab" />
+                                        </apex:commandLink>
+                                    </li>
+                                    <li>
+                                        <apex:commandLink action="{!addTab}" reRender="relatedListForm" value="Custom Profile Tab" immediate="true" status="mainStatus" rendered="{!IF( AND(tabsList != null, tabsList.size > 0, isApplicationdesigner), TRUE, FALSE) }">
+                                            <apex:param name="RCLType" value="Custom Profile Tab" />
+                                        </apex:commandLink>
+                                    </li>
+                                </ul>
+                            </div>
+                        </apex:outputPanel>
+                        <apex:actionStatus id="mainStatus">
+                            <apex:facet name="stop">
+                                <apex:outputPanel layout="none">
+                                    <apex:commandButton value="Edit Quiz" styleClass="btn btn-primary" action="{!URLFOR($Action.FGM_Portal__Quiz__c.Edit, quiz.Id)}" rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}"></apex:commandButton>
+                                    <apex:commandButton value="Save Questions" styleClass="btn btn-primary" action="{!updateQuizQuestionList}" reRender="mainForm,questionSection"  oncomplete="initializeJavascript(true)" status="mainStatus"></apex:commandButton>
+                                    <apex:commandButton value="Delete" immediate="true" styleClass="btn btn-primary" rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}" onclick="bootbox.confirm('Are you sure you want to delete?', function(result) { if(result) { deleteQuiz();  } }); return false;"></apex:commandButton>
+                                    <apex:actionFunction action="{!URLFOR($Action.FGM_Portal__Quiz__c.Delete, quiz.Id, [retURL=IF(isApplicationdesigner,JSENCODE(URLFOR($Page.QuizDesignForm)),JSENCODE(URLFOR($Page.PageLayout)))])}" rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}" name="deleteQuiz"></apex:actionFunction>
+                                </apex:outputPanel>
+                            </apex:facet>
+                            <apex:facet name="start">
+                                <apex:outputPanel layout="none">
+                                    <apex:commandButton value="Edit Quiz" styleClass="btn btn-primary" disabled="true" rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}"></apex:commandButton>
+                                    <apex:commandButton value="Save Questions" styleClass="btn btn-primary" disabled="true" oncomplete="settFoot();"></apex:commandButton>
+                                    <apex:commandButton value="Delete" styleClass="btn btn-primary" disabled="true" rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}"></apex:commandButton>
+                                    <apex:image value="/img/loading.gif"></apex:image>
+                                </apex:outputPanel>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!tabsList != null && tabsList.size > 0 && showTabBelongToExternalReviewForShowApplication}">
+                <apex:pageMessage rendered="{!quizQuestionList.size == 0}" severity="Info" strength="1" summary="This tab Contains the application information which will assign to reviewer."></apex:pageMessage>
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!tabsList != null && tabsList.size > 0 && isIFrameTab}">
+                <apex:pageMessage severity="Info" strength="1" summary="This tab Contains web page which is specified in URL."></apex:pageMessage>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!tabsList != null && tabsList.size > 0 && OR(IsContactTabActive, BIsCstmPrflTbActv, IsOrgTabActive)}">
+                <apex:pageMessage rendered="{!OR(IsContactTabActive, BIsCstmPrflTbActv, IsOrgTabActive)}" severity="Info" strength="1" summary="Questions cannot be defined for this tab. Click the Edit icon above to modify the configuration."></apex:pageMessage>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!tabsList != null && tabsList.size > 0 && isGranteeBudgetTab}">
+                <apex:pageMessage rendered="{!isGranteeBudgetTab}" severity="Info" strength="1" summary="Questions cannot be defined for this tab. Click the Edit icon above to modify the configuration."></apex:pageMessage>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!tabsList != null && tabsList.size > 0 && (isGranteeBudgetUpdateTab || bIsBenchmarkUpdateTab)}">
+                <apex:pageMessage rendered="{!(isGranteeBudgetUpdateTab || bIsBenchmarkUpdateTab )}" severity="Info" strength="1" summary="Questions cannot be defined for this Tab."></apex:pageMessage>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!tabsList != null && tabsList.size > 0 && NOT(isIFrameTab) && NOT(isGranteeBudgetTab) && Not(isGranteeBudgetUpdateTab) && NOT(showTabBelongToExternalReviewForShowApplication) && NOT(IsContactTabActive) && NOT(BIsCstmPrflTbActv) && NOT(IsOrgTabActive) && NOT(bIsBenchmarkUpdateTab)}">
+                <apex:pageBlock mode="mainDetail" id="questionSection">
+                    <apex:pageMessage rendered="{!quizQuestionList.size == 0}" severity="Info" strength="1" summary="Click on New to create new question or Add to add existing ones."></apex:pageMessage>
+                    <apex:pageBlockTable var="quizQuestion" value="{!quizQuestionList}" styleClass="FGM_Portal__Quiz_Questions__c sortable" width="100%">
+                        <apex:column headerValue="Actions" styleClass="minimumWidth">
+                            <apex:outputPanel layout="block" styleClass="FGM_Portal__Sort_Order__c" html-data-tab="{!quizQuestion.Tab__c}">
+                                <apex:outputText rendered="{!AND(ISBLANK(quizQuestion.Sort_Order__c))}" value=".."></apex:outputText>
+                                <apex:outputText rendered="{!NOT(ISBLANK(quizQuestion.Sort_Order__c))}" value="#{!TEXT(quizQuestion.FGM_Portal__Sort_Order__c)}"></apex:outputText>
+                            </apex:outputPanel>
+                            <apex:facet name="footer">
+                                <apex:outputPanel layout="none" rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}">
+                                    <input type="radio" id="newQstn" value="New" name="FGM_Portal__Question__type" onclick="var tr = $(this).closest('tr,.toggle-container'); tr.find('.FGM_Portal__Question__add').hide(); tr.find('.FGM_Portal__Question__new').show(); hideDataTypeField();console.log(tr);"/>New
+                                    <input type="radio" value="Add" name="FGM_Portal__Question__type" onclick="var tr = $(this).closest('tr,.toggle-container'); tr.find('.FGM_Portal__Question__add').show(); tr.find('.FGM_Portal__Question__new').hide();"/>Add
+                                </apex:outputPanel>
+                            </apex:facet>
+                        </apex:column>
+                        <apex:column headerValue="Question Details">
+                            <apex:outputPanel layout="block" styleClass="QuizDesignForm_float_R">
+                                <apex:inputHidden value="{!quizQuestion.Id}" id="hiddenQuizQues"/>
+                                <apex:selectList id="ques" size="1" value="{!quizQuestion.Field__c}" styleClass="fieldOptions">
+                                    <apex:selectOption itemValue="" itemLabel=""></apex:selectOption>
+                                    <apex:selectOptions value="{!fieldOptions}"></apex:selectOptions>
+                                </apex:selectList>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="none" rendered="{!AND(ISBLANK(quizQuestion.FGM_Portal__Question__r.Quiz__c))}">
+                                <apex:outputText value="{!quizQuestion.FGM_Portal__Question__r.RichQuestion__c}" styleClass="FGM_Portal__Question__c"></apex:outputText>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="none" rendered="{!NOT(ISBLANK(quizQuestion.FGM_Portal__Question__r.Quiz__c))}">
+                                <apex:inputText value="{!quizQuestion.FGM_Portal__Question__r.RichQuestion__c}" styleClass="FGM_Portal__Question__c"></apex:inputText>
+                            </apex:outputPanel>
+                            <apex:inputTextarea value="{!quizQuestion.FGM_Portal__Question__r.RichPreText__c}" styleClass="FGM_Portal__Pre_Text__c" html-placeholder="Enter Pre-Text here.." rows="5"></apex:inputTextarea>
+                            <!-- Container for known/simple types -->
+                            <apex:variable var="matchedType" value="{!0}"></apex:variable>
+                            <apex:outputPanel layout="block" rendered="{!'Attachment' == quizQuestion.FGM_Portal__Question__r.Type__c}">
+                                <apex:outputLabel value="Naming Formula"></apex:outputLabel>
+                                <apex:inputField value="{!quizQuestion.FGM_Portal__Question__r.AttachmentNameFormula__c} " />
+                                <apex:variable var="matchedType" value="{!1}"></apex:variable>
+                                <input type="file" disabled="disabled"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block" styleClass="input_wrapper" rendered="{! quizQuestion.Field__c != null && 'Salesforce Data Type' == quizQuestion.FGM_Portal__Question__r.FGM_Portal__Type__c}">
+                                {!fieldType[quizQuestion.Field__c]}
+                                <apex:selectList disabled="true" multiselect="true" size="4" rendered="{!fieldType[quizQuestion.Field__c] == 'MULTIPICKLIST'}"> </apex:selectList>
+                                <apex:selectList disabled="true" multiselect="false" size="1" rendered="{!fieldType[quizQuestion.Field__c] == 'PICKLIST'}"> </apex:selectList>
+                                <apex:inputTextarea rows="2" disabled="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}" rendered="{!fieldType[quizQuestion.Field__c] == 'TEXTAREA'}" />
+                               
+                                <apex:inputCheckbox disabled="true" rendered="{!fieldType[quizQuestion.Field__c] == 'BOOLEAN'}" />
+                                <apex:inputText disabled="true" rendered="{!fieldType[quizQuestion.Field__c] != 'BOOLEAN' && fieldType[quizQuestion.Field__c] != 'MULTIPICKLIST' && fieldType[quizQuestion.Field__c] != 'PICKLIST' && fieldType[quizQuestion.Field__c] != 'TEXTAREA' && fieldType[quizQuestion.Field__c] != 'FORMULA'}" />
+                                <apex:pageMessage severity="Warning" strength="1" rendered="{!fieldType[quizQuestion.Field__c] == 'FORMULA'}" summary="This Field Mapped to Formula field, so the value of this field show in readOnly mode on grantee side once user save a record."></apex:pageMessage>
+                                <div class="inputOverlay"></div>
+                            </apex:outputPanel>
+                            <!-- Now the post text -->
+                            <apex:inputTextarea value="{!quizQuestion.FGM_Portal__Question__r.RichPostText__c}" styleClass="FGM_Portal__Post_Text__c" html-placeholder="Enter Post-Text here.." rows="5"></apex:inputTextarea>
+                            <!-- Footer -->
+                            <apex:facet name="footer">
+                                <apex:outputPanel layout="none" id="QstnInsrt" >
+                                    <apex:outputPanel layout="block" styleClass="clsQuestion" >
+                                        <apex:selectList size="1" value="{!quizQuestionInsert.Question__c}" styleClass="FGM_Portal__Question__add none">
+                                            <apex:selectOption itemValue="" itemLabel=""></apex:selectOption>
+                                            <apex:selectOptions value="{!questionOptions}"></apex:selectOptions>
+                                            <apex:actionSupport event="onchange" action="{!insertQuizQuestion}" status="processing" rerender="mainForm" oncomplete="initializeJavascript()"></apex:actionSupport>
+                                        </apex:selectList>
+                                        <apex:actionStatus id="processing" >
+                                            <apex:facet name="start">
+                                                <apex:outputPanel styleClass="clsProcessing">
+                                                    <apex:image value="/img/loading.gif" styleClass="loadingimg" ></apex:image>
+                                                </apex:outputPanel>
+                                            </apex:facet>
+                                        </apex:actionStatus>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="block" styleClass="FGM_Portal__Question__new none" >
+                                        <apex:pageBlockSection columns="1" collapsible="false">
+                                            <apex:inputText value="{!questionInsert.RichQuestion__c}"></apex:inputText>
+                                            <apex:inputTextarea value="{!questionInsert.RichPreText__c}" rows="5"></apex:inputTextarea>
+                                            <apex:inputTextarea value="{!questionInsert.RichPostText__c}" rows="5"></apex:inputTextarea>
+                                            <apex:inputField value="{!questionInsert.Type__c}" onchange="onDataTypeChange(this);"></apex:inputField>
+                                            <apex:selectList id="ddlDataTypes" size="1" styleClass="fieldOptions" value="{!quizQuestionInsert.Field__c}" >
+                                                <apex:selectOption itemValue="" itemLabel=""></apex:selectOption>
+                                                <apex:selectOptions value="{!fieldOptions}"></apex:selectOptions>
+                                            </apex:selectList>
+                                            <apex:pageBlockSectionItem >
+                                            <apex:outputPanel ></apex:outputPanel>
+                                                <apex:actionStatus id="ProcessQuestion">
+                                                    <apex:facet name="stop">
+                                                        <apex:commandButton value="Save" status="ProcessQuestion" action="{!insertQuestion}" reRender="mainForm,questionSection" oncomplete="initializeJavascript()" styleClass="btn btn-primary"></apex:commandButton>
+                                                    </apex:facet>
+                                                    <apex:facet name="start">
+                                                        <apex:outputPanel layout="none" id="load">
+                                                            <apex:commandButton value="Saving..." disabled="true" status="ProcessQuestion" styleClass="btn btn-primary"/>
+                                                            <apex:image value="/img/loading.gif"></apex:image>
+                                                        </apex:outputPanel>
+                                                    </apex:facet>
+                                                </apex:actionStatus>
+                                            </apex:pageBlockSectionItem>
+                                        </apex:pageBlockSection>
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                            </apex:facet>
+                        </apex:column>
+                        <apex:column styleClass="actionColumn optionsPanel">
+                            <apex:outputpanel id="confirmDialog" styleclass="duplicateRecordPopup" style="display:none;">
+                                <div class="bootbox modal fade bootbox-confirm in application_display" tabindex="-1" role="dialog" aria-hidden="false">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-body">
+                                                <div class="bootbox-body" >
+                                                    <apex:outputtext style="font-size: 16px !important; color:black" value="Are you sure you want to delete this record?"></apex:outputtext>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <apex:commandlink value="Yes" onclick="return false;" styleclass="btn closeConfDialog" reRender="mainForm,questionSection"/>
+                                                <apex:commandlink value="No" onclick="return false;" styleclass="btn closeConfDialog"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-backdrop fade in"></div>
+                            </apex:outputpanel>
+                            <apex:outputPanel layout="block">
+                                <apex:inputHidden value="{!quizQuestion.Id}" id="quizQues"/>
+                                <apex:inputField id="quesType" styleClass="portal_type portal_type_width" value="{!quizQuestion.FGM_Portal__Question__r.Type__c}" ></apex:inputField>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block" styleClass="QuizDesignForm_edit">
+                                <apex:outputLink value="{!URLFOR($Action.Quiz_Questions__c.Edit, quizQuestion.Id)}" rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}" styleClass="actionLink"  >Edit</apex:outputLink>
+                                <apex:outputText rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}">&nbsp;|&nbsp;</apex:outputText>
+                                <apex:commandLink rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}" onClick="confirmDialog('{!quizQuestion.Id}'); return false;" styleClass="actionLink" value="Delete" reRender="mainForm,questionSection" />
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block" styleClass="QuizDesignForm_edit">
+                                <apex:outputLink value="{!URLFOR($Action.Questions__c.View, quizQuestion.Question__c)}" rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}" styleClass="actionLink">View Question</apex:outputLink>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}" layout="block" styleClass="QuizDesignForm_edit">
+                                <span class="QuizDesignForm_padding_R">Required?</span>
+                                <apex:inputCheckbox value="{!quizQuestion.Required__c}"></apex:inputCheckbox>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}" layout="block" styleClass="QuizDesignForm_edit"  title="{!$ObjectType.Quiz_Questions__c.fields.Hide_Post_Text__c.InlineHelpText}">
+                                <span class="QuizDesignForm_padding_R">Hide Pre-Text after submission?</span>
+                                <apex:inputCheckbox value="{!quizQuestion.Hide_Pre_Text__c}"></apex:inputCheckbox>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE)}" layout="block" styleClass="QuizDesignForm_edit" title="{!$ObjectType.Quiz_Questions__c.fields.Hide_Pre_Text__c.InlineHelpText}">
+                                <span class="QuizDesignForm_padding_R">Hide Post-Text after submission?</span>
+                                <apex:inputCheckbox value="{!quizQuestion.Hide_Post_Text__c}"></apex:inputCheckbox>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE) && 'Attachment' == quizQuestion.FGM_Portal__Question__r.Type__c}" layout="block" styleClass="QuizDesignForm_edit" title="{!$ObjectType.Quiz_Questions__c.fields.Can_upload_after_submission__c.InlineHelpText}">
+                                <span class="QuizDesignForm_padding_R">Can upload after submission?</span>
+                                <apex:inputCheckbox value="{!quizQuestion.Can_upload_after_submission__c}" ></apex:inputCheckbox>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!IF(portalLanguage == 'en_US', TRUE, FALSE) && OR('Attachment' == quizQuestion.FGM_Portal__Question__r.Type__c , 'Salesforce Data Type' == quizQuestion.FGM_Portal__Question__r.Type__c ) && isApplicationdesigner}" layout="block" styleClass="QuizDesignForm_edit" title="{!$ObjectType.Quiz_Questions__c.fields.Hide_question_from_Reviewers__c.InlineHelpText}">
+                                <span class="QuizDesignForm_padding_R">Hide question from Reviewers?</span>
+                                <apex:inputCheckbox value="{!quizQuestion.Hide_question_from_Reviewers__c}" ></apex:inputCheckbox>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block" styleClass="QuizDesignForm_edit" rendered="{!'Text' == quizQuestion.FGM_Portal__Question__r.Type__c}">
+                                <span class="QuizDesignForm_Max">Max:</span>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block" styleClass="QuizDesignForm_edit" rendered="{!'TextArea' == quizQuestion.FGM_Portal__Question__r.Type__c}">
+                                <span class="QuizDesignForm_Max">Max:</span>
+                            </apex:outputPanel>
+                        </apex:column>
+                        <apex:column headerValue="" headerClass="booleanColumn" styleClass="actionColumn"> </apex:column>
+                    </apex:pageBlockTable>
+                </apex:pageBlock>
+            </apex:outputPanel>
+        </apex:outputPanel>
+    </apex:outputPanel>
+    <!-- No form selected -->
+        <apex:outputPanel id="redirectForm" styleClass="redirectForm subForm mainForm" rendered="{!AND(ISBLANK(quiz.Id))}">
+        <apex:panelGrid columns="2" styleClass="config_section" width="100%">
+            <apex:sectionHeader title="Design Form" subtitle="Open an existing form, or create a new form"></apex:sectionHeader>
+            <apex:commandButton value="Back To Configuration" styleClass="btn btn-primary" immediate="true" action="{!JSENCODE(URLFOR($Page.fcportalManager))}" />
+        </apex:panelGrid>
+            <apex:pageMessages ></apex:pageMessages>
+        <apex:actionRegion >
+            <apex:pageBlock title="Open Existing" mode="mainDetail">
+                <apex:pageBlockSection title="" collapsible="false" columns="1"></apex:pageBlockSection>
+                <apex:outputPanel layout="block" styleClass="QuizDesignForm_box">
+                    <apex:outputText styleClass="QuizDesignForm_access">You have access to {!quizOptions.size} existing forms:</apex:outputText>
+                    <apex:selectList size="1" value="{!selectedQuizId}">
+                        <apex:selectOptions value="{!quizOptions}"></apex:selectOptions>
+                    </apex:selectList>
+                </apex:outputPanel>
+                <apex:outputPanel layout="block" styleClass="QuizDesignForm_box">
+                    <apex:commandButton value="Open" action="{!selectQuiz}" rerender="redirectForm" status="Process" styleClass="btn btn-primary  "></apex:commandButton>
+                    <apex:commandButton value="Clone" action="{!openCloneQuizPopUp}" reRender="CloneQuizPopUp" status="Process" styleClass="btn btn-primary"></apex:commandButton>
+                    <apex:actionStatus id="Process">
+                        <apex:facet name="start">
+                            <apex:outputPanel layout="none" id="load">
+                                <apex:image value="/img/loading.gif"></apex:image>
+                            </apex:outputPanel>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </apex:outputPanel>
+            </apex:pageBlock>
+        </apex:actionRegion>
+
+        <apex:actionRegion >
+            <apex:pageBlock title="Enter New Form Name" mode="mainDetail">
+                <apex:pageBlockSection title="" collapsible="false" columns="1">
+                </apex:pageBlockSection>
+                <apex:outputPanel layout="block" styleClass="QuizDesignForm_box">
+                    <apex:inputText value="{!quiz.Name}" styleClass="quiz-name" ></apex:inputText>
+                </apex:outputPanel>
+                <apex:outputPanel layout="block" styleClass="QuizDesignForm_box">
+                    <apex:commandButton value="Create New" action="{!insertQuiz}" status="ProcessQuiz" rerender="redirectForm" styleClass="btn btn-primary"></apex:commandButton>
+                    <apex:actionStatus id="ProcessQuiz">
+                        <apex:facet name="start">
+                            <apex:outputPanel layout="none" id="load">
+                                <apex:image value="/img/loading.gif"></apex:image>
+                            </apex:outputPanel>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </apex:outputPanel>
+            </apex:pageBlock>
+        </apex:actionRegion>
+
+        <apex:outputPanel id="CloneQuizPopUp">
+            <apex:outputPanel rendered="{!isCloneQuizPopUpVisible}" styleClass="popup">
+                <div class="modal-backdrop fade in"></div>
+                <div id="myModal" class="modal fade in QuizDesignForm_model_fade_in" tabindex="-1" >
+                    <div class="modal-header">
+                        <apex:commandButton action="{!closeCloneQuizPopUp}" status="CloneQuiz" reRender="CloneQuizPopUp" value="x" styleClass="close" immediate="true">
+                        </apex:commandButton>
+                        <h3>Clone Quiz From Existing</h3>
+                    </div>
+                    <apex:actionRegion >
+                        <apex:pageBlock mode="mainDetail">
+                            <apex:pageBlockSection title="" collapsible="false" columns="1"> </apex:pageBlockSection>
+                            <apex:pageBlockSection >
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Enter Quiz Name"> </apex:outputLabel>
+                                    <apex:inputText value="{!newQuizName}" required="true" styleClass="QuizDesignForm_box"></apex:inputText>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            <apex:outputPanel layout="block" styleClass="QuizDesignForm_box">
+                                <apex:commandButton value="Clone & Create New" action="{!insertQuizWithClone}" rerender="redirectForm" status="CloneQuiz" styleClass="btn btn-primary"></apex:commandButton>
+                                <apex:actionStatus id="CloneQuiz">
+                                    <apex:facet name="start">
+                                        <apex:outputPanel layout="none" id="load">
+                                            <apex:image value="/img/loading.gif"></apex:image>
+                                        </apex:outputPanel>
+                                    </apex:facet>
+                                </apex:actionStatus>
+                            </apex:outputPanel>
+                        </apex:pageBlock>
+                    </apex:actionRegion>
+                </div>
+            </apex:outputPanel>
+        </apex:outputPanel>
+ </apex:outputPanel>
+
+    <!-- Purpose : To add show form to add New tab for application. -->
+        <apex:outputPanel id="relatedListForm" styleClass="relatedListFormPopUp popup">
+        <apex:outputPanel styleClass="relatedListForm-wrapper" rendered="{!currentRLCRecord != null}">
+            <div class="modal-backdrop fade in"></div>
+            <apex:pageblock mode="maindetail">
+                <div id="myModal" class="modal fade in" tabindex="-1">
+                    <div class="modal-header">
+                        <apex:commandButton action="{!closeRLCPopUp}" status="mainStatus" reRender="relatedListForm,checkboxForRelatedObject" value="x" styleClass="close" immediate="true">
+                        </apex:commandButton>
+                        <h3>{!currentRLCRecord.recordTypeName}</h3>
+                    </div>
+                    <apex:outputPanel id="modelBody">
+                        <apex:outputPanel layout="block" styleClass="modal-body" rendered="{!NOT(isOtherLanguageConfig)}">
+                            <apex:pageMessages id="errorMsg" ></apex:pageMessages>
+                            <apex:pageBlockSection rendered="{!currentRLCRecord.lstRLCFields != null}" id="formBlock">
+                                <!-- This pageblocksection for external reviewer -->
+                                <apex:pageBlockSectionItem rendered="{!isExternalReviewer}"> </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem id="checkboxForRelatedObject" rendered="true && NOT(isApplicationdesigner)">
+                                    <apex:outputLabel >Display Application Related Objects:</apex:outputLabel>
+                                    <apex:inputCheckbox value="{!isShowExternalRelatedObject}" immediate="true">
+                                        <apex:actionSupport event="onchange" rerender="formBlock" status="fillParentObject" />
+                                        <apex:actionStatus id="fillParentObject">
+                                            <apex:facet name="start">
+                                                <apex:outputPanel layout="none">
+                                                    <apex:image value="/img/loading.gif" styleClass="loadingimg"></apex:image>
+                                                </apex:outputPanel>
+                                            </apex:facet>
+                                        </apex:actionStatus>
+                                    </apex:inputCheckbox>
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!currentRLCRecord.recordTypeName == 'Custom Profile Tab'}">
+                                    <apex:outputLabel value="Object Name"/>
+                                    <apex:selectList styleClass="form_control" style="width: 100%" value="{!SelectedObjectOption}" size="1" id="accChldObjcts">
+                                        <apex:selectOptions value="{!LstSlctAccntChldObjcts}" />
+                                        <apex:actionSupport event="onchange" rerender="accChldObjctsPrflTbs,accChldObjcts" status="fillChildObjects"></apex:actionSupport>
+                                        <apex:actionStatus id="fillChildObjects">
+                                            <apex:facet name="start">
+                                                <apex:outputPanel layout="none">
+                                                    <apex:image value="/img/loading.gif" styleClass="loadingImageStyle"></apex:image>
+                                                </apex:outputPanel>
+                                            </apex:facet>
+                                        </apex:actionStatus>
+                                    </apex:selectList>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem rendered="{!currentRLCRecord.recordTypeName == 'Custom Profile Tab'}">
+                                    <apex:outputLabel value="Profile Tab Name"/>
+                                    <apex:selectList value="{!SelectedProfileTabOption}" styleClass="form_control" size="1" style="width: 100%" disabled="{!IF(ProfileTabs == null, TRUE, FALSE)}" id="accChldObjctsPrflTbs">
+                                        <apex:selectOptions value="{!ProfileTabs}" />
+                                        <apex:actionSupport event="onchange" action="{!CloneRLCRecord}" reRender="accChldObjctsPrflTbs,accChldObjcts" status="cloneRLCRecords"></apex:actionSupport>
+                                        <apex:actionStatus id="cloneRLCRecords">
+                                            <apex:facet name="start">
+                                                <apex:outputPanel layout="none">
+                                                    <apex:image value="/img/loading.gif" styleClass="loadingImageStyle"></apex:image>
+                                                </apex:outputPanel>
+                                            </apex:facet>
+                                        </apex:actionStatus>
+                                    </apex:selectList>
+                                </apex:pageBlockSectionItem>
+
+                                <apex:repeat var="field" value="{!currentRLCRecord.lstRLCFields}">
+                                    <apex:repeat var="fieldMap" value="{!field}">
+                                        <apex:pageBlockSectionItem rendered="{!(fieldMap != 'FGM_Portal__ParentObject__c' && fieldMap != 'FGM_Portal__ObjectName__c' && fieldMap != 'FGM_Portal__SortField__c' && fieldMap != 'FGM_Portal__RichInstructionalText__c')}">
+                                            <apex:outputLabel value="{!field[fieldMap]}"></apex:outputLabel>
+                                            <apex:inputField styleClass="form_control" style="{!IF(fieldMap == 'FGM_Portal__BaseUrl__c','width:98%','')}" label="{!field[fieldMap]}" required="{!IF( fieldMap == 'FGM_Portal__BaseUrl__c', TRUE, FALSE )}" value="{!currentRLCRecord.currentRelatedListController[fieldMap]}"></apex:inputField>
+                                        </apex:pageBlockSectionItem>
+                                        <apex:pageBlockSectionItem rendered="{!fieldMap == 'FGM_Portal__Associated_FC_Portal_Type__c' && currentRLCRecord.currentRelatedListController[fieldMap] == null}">
+                                            <apex:outputLabel value="{!field[fieldMap]}"></apex:outputLabel>
+                                            <apex:selectList value="{!currentRLCRecord.currentRelatedListController[fieldMap]}" multiselect="false" size="1" disabled="{!currentRLCRecord.currentRelatedListController[fieldMap] != null}">
+                                                <apex:selectOptions value="{!PortalTypes}" />
+                                            </apex:selectList>
+                                        </apex:pageBlockSectionItem>
+                                        <!-- getParentObjectForExternalRW  -->
+                                        <apex:pageBlockSectionItem id="ParentObjectSectionExternalRW" rendered="{!fieldMap == 'FGM_Portal__ParentObject__c' && isShowExternalRelatedObject == true}">
+                                            <apex:outputLabel value="{!field[fieldMap]}"></apex:outputLabel>
+                                            <apex:selectList value="{!currentRLCRecord.currentRelatedListController[fieldMap]}" multiselect="false" size="1">
+                                                <apex:selectOption itemValue="" itemLabel="--- Select Object---"></apex:selectOption>
+                                                <apex:selectOptions value="{!ParentObjectsForExternalReviewer}" />
+                                                <apex:actionSupport event="onchange" action="{!getChildObjectFields}" status="fillChildFields" reRender="formBlock,ColConfigBlock"></apex:actionSupport>
+                                                <apex:actionStatus id="fillChildFields">
+                                                    <apex:facet name="start">
+                                                        <apex:outputPanel layout="none">
+                                                            <apex:image value="/img/loading.gif" styleClass="loadingimg"></apex:image>
+                                                        </apex:outputPanel>
+                                                    </apex:facet>
+                                                </apex:actionStatus>
+                                            </apex:selectList>
+                                        </apex:pageBlockSectionItem>
+                                        <!-- End of getParentObjectExternalRW -->
+                                        <apex:pageBlockSectionItem id="ParentObjectSection" rendered="{!fieldMap == 'FGM_Portal__ParentObject__c' && isShowExternalRelatedObject == false}">
+                                            <apex:outputLabel value="{!field[fieldMap]}"></apex:outputLabel>
+                                            <apex:selectList value="{!currentRLCRecord.currentRelatedListController[fieldMap]}" multiselect="false" size="1" disabled="{!currentRLCRecord.currentRelatedListController[fieldMap] != null}">
+                                                <apex:selectOptions value="{!ParentObjects}" />
+                                            </apex:selectList>
+                                        </apex:pageBlockSectionItem>
+                                        <apex:pageBlockSectionItem rendered="{!fieldMap == 'FGM_Portal__SortField__c'}">
+                                            <apex:outputLabel value="{!field[fieldMap]}"></apex:outputLabel>
+                                            <apex:selectList value="{!currentRLCRecord.currentRelatedListController[fieldMap]}" multiselect="false" size="1">
+                                                <apex:selectOption itemValue="" itemLabel="--- Select Field ---"></apex:selectOption>
+                                                <apex:selectOptions value="{!childObjectFieldsOptions}" />
+                                            </apex:selectList>
+                                        </apex:pageBlockSectionItem>
+                                        <apex:pageBlockSectionItem id="objectSection" rendered="{!(fieldMap == 'FGM_Portal__ObjectName__c')}">
+                                            <apex:outputLabel value="{!field[fieldMap]}"></apex:outputLabel>
+                                            <apex:selectList value="{!currentRLCRecord.currentRelatedListController[fieldMap]}" disabled="{!(quizQuestionList != null && currentRLCRecord.currentRelatedListController[fieldMap] != null  && currentRLCRecord.currentRelatedListController['Id'] != null)}" multiselect="false" size="1" styleClass="FGM_Portal__ObjectName__c">
+                                                <apex:selectOption itemValue="" itemLabel="--- Select Object ---"></apex:selectOption>
+                                                <apex:selectOptions value="{!ChildObjects}"></apex:selectOptions>
+                                                <apex:actionSupport event="onchange" action="{!getChildObjectFields}" status="fillChildFields" reRender="formBlock,ColConfigBlock,errorMsg,modal-footer"></apex:actionSupport>
+                                                <apex:actionStatus id="fillChildFields">
+                                                    <apex:facet name="start">
+                                                        <apex:outputPanel layout="none">
+                                                            <apex:image value="/img/loading.gif"  styleClass="loadingimg"></apex:image>
+                                                        </apex:outputPanel>
+                                                    </apex:facet>
+                                                </apex:actionStatus>
+                                            </apex:selectList>
+                                        </apex:pageBlockSectionItem>
+                                        <apex:outputPanel rendered="{!fieldMap == 'FGM_Portal__RichInstructionalText__c'}">
+                                            <tr>
+                                                <td class="labelCol vfLabelColTextWrap"><apex:outputLabel value="{!field[fieldMap]}"></apex:outputLabel></td>
+                                                <td colspan="3"><apex:inputTextArea styleClass="form_control txtinstruction" label="{!field[fieldMap]}" value="{!currentRLCRecord.currentRelatedListController [fieldMap]}"></apex:inputTextArea>
+                                                </td>
+                                            </tr>
+                                        </apex:outputPanel>
+                                    </apex:repeat>
+                                </apex:repeat>
+                            </apex:pageBlockSection>
+                             <script>
+                               initializeTinymceEditor();
+                             </script>
+                            <!-- ----Configure Grantee Budget---- -->
+                            <apex:outputPanel id="BudgetPanel" styleClass="granteeBudgetPanel" rendered="{!currentRLCRecord.recordTypeName == 'Grantee Budget Tab'}">
+                                <apex:pageBlockSection id="granteeBudgetConfig" columns="3" >
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel id="category">
+                                            <apex:outputLabel value="Category " for="budgetCategory" style="font-weight: bold;color: #4A4A56;font-size: 12px;"/>
+                                            <apex:selectList value="{!selectedBudgetCategory}" size="1" id="budgetCategory" >
+                                                <apex:actionSupport event="onchange" action="{!budgetSubCategories}" reRender="subCategory" status="fillSubCategory"/>
+                                                <apex:selectOption itemValue="" itemLabel="--Select Category--"></apex:selectOption>
+                                                <apex:selectOptions value="{!GranteeBudgetCategories}" />
+                                                <apex:actionStatus id="fillSubCategory">
+                                                    <apex:facet name="start">
+                                                        <apex:outputPanel layout="none">
+                                                            <apex:image value="/img/loading.gif"  styleClass="loadingimg"></apex:image>
+                                                        </apex:outputPanel>
+                                                    </apex:facet>
+                                                </apex:actionStatus>
+                                            </apex:selectList>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel id="subCategory">
+                                            <apex:outputLabel value="Sub Category" for="budgetSubCategory" style="font-weight: bold;color: #4A4A56;font-size: 12px;"/>
+                                            <apex:selectList value="{!selectedBudgetSubCategory}" size="1" id="budgetSubCategory" disabled="{!lstSubCategories == null || lstSubCategories.size == 0}">
+                                                <apex:selectOption itemValue="" itemLabel="--Select SubCategory--" ></apex:selectOption>
+                                                <apex:selectOptions value="{!lstSubCategories}" rendered="{!lstSubCategories != null}" />
+                                            </apex:selectList>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel >
+                                            <apex:outputLabel value="Sort Order" for="budgetSortOrder" style="font-weight: bold;color: #4A4A56;font-size: 12px;" />
+                                            <apex:inputField id="budgetSortOrder" value="{!budgetConfiguration.Sort_Order__c}"/>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel layout="block" styleClass="categoryControlBtn">
+                                            <apex:commandButton value="Add" action="{!addCategory}"  status="Process" rendered="{!Not(IsEditCategory)}" reRender="BudgetPanel,granteeBudgetConfig,controlCommandBtn" styleClass="btn btn-primary "></apex:commandButton>
+                                            <apex:commandButton value="Update" action="{!updateCategory}" status="Process" rendered="{!IsEditCategory}" reRender="BudgetPanel,granteeBudgetConfig" styleClass="btn btn-primary"></apex:commandButton>
+                                            <apex:commandButton value="Cancel" action="{!cancelUpdateCategory}" rerender="BudgetPanel,granteeBudgetConfig" status="Process" styleClass="btn btn-primary"/>
+                                            <apex:actionStatus id="Process">
+                                                <apex:facet name="start">
+                                                    <apex:outputPanel layout="none" id="load">
+                                                        <apex:image value="/img/loading.gif"></apex:image>
+                                                    </apex:outputPanel>
+                                                </apex:facet>
+                                            </apex:actionStatus>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                </apex:pageBlockSection>
+                                <apex:pageBlockSection id="budgetCategoryTable" columns="1">
+                                    <apex:outputPanel id="granteeErrorPanel" layout="block" rendered="{!isBudgetError}">
+                                        <apex:pageMessages />
+                                    </apex:outputPanel>
+                                    <apex:variable var="colIndex" value="{!0}"/>
+                                    <apex:pageBlockTable value="{!lstBudgetConfiguration}" var="category" rendered="{!lstBudgetConfiguration != null && lstBudgetConfiguration.size > 0 }">
+                                        <apex:column headerValue="Action" width="30%">
+                                             <apex:commandLink value="Edit "  action="{!editCategory}" reRender="BudgetPanel" status="Process" >
+                                                <apex:param value="{!colIndex}" name="categoryToEdit" assignTo="{!categoryId}"/>
+                                             </apex:commandLink> |
+                                             <apex:commandLink Value=" Delete"  action="{!deleteCategory}" onclick="if(!confirm('Are you sure you want to delete this layout?')){return};" reRender="BudgetPanel" status="Process">
+                                                <apex:param value="{!colIndex}" name="categoryTodelete" assignTo="{!categoryId}"/>
+                                             </apex:commandLink>
+                                             <apex:actionStatus id="Process">
+                                                <apex:facet name="start">
+                                                    <apex:outputPanel layout="none" id="load">
+                                                        <apex:image value="/img/loading.gif"></apex:image>
+                                                    </apex:outputPanel>
+                                                </apex:facet>
+                                            </apex:actionStatus>
+                                        </apex:column>
+                                        <apex:column headerValue="Categories">
+                                            <apex:outputText value="{!category.FGM_Portal__Category__r.FGM_Portal__Parent_Category__r.Name} >>" rendered="{!category.FGM_Portal__Category__r.FGM_Portal__Parent_Category__r != null}" />
+                                            <apex:outputText value="{!category.FGM_Portal__Category__r.Name}" />
+                                        </apex:column>
+                                        <apex:column headerValue="Sort Order" >
+                                            <apex:outputText value="{!category.Sort_Order__c}"/>
+                                        </apex:column>
+                                        <apex:column headerValue="" >
+                                        <apex:outputPanel layout="none" >
+                                             <apex:variable var="colIndex" value="{!colIndex + 1}"/>
+                                            </apex:outputPanel>
+                                        </apex:column>
+                                    </apex:pageBlockTable>
+                                </apex:pageBlockSection>
+                            </apex:outputPanel>
+                            <!-- --- End of Budget---- -->
+                            <apex:outputPanel layout="inline">
+                                <apex:pageBlockSection id="ColConfigBlock" columns="1"   >
+                             <apex:variable var="colIndex" value="{!-1}"/>
+                                <apex:pageBlockTable var="column" value="{!currentRLCRecord.relatedListColumns}" width="100%" rendered="{!(NOT(ISBLANK(currentRLCRecord.currentRelatedListController['FGM_Portal__ObjectName__c'])) && currentRLCRecord.recordTypeName == 'Related List With Tab')}">
+                                    <apex:pageMessages />
+                                    <apex:column headerValue="" >
+                                    <apex:outputPanel layout="none" >
+                                        <apex:variable var="colIndex" value="{!colIndex + 1}"/>
+                                        </apex:outputPanel>
+                                    </apex:column>
+                                    <apex:column headerValue="Column Label" width="35%">
+                                        <apex:facet name="header">Column Label</apex:facet>
+                                        <apex:outputLabel value="{! column.colLabel}" rendered="{! !column.isEdit}"> </apex:outputLabel>
+                                        <apex:outputPanel layout="none" rendered="{!column.isEdit}">
+                                             <apex:inputText value="{!column.colLabel}"></apex:inputText>
+                                        </apex:outputPanel>
+                                        <apex:facet name="footer" >
+                                            <apex:outputPanel layout="none">
+                                                <apex:inputText value="{!currentRLCRecord.newColumn.colLabel}"></apex:inputText>
+                                            </apex:outputPanel>
+                                        </apex:facet>
+                                    </apex:column>
+                                    <apex:column headerValue="Column Field" width="35%">
+                                        <apex:facet name="header">Column Field</apex:facet>
+                                        <apex:outputLabel value="{! MapFieldApiNameToLabel[column.colField] }" rendered="{! !column.isEdit}"> </apex:outputLabel>
+                                        <apex:outputPanel layout="none" rendered="{! column.isEdit}">
+                                                <apex:selectList value="{!column.colField}" multiselect="false" size="1">
+                                                    <apex:selectOption itemValue="" itemLabel="--- Select Field ---"></apex:selectOption>
+                                                    <apex:selectOptions value="{!childObjectFieldsOptions}" />
+                                                </apex:selectList>
+                                            </apex:outputPanel>
+                                        <!-- Footer -->
+                                        <apex:facet name="footer">
+                                            <apex:outputPanel layout="none">
+                                                <apex:selectList value="{!currentRLCRecord.newColumn.colField}" multiselect="false" size="1">
+                                                    <apex:selectOption itemValue="" itemLabel="--- Select Field ---"></apex:selectOption>
+                                                    <apex:selectOptions value="{!childObjectFieldsOptions}" />
+                                                </apex:selectList>
+                                            </apex:outputPanel>
+                                        </apex:facet>
+                                    </apex:column>
+                                    <apex:column headerValue="Action" width="28%">
+                                        <apex:facet name="header">Action</apex:facet>
+                                        <apex:outputPanel layout="none">
+                                        <apex:commandLink value="Edit "  action="{!editColumnInRelatedListTable}" oncomplete="settFoot();" rendered="{! !column.isEdit}" rerender="ColConfigBlock">
+                                                <apex:param name="columnField" value="{!colIndex}" assignTo="{!iColumnIndex}"/>
+                                        </apex:commandLink>
+                                        <apex:commandLink Value=" Delete"  action="{!removeColumnInRelatedListTable}" oncomplete="settFoot();" rendered="{! !column.isEdit}" rerender="ColConfigBlock">
+                                            <apex:param name="columnField" value="{!colIndex}" assignTo="{!iColumnIndex}"/>
+                                        </apex:commandLink>
+                                        <apex:commandButton value="Save Column" action="{!saveColumnInRelatedListTable}" rendered="{!column.isEdit}" oncomplete="settFoot();" rerender="ColConfigBlock">
+                                               <apex:param name="columnField" value="{!colIndex}" assignTo="{!iColumnIndex}"/>
+                                        </apex:commandButton>
+                                        </apex:outputPanel>
+                                        <apex:facet name="footer">
+                                            <apex:outputPanel layout="none">
+                                                <apex:commandButton value="Add Column" action="{!addColumnInRelatedListTable}" oncomplete="settFoot();" rerender="ColConfigBlock"></apex:commandButton>
+                                            </apex:outputPanel>
+                                        </apex:facet>
+                                    </apex:column>
+                                </apex:pageBlockTable>
+                                <apex:pageBlockSectionItem > </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="block" id="modal-footer" styleClass="modal-footer">
+                        <apex:actionFunction name="saveRelatedListControllerRecord" action="{!saveRelatedListControllerRecord}" reRender="applicationContent,relatedListForm" status="mainStatus">
+                        </apex:actionFunction>
+                        <apex:actionStatus id="mainStatus">
+                            <apex:facet name="stop">
+                                <apex:outputPanel id="controlCommandBtn" layout="none">
+                                    <apex:commandButton value="Save" status="mainStatus" rendered="{!Not(isGranteeBudgetTab)}" onclick="saveTabRecord();" oncomplete="setFooter();settFoot(); " styleClass="btn btnNew" disabled="{!bIsBenchmarkUpdateExist}"/>
+                                    <apex:commandButton value="Save" rendered="{!isGranteeBudgetTab}"  reRender="stylePanel" disabled="{! Not(lstBudgetConfiguration.size != null && lstBudgetConfiguration.size > 0) }" status="mainStatus" onclick="saveTabRecord();setFooter();" oncomplete="setFooter();settFoot(); " styleClass="btn btnNew"/>
+                                    <apex:commandButton value="Cancel" action="{!closeRLCPopUp}" reRender="relatedListForm" styleClass="btn btnNew" immediate="true" rendered="{!NOT(isOtherLanguageConfig)}" status="mainStatus"/>
+                                    <apex:commandButton value="Back" action="{!backTORLCConfiguration}" reRender="relatedListForm" styleClass="btn btn-primary" immediate="true" rendered="{!isOtherLanguageConfig}" status="mainStatus"/>
+                                </apex:outputPanel>
+                            </apex:facet>
+                            <apex:facet name="start">
+                                <apex:outputPanel layout="none">
+                                    <apex:commandButton value="Processing..." styleClass="btn btnNew" disabled="true" />
+                                    <apex:commandButton value="Processing..." styleClass="btn btnNew" disabled="true"/>
+                                </apex:outputPanel>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </apex:outputPanel>
+                </div>
+            </apex:pageblock>
+            <apex:outputPanel id="stylePanel">
+                <script type="text/javascript">
+                 setFooter();
+                </script>
+            </apex:outputPanel>
+        </apex:outputPanel>
+  </apex:outputPanel>
+</apex:form>
+     <script >
+        setFooter();
+    </script>
+</apex:page>

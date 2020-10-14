@@ -1,0 +1,1 @@
+<apex:page standardController="Recommendation__c" extensions="OverrideViewExtension"  action="{!if(IsCommunityuser, communityUrl,URLFOR($Action.FGM_Portal__Recommendation__c.View,FGM_Portal__Recommendation__c.Id, [retURL=''], true))}" sidebar="false" showHeader="false"></apex:page>

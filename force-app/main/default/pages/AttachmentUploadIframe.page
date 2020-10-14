@@ -1,0 +1,104 @@
+<apex:page controller="AttachmentUploadIframeController" showHeader="false" sidebar="false" action="{!initialize}">
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/angular/angular.min.1.7.8.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/angular/angular-sanitize-1.7.8.min.js')}"></apex:includeScript>
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationResources, '/application_js/framework/system-service.js')}"></apex:includeScript>
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationResources, '/application_js/framework/exception-service.js')}"></apex:includeScript>
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationResources, '/application_js/framework/database-service.js')}"></apex:includeScript>
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationResources, '/application_js/framework/schema-service.js')}"></apex:includeScript>
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationResources, '/application_js/attachments-upload-manager-iframe.js')}"></apex:includeScript>
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationResources, '/application_js/community-application-attachment-manager-iframe.js')}"></apex:includeScript>
+    <apex:stylesheet value="{!URLFOR($Resource.GPVendorResources, '/vendor_css/bootstrap/bootstrap-prefixed.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.GPApplicationResources)}/application_css/attachments-upload-manager.css"/>
+    <script>
+        var sessionId = '{!JSENCODE($Api.Session_ID)}';
+        var currentPage = '{!JSENCODE($CurrentPage.parameters.page)}';
+        var queryString = '{!JSENCODE(query)}';
+        if(currentPage.toLocaleLowerCase().search('application')>=0)
+        {
+            var srNoLabel = '{!JSENCODE($Label.fgm_portal__fc_srno_columnheaderlabel)}';
+            var nameLabel = '{!JSENCODE($ObjectType.Attachment.Fields.Name.Label)}';
+            var descriptionLabel = '{!JSENCODE($Label.fgm_portal__fc_fcrecord_attachdescription_label)}';
+            var createdDateLabel = '{!JSENCODE($ObjectType.Attachment.Fields.CreatedDate.Label)}';
+            var actionLabel = '{!JSENCODE($Label.fgm_portal__FC_Action_ColumnHeaderLabel)}';
+            var deleteLabel = '{!JSENCODE($Label.fgm_portal__fc_delete_buttonlabel)}';
+            var chooseFileLabel = '{!JSENCODE($Label.FC_Upload_ChooseFile_ButtonLabel)}';
+            var noFileChoosenLabel = '{!JSENCODE($Label.FC_Upload_ChooseFile_StatusLabel)}';
+            var uploadLabel = '{!JSENCODE($Label.fgm_portal__fc_upload_buttonlabel)}';
+            var descriptionPlaceholder = '{!JSENCODE($Label.fgm_portal__fc_communityapplication_attachdescription_label)}';
+            var bCanUploadAfterSubmission = Boolean('{!JSENCODE(IF($Setup.FGM_Portal__GlobalPortalSettings__c.FGM_Portal__Enable_Attachments_for_Submitted_Appl__c,'true','false'))}');
+            var uploadingLabel = '{!JSENCODE($Label.fgm_portal__FC_Uploading_Label)}';
+            var characterCountOfLabel = '{!JSENCODE($Label.fgm_portal__FC_Character_Counter_Of)}';
+            var charactersLabel = '{!JSENCODE($Label.fgm_portal__FC_Character_Counter_Character)}';
+            var uploadSuccessMsg = "{!JSENCODE($Label.fgm_portal__FC_File_Upload_Success_Message)}";
+            var fileInfectedMsg = "{!JSENCODE($Label.fgm_portal__FC_Infected_File_Error_Message)}";
+            var extensionNotAllowMsg = "{!JSENCODE($Label.fgm_portal__FC_File_Extension_Not_Allowed)}";
+            var attachmentSizeErrorMsg = "{!JSENCODE($Label.fgm_portal__FC_Attachment_size_ErrorMsg)}";
+            var deleteConfirmation = '{!JSENCODE($Label.fgm_portal__FC_ConfirmDeleteAttachment)}';
+            var zeroByteFileErr = '{!JSENCODE($Label.fgm_portal__FC_zero_byte_File_Error_Message)}';
+            var attachmentProcessErr = '{!JSENCODE($Label.fgm_portal__FC_AttachmentProcess_ErrorMsg)}';
+            var noAttachmentMsg = '{!JSENCODE($Label.fgm_portal__FC_NoAttachmentsMessage)}';
+            var iEBrowserSupportErr = '{!JSENCODE($Label.fgm_portal__FC_Attachment_Internet_Explorer_Error_Message)}';
+            var attachmentProcessing ='{!JSENCODE($Label.fgm_portal__FC_Uploading_Label)}';
+        }
+        else if(currentPage.toLocaleLowerCase().search('fcrecord')>=0)
+        {
+            var srNoLabel = "{!JSENCODE($Label.fgm_portal__fc_srno_columnheaderlabel)}";
+            var nameLabel = "{!JSENCODE($ObjectType.Attachment.Fields.Name.Label)}"
+            var descriptionLabel = '{!JSENCODE($Label.FC_FCRecord_AttachDescription_Label)}';
+            var createdDateLabel = "{!JSENCODE($ObjectType.Attachment.Fields.CreatedDate.Label)}";
+            var actionLabel = "{!JSENCODE($Label.fgm_portal__FC_Action_ColumnHeaderLabel)}";
+            var deleteLabel = "{!JSENCODE($Label.fgm_portal__FC_Delete_ButtonLabel)}";
+            var uploadLabel="{!JSENCODE($Label.fgm_portal__FC_Upload_ButtonLabel)}";
+            var descriptionPlaceholder = '{!JSENCODE($Label.fgm_portal__fc_communityapplication_attachdescription_label)}';
+            var bCanUploadAfterSubmission = Boolean('{!JSENCODE(IF($Setup.FGM_Portal__GlobalPortalSettings__c.FGM_Portal__Enable_Attachments_for_Submitted_Appl__c,'true','false'))}');
+            var chooseFileLabel= "{!JSENCODE($Label.fgm_portal__FC_Upload_ChooseFile_ButtonLabel)}";
+            var charactersLabel = "{!JSENCODE($Label.fgm_portal__FC_Character_Counter_Character)}";
+            var characterCountOfLabel = "{!JSENCODE($Label.fgm_portal__FC_Character_Counter_Of)}";
+            var attachmentProcessing = "{!JSENCODE($Label.fgm_portal__FC_Uploading_Label)}";
+            var noFileChoosenLabel = "{!JSENCODE($Label.fgm_portal__FC_Upload_ChooseFile_StatusLabel)}";
+            var attachmentProcessErr = '{!JSENCODE($Label.fgm_portal__FC_AttachmentProcess_ErrorMsg)}';
+            var zeroByteFileErr = "{!JSENCODE($Label.fgm_portal__FC_zero_byte_File_Error_Message)}";
+            var iEBrowserSupportErr = "{!JSENCODE($Label.fgm_portal__FC_Attachment_Internet_Explorer_Error_Message)}";
+            var uploadFailureMsg = "{!JSENCODE($Label.fgm_portal__FC_AttachmentProcess_ErrorMsg)}";
+            var uploadSuccessMsg = "{!JSENCODE($Label.fgm_portal__FC_File_Upload_Success_Message)}";
+            var fileInfectedMsg = "{!JSENCODE($Label.fgm_portal__FC_Infected_File_Error_Message)}";
+            var extensionNotAllowMsg = "{!JSENCODE($Label.fgm_portal__FC_File_Extension_Not_Allowed)}";
+            var attachmentSizeErrorMsg = "{!JSENCODE($Label.fgm_portal__FC_Attachment_size_ErrorMsg)}";
+            var noAttachmentMsg = "{!JSENCODE($Label.fgm_portal__FC_NoAttachmentsMessage)}";
+            var deleteConfirmation = "{!JSENCODE($Label.fgm_portal__FC_ConfirmDeleteAttachment)}";
+        }
+        var applicationWrapper = '{!JSENCODE(appWrapper)}';
+        var appQuestionWrapper = JSON.parse(applicationWrapper);
+        var initialize = '{!JSENCODE(initializationSetting)}';
+        var initializeSettings = JSON.parse(initialize);
+        $(document).ready(function() {
+            var attachmentDescriptionTst = $("[id*='-description']");
+            var attachmentLabelTst = $("[name^='fileUploader']");
+            debugger;
+            for (var objinput in attachmentDescriptionTst) {
+            $(objinput).on('keyup', function(e) {
+                if (e.keyCode != 37 && e.keyCode != 38 && e.keyCode != 39 && e.keyCode != 40 && e.keyCode != 16 && e.keyCode != 17 && e.keyCode != 18)
+                {
+                    if(window.parent.isUploadProcessQueueEmpty())
+                        $("[id$='btnClearChange']").removeAttr('disabled');
+                    $("[id$='btnClearContact']").removeAttr('disabled');
+                    $("[id$='btnClearAccount']").removeAttr('disabled');
+                    $("[id$='btnClearDates']").removeAttr('disabled');
+                }
+            });
+            $(objinput).change(function() {
+                if(window.parent.isUploadProcessQueueEmpty())
+                    $("[id$='btnClearChange']").removeAttr('disabled');
+                $("[id$='btnClearContact']").removeAttr('disabled');
+                $("[id$='btnClearAccount']").removeAttr('disabled');
+                $("[id$='btnClearDates']").removeAttr('disabled');
+            });
+        }
+        });
+    </script>
+    <div ng-app="angularAppIframe" ng-controller="angularControllerIframe">
+        <div class="uploadManagerComponent" parent-record="{{appQuestionWrapper}}" status-codes="{{translationForStatuses}}" question-attachment-id="{!JSENCODE($Currentpage.parameters.queId)}" attachments="{{attachments}}" table-translations="{{transationForTable}}" file-input-translations="{{transationForFileUploader}}" initialization-settings="{{initializationSettings}}" style="text-align: center" upload-enabled="{!JSENCODE($Currentpage.parameters.uploadEnabled)}">
+        </div>
+    </div>
+</apex:page>

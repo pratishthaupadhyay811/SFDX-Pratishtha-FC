@@ -1,0 +1,1 @@
+<apex:page standardController="FCPageLayout__c" extensions="OverrideViewExtension"  action="{!if(IsCommunityuser, communityUrl,URLFOR($Action.FGM_Portal__FCPageLayout__c.View,FGM_Portal__FCPageLayout__c.Id, [retURL=''], true))}" sidebar="false" showHeader="false"></apex:page>

@@ -1,0 +1,187 @@
+<apex:page standardController="Quiz__c" extensions="QuizDesignerExtension" sidebar="false" action="{!initialize}">
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/select2/select2-3.4.8.min.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/select2/select2-3.4.8.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/fontawesome/font-awesome-4.1.0.min.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/bootstrap/bootstrap-3.4.1.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/bootbox/bootbox-4.2.0.min.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'fc_community.css')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource,'fc-community.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource,'application_js/quiz-designer.js')}"/>
+    <c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}"/>
+     <script type="text/javascript">
+        $(document).ready(function() {
+           initializeQuizDesigner();
+        });
+    </script>
+
+    <apex:form >
+      <apex:outputPanel id="mainForm" styleClass="mainForm" rendered="{!NOT(ISBLANK(quiz.Id))}">
+        <apex:panelGrid columns="2" styleClass="config_section"  width="100%">
+            <apex:sectionHeader title="Quiz Designer" subtitle="{!quiz.Name}"></apex:sectionHeader>
+            <apex:commandButton value="Back To Configuration" styleClass="btn btn btn-primary" immediate="true" action="{!URLFOR($Page.fcportalManager)}"/>
+        </apex:panelGrid>
+
+        <!--- To Show the Tabs from RLC Object. -->
+        <apex:outputPanel id="applicationContent">
+            <apex:outputPanel layout="block" styleClass="mainNavbar" id="mainNavbar">
+                <apex:outputPanel layout="block"  styleClass="QuizDesigner_button"  rendered="true">
+                    <apex:actionStatus id="mainStatus">
+                        <apex:facet name="stop">
+                            <apex:outputPanel layout="none">
+                                <apex:commandButton value="Edit Quiz" styleClass="btn btn-primary" action="{!URLFOR($Action.FGM_Portal__Quiz__c.Edit, quiz.Id)}" onComplete="settFoot();"></apex:commandButton>
+                                <apex:commandButton value="Save Questions" styleClass="btn btn-primary" action="{!updateQuizQuestionList}" reRender="mainForm" oncomplete="initilizeJavascript()"  status="mainStatus"></apex:commandButton>
+                                <apex:commandButton value="Delete" immediate="true" styleClass="btn btn-primary"  onclick="bootbox.confirm('Are you sure you want to delete?', function(result) { if(result) { deleteQuiz();  } }); return false;"></apex:commandButton>
+                                <apex:actionFunction action="{!URLFOR($Action.FGM_Portal__Quiz__c.Delete, quiz.Id, [retURL=URLFOR($Page.QuizDesigner)])}" name="deleteQuiz"></apex:actionFunction>
+                            </apex:outputPanel>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:outputPanel layout="none">
+                                <apex:commandButton value="Edit Quiz" styleClass="btn primary_btn" disabled="true" onComplete="settFoot();"></apex:commandButton>
+                                <apex:commandButton value="Save Questions" styleClass="btn primary_btn" disabled="true" onComplete="settFoot();"></apex:commandButton>
+                                <apex:commandButton value="Delete" styleClass="btn primary_btn" disabled="true" onComplete="settFoot();"></apex:commandButton>
+                                <apex:image value="/img/loading.gif" styleClass="loadingimg"></apex:image>
+                            </apex:outputPanel>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </apex:outputPanel>
+                <apex:outputPanel layout="block"  styleClass="clear">
+                </apex:outputPanel>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none">
+                <apex:pageBlock mode="mainDetail" id="questionSection">
+                    <apex:pageMessage rendered="{!quizQuestionList.size == 0}" severity="Info" strength="1" summary="No questions on this form.. so far.."></apex:pageMessage>
+
+                    <apex:pageBlockTable var="quizQuestion" value="{!quizQuestionList}" styleClass="list_width FGM_Portal__Quiz_Questions__c FGM_Portal__Quiz_Questions__c_margin" width="100%">
+                        <apex:column headerValue="Actions" styleClass="minimumWidth">
+                            <apex:outputPanel layout="block" styleClass="FGM_Portal__Sort_Order__c">
+                                <apex:outputText rendered="{!AND(ISBLANK(quizQuestion.Sort_Order__c))}" value=".."></apex:outputText>
+                                <apex:outputText rendered="{!NOT(ISBLANK(quizQuestion.Sort_Order__c))}" value="#{!TEXT(quizQuestion.FGM_Portal__Sort_Order__c)}"></apex:outputText>
+                            </apex:outputPanel>
+                            <apex:facet name="footer">
+                                <apex:outputPanel layout="none">
+                                    <input type="radio" value="New" name="FGM_Portal__Question__type" onclick="var tr = $(this).closest('tr,.toggle-container'); tr.find('.FGM_Portal__Question__add').hide(); tr.find('.FGM_Portal__Question__new').show();"/>New
+                                    <input type="radio" value="Add" name="FGM_Portal__Question__type" onclick="var tr = $(this).closest('tr,.toggle-container'); tr.find('.FGM_Portal__Question__add').show(); tr.find('.FGM_Portal__Question__new').hide();"/>Add
+                        </apex:outputPanel>
+                    </apex:facet>
+                </apex:column>
+                <apex:column headerValue="Question Details" styleClass="">
+                    <apex:outputPanel layout="none" rendered="{!AND(ISBLANK(quizQuestion.FGM_Portal__Question__r.Quiz__c))}">
+                        <apex:outputText value="{!quizQuestion.FGM_Portal__Question__r.RichQuestion__c}" styleClass="FGM_Portal__Question__c"></apex:outputText>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{!NOT(ISBLANK(quizQuestion.FGM_Portal__Question__r.Quiz__c))}">
+                        <apex:inputText value="{!quizQuestion.FGM_Portal__Question__r.RichQuestion__c}" styleClass="FGM_Portal__Question__c"></apex:inputText>
+                    </apex:outputPanel>
+                    <apex:outputField value="{!quizQuestion.FGM_Portal__Question__r.RichPreText__c}" styleClass="FGM_Portal__Pre_Text__c hidden-empty"></apex:outputField>
+
+                    <!-- Container for known/simple types -->
+                    <apex:variable var="matchedType" value="{!0}"></apex:variable>
+                <apex:outputPanel layout="block" styleClass="input_wrapper">
+                    <div class="inputOverlay"></div>
+                </apex:outputPanel>
+
+                <!-- Now the post text -->
+                <apex:outputField value="{!quizQuestion.FGM_Portal__Question__r.RichPostText__c}" styleClass="FGM_Portal__Post_Text__c hidden-empty"></apex:outputField>
+
+                <!-- Footer -->
+                <apex:facet name="footer">
+                    <apex:outputPanel layout="none">
+                        <apex:selectList size="1" value="{!quizQuestionInsert.Question__c}" styleClass="FGM_Portal__Question__add none">
+                            <apex:selectOption itemValue="" itemLabel=""></apex:selectOption>
+                            <apex:selectOptions value="{!questionOptions}"></apex:selectOptions>
+                            <apex:actionSupport event="onchange" action="{!insertQuizQuestion}" rerender="mainForm" oncomplete="initilizeJavascript()"></apex:actionSupport>
+                        </apex:selectList>
+                        <apex:outputPanel layout="block" styleClass="FGM_Portal__Question__new none">
+                            <apex:pageBlockSection columns="1" collapsible="false">
+                                <apex:inputText value="{!questionInsert.RichQuestion__c}"></apex:inputText>
+                                <apex:inputTextarea value="{!questionInsert.RichPreText__c}" rows="5"></apex:inputTextarea>
+                                <apex:inputTextarea value="{!questionInsert.RichPostText__c}" rows="5"></apex:inputTextarea>
+                                <apex:inputField value="{!questionInsert.Type__c}"></apex:inputField>
+
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel ></apex:outputPanel>
+                                    <apex:commandButton value="Save" action="{!insertQuestion}" reRender="mainForm" oncomplete="initilizeJavascript()" styleClass="btn btn btn-primary"></apex:commandButton>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                </apex:facet>
+            </apex:column>
+
+            <apex:column styleClass="actionColumn optionsPanel">
+                <apex:outputPanel layout="block">
+                    <apex:inputField styleClass="portal_type actionColumn_100width"  value="{!quizQuestion.FGM_Portal__Question__r.Type__c}"></apex:inputField>
+                </apex:outputPanel>
+
+                <apex:outputPanel layout="block" styleClass="QuizDesigner_text">
+                    <apex:outputLink value="{!URLFOR($Action.Quiz_Questions__c.Edit, quizQuestion.Id)}" styleClass="actionLink">Edit</apex:outputLink>
+                    <apex:outputText >&nbsp;|&nbsp;</apex:outputText>
+                    <apex:outputLink value="{!URLFOR($Action.Quiz_Questions__c.Delete, quizQuestion.Id,[retURL=URLFOR($Page.QuizDesigner, null, [id=quiz.Id])])}" styleClass="actionLink">Delete</apex:outputLink>
+                </apex:outputPanel>
+
+                <apex:outputPanel layout="block"  styleClass="QuizDesigner_text">
+                    <apex:outputLink value="{!URLFOR($Action.Questions__c.View, quizQuestion.Question__c)}" styleClass="actionLink">View Question</apex:outputLink>
+                </apex:outputPanel>
+            </apex:column>
+
+            <apex:column headerValue="" headerClass="booleanColumn" styleClass="actionColumn">
+
+            </apex:column>
+        </apex:pageBlockTable>
+    </apex:pageBlock>
+</apex:outputPanel>
+</apex:outputPanel>
+</apex:outputPanel>
+
+<apex:outputPanel id="redirectForm" styleClass="mainForm redirectForm subForm" rendered="{!AND(ISBLANK(quiz.Id))}">
+ <apex:outputPanel id="quizCreator">
+            <apex:panelGrid columns="2" styleClass="config_section"  width="100%">
+                <apex:sectionHeader title="Design Quiz" subtitle="Open an existing Quiz, or create a new quiz"></apex:sectionHeader>
+                <apex:commandButton value="Back To Configuration" styleClass="btn btn btn-primary" immediate="true" action="{!URLFOR($Page.fcportalManager)}"/>
+            </apex:panelGrid>
+
+            <apex:outputPanel id="existingQuiz" styleClass="recordTypeSection">
+                <apex:pageBlock title="Open Existing Quiz" mode="maindetail" rendered="{!quizOptions!= null && quizOptions.size > 0}">
+                    <apex:pageBlockSection title="" collapsible="false" columns="1"></apex:pageBlockSection>
+                    <apex:pageBlockSection columns="1">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Select Existing Quiz: "></apex:outputLabel>
+                            <apex:SelectList size="1" value="{!selectedQuizId}" styleClass="ddlRecordType">
+                                <apex:selectOption itemValue="" itemLabel="--- Select Existing Quiz---"></apex:selectOption>
+                                <apex:SelectOptions value="{!quizOptions}"></apex:SelectOptions>
+                            </apex:SelectList>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value=""></apex:outputLabel>
+                            <apex:commandButton value="Open" action="{!selectQuiz}" styleClass="btn btn-primary"/>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+
+                <apex:pageBlock mode="maindetail" title="Create New Quiz">
+                    <apex:pageBlockSection title="" collapsible="false" columns="1"></apex:pageBlockSection>
+                    <apex:pageBlockSection columns="1">
+                        <apex:pageBlockSectionItem rendered="{!quizOptions!= null && quizOptions.size > 0}">
+                            <apex:outputLabel value="Select Existing Quiz to Clone: "></apex:outputLabel>
+                            <apex:SelectList size="1" value="{!existQuiz}" styleClass="ddlRecordType">
+                                <apex:selectOption itemValue="" itemLabel="--- Select Existing PageLayout ---"></apex:selectOption>
+                                <apex:SelectOptions value="{!quizOptions}"></apex:SelectOptions>
+                            </apex:SelectList>
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Quiz Name: "></apex:outputLabel>
+                            <apex:inputField value="{!quiz.Name}"/>
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value=""></apex:outputLabel>
+                            <apex:commandButton value="Create New" action="{!insertQuiz}" styleClass="btn btn-primary"/>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </apex:outputPanel>
+        </apex:outputPanel>
+    </apex:outputPanel>
+    </apex:form>
+</apex:page>

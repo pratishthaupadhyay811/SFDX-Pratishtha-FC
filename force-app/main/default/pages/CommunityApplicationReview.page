@@ -1,0 +1,434 @@
+<apex:page standardcontroller="Campaign" extensions="CommunityApplicationExtension" standardstylesheets="false" sidebar="false" title="{!mapSobjectIdToMapFieldTranslations[campaign.Id]['Name']}" language="{!portalLanguage}" action="{!initializeReview}">
+    <c:GPStaticResourcesComponent isLocal="{!$CurrentPage.parameters.isLocal}" js="database-service.js,attachments-upload-manager.js,community-application-attachment-manager.js"/>
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/fontawesome/font-awesome-4.1.0.min.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/bootstrap/bootstrap-3.4.1.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/bootbox/bootbox-4.2.0.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/datatable/jqueryui-dataTable-integration.be7019ee387.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/jquery/smoothness/jquery-ui-1.10.3-smoothness.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/datatable/jquery-dataTables-1.10.1.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/datatable/jqueryui-dataTable-integration.be7019ee387.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'fc-community.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/community-application-review.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/community-application-10.24.js')}" />
+    <apex:sectionheader title="Review/Submit" subtitle="{!application['Name']}"></apex:sectionheader>
+    <c:GlobalResources islocal="{!$CurrentPage.parameters.local}" />
+    <script type="text/javascript">
+    var engineMethodPath = 'FGM_Portal.CommunityApplicationExtension';
+    var templateBaseUrl = window.location.protocol + '//' + window.location.host + "/{!JSENCODE(URLFOR($Resource.GPApplicationResources, 'application_js/'))}";
+    var appId = '{!JSENCODE($CurrentPage.Parameters.appID)}';
+    var jsMode = '{!JSENCODE($CurrentPage.Parameters.mode)}';
+    var srNoLabel = '{!JSENCODE($Label.fgm_portal__fc_srno_columnheaderlabel)}';
+    var nameLabel = '{!JSENCODE($ObjectType.Attachment.Fields.Name.Label)}';
+    var descriptionLabel = '{!JSENCODE($Label.fgm_portal__fc_fcrecord_attachdescription_label)}';
+    var createdDateLabel = '{!JSENCODE($ObjectType.Attachment.Fields.CreatedDate.Label)}';
+    var actionLabel = '{!JSENCODE($Label.fgm_portal__fc_action_columnheaderlabel)}';
+    var deleteLabel = '{!JSENCODE($Label.fgm_portal__fc_delete_buttonlabel)}';
+    var chooseFileLabel = '{!JSENCODE($Label.fgm_portal__fc_upload_choosefile_buttonlabel)}';
+    var noFileChoosenLabel = '{!JSENCODE($Label.fgm_portal__fc_upload_choosefile_statuslabel)}';
+    var uploadLabel = '{!JSENCODE($Label.fgm_portal__fc_upload_buttonlabel)}';
+    var descriptionPlaceholder = '{!JSENCODE($Label.fgm_portal__fc_communityapplication_attachdescription_label)}';
+    var uploadSuccessMsg = "{!JSENCODE($Label.fgm_portal__fc_file_upload_success_message)}";
+    var fileInfectedMsg = "{!JSENCODE($Label.fgm_portal__fc_infected_file_error_message)}";
+    var extensionNotAllowMsg = "{!JSENCODE($Label.fgm_portal__fc_file_extension_not_allowed)}";
+    var attachmentSizeErrorMsg = "{!JSENCODE($Label.fgm_portal__fc_attachment_size_errormsg)}";
+    var zeroByteFileErr = '{!JSENCODE($Label.fgm_portal__fc_zero_byte_file_error_message)}';
+    var attachmentProcessErr = '{!JSENCODE($Label.fgm_portal__fc_attachmentprocess_errormsg)}';
+    var noAttachmentMsg = '{!JSENCODE($Label.fgm_portal__fc_noattachmentsmessage)}';
+    var iEBrowserSupportErr = '{!JSENCODE($Label.fgm_portal__fc_attachment_internet_explorer_error_message)}';
+    var deleteConfirmation = '{!JSENCODE($Label.fgm_portal__fc_confirmdeleteattachment)}';
+    var characterCountOfLabel = '{!JSENCODE($Label.fgm_portal__fc_character_counter_of)}';
+    var charactersLabel = '{!JSENCODE($Label.fgm_portal__fc_character_counter_character)}';
+    var attachmentProcessing ='{!JSENCODE($Label.fgm_portal__fc_uploading_label)}';
+    var datatableEmptyPaginationFooter = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_emptypaginationfooter)}';
+    var emptyDatatablePaginationFooterError = '{!JSENCODE($Label.fgm_portal__fc_jquery_emptydatatable_errormsg)}';
+    var datatablePaginationFooter = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_paginationfooter)}';
+    var datatableSearch = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_search)}';
+    var datatableFilterFromRecords = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatablefilterfromrecords)}';
+    var datatableZeroRecords = '{!JSENCODE($Label.fgm_portal__fc_jquery_datatablezerorecords)}';
+    var currentParentObject = '{!JSENCODE(currentParentObject)}';
+    var jsQueAttachmentLookup;
+    var currentPage = '{!JSENCODE($CurrentPage.Name)}';
+    var pageLanguage = '{!JSENCODE($CurrentPage.Language)}';
+    var uploadProcessQueue = [];
+    $(document).ready(function () {
+        LookupHoverDetail.getHover = function(){return {show : function(){return false}, hide : function(){return false}}};
+        $('.mruList .campaignBlock').each(function () {
+            $(this).find('a.campaignMru').attr('href', '{!JSENCODE(URLFOR($Page.CommunityCampaign))}?id=' + $(this).attr('data-hovid'));
+            $(this).removeAttr('data-hovid');
+        });
+        addClasses();
+        disableLookup();
+    });
+    if(currentParentObject == 'Opportunity'){
+        jsQueAttachmentLookup = 'FGM_Portal__Opportunity__c';
+    }
+    else if(currentParentObject == 'Lead'){
+        jsQueAttachmentLookup = 'FGM_Portal__Inquiry__c';
+    }
+    var isUploadProcessQueueEmpty = function(){
+        if( uploadProcessQueue.length > 0 )
+            return false;
+        else
+            return true;
+    }
+    </script>
+    <div ng-app="angularApp" ng-controller="angularController">
+        <apex:form forcessl="true" styleclass="mainForm">
+            <span >
+                <apex:pagemessages id="errorMsgBlock" ></apex:pagemessages>
+            </span>
+            <apex:outputpanel >
+                <apex:outputlabel ><span ><apex:outputField value="{!CustomHTMLDescription.RichDescription__c}"/></span></apex:outputlabel>
+            </apex:outputpanel>
+            <apex:variable var="isFrom" value="{!urlParamFrom}" ></apex:variable>
+            <apex:outputpanel layout="block" styleclass="CommunityApplicationReview_buttonplace" rendered="{!NOT(isApplicationSubmitted)}">
+                <apex:commandlink action="{!backToRecord}" styleclass="btn btn-primary noPrint">{!$Label.fgm_portal__back_to_application}</apex:commandlink>
+                <apex:commandlink styleclass="btn btn-primary noPrint" onclick="window.print(); return false;"> <i class="fa fa-print CommunityApplicationReview_printIcon"></i>{!$Label.FC_Print_ButtonLabel}</apex:commandlink>
+                <apex:commandbutton value="{!$Label.fgm_portal__fc_submit_buttonlabel}" styleclass="btn btn-primary noPrint" onclick="bootbox.confirm('{! $Label.FC_ConfirmBeforeSubmitApplication}', function(result) { if(result) { submitApplication();  } }); return false;"></apex:commandbutton>
+                <apex:actionfunction action="{!submit}" name="submitApplication"></apex:actionfunction>
+            </apex:outputpanel>
+            <apex:outputpanel layout="block" styleclass="CommunityApplicationReview_buttonplace" rendered="{!(isApplicationSubmitted)}">
+                <apex:commandlink action="{!backToRecord}" styleclass="btn btn-primary noPrint"> {!$Label.fgm_portal__back_to_application} </apex:commandlink>
+                <apex:commandlink styleclass="btn btn-primary noPrint" onclick="window.print(); return false;"> <i class="fa fa-print CommunityApplicationReview_printIcon"></i>{!$Label.FC_Print_ButtonLabel}</apex:commandlink>
+            </apex:outputpanel>
+
+            <apex:repeat var="reviewPage" value="{!reviewPageList}">
+                <apex:pageblock mode="mainDetail" rendered="{!reviewPage.TabType == 'Portal Tab' }">
+                    <apex:facet name="header">
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tbody>
+                                <tr>
+                                    <td class="pbTitle">
+                                        <h2 class="ng-non-bindable mainTitle">
+                                            {!JSENCODE(reviewPage.name)}
+                                        </h2>
+                                    </td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </apex:facet>
+                    <apex:pageblocksection title="" collapsible="false" columns="1">
+                        <apex:repeat var="reviewQuestion" value="{!reviewPage.reviewQuestionList}">
+                            <apex:pageblocksectionitem labelstyleclass="width40" 
+                                datastyleclass="width60" 
+                                rendered="{!reviewQuestion.questionType != 'Attachment'}">                                    
+                                        <apex:outputlabel styleclass="ng-non-bindable"><span ><apex:outputField value="{!reviewQuestion.question.RichQuestion__c}"/></span></apex:outputlabel>
+                                        <apex:outputpanel id="panelId">
+                                            <apex:outputfield id="outputFieldId" 
+                                                rendered="{!application[reviewQuestion.responseField]!=null}" 
+                                                value="{!application[reviewQuestion.responseField]}"
+                                            />                                        
+                                        </apex:outputPanel>
+                            </apex:pageblocksectionitem>
+                            <apex:outputpanel rendered="{!reviewQuestion.questionType == 'Attachment'}">
+                                <apex:outputlabel styleclass="ng-non-bindable"><span ><apex:outputField value="{!reviewQuestion.question.RichQuestion__c}"/></span></apex:outputlabel>
+                                <apex:outputpanel layout="block" id="uploadAttachment" styleclass="uploadedAttachment">
+                                    <apex:outputpanel layout="block" rendered="{!NOT(ISBLANK(application.Id))}" styleclass="pbBody">
+                                        <!--Start Attachemnt-->
+                                        <apex:pageblock mode="mainDetail" rendered="{!mapApplicationAttachments[reviewQuestion.questionId] != null}">
+                                            <apex:repeat var="Appattachment" value="{!mapApplicationAttachments[reviewQuestion.questionId]}">
+                                                <div class="uploadManagerComponent" parent-record="{{appQuestionWrapper}}" question-attachment-id="{!Appattachment.strQuestionAttachmentId}" attachments="{{attachments}}" table-translations="{{transationForTable}}" file-input-translations="{{transationForFileUploader}}" initialization-settings="{{initializationSettings}}" style="text-align: center" upload-enabled="false"></div>
+                                            </apex:repeat>
+                                        </apex:pageblock>
+                                        <!--End Attachemnt-->
+                                    </apex:outputpanel>
+                                </apex:outputpanel>
+                            </apex:outputpanel>
+                        </apex:repeat>
+                    </apex:pageblocksection>
+                </apex:pageblock>
+                
+                <apex:pageBlock title="{!$Label.fgm_portal__fc_inquiryattachmenttab_label}" mode="mainDetail" rendered="{! reviewPage.TabType == 'Inquiry Attachments'}">
+                    <apex:outputpanel layout="block" styleclass="Application_quizQuestionList" rendered="{! currentTabType == 'Inquiry Attachments' }" id="inquiryAttachmentsTab">
+                        <apex:pageMessages />
+
+                        <apex:repeat var="requiredQuestion" value="{!requiredQuestionErrors}">
+                            <div class="message warningM3" role="alert">
+                                <table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding: 0px; margin: 0px">
+                                    <tbody>
+                                        <tr valign="top">
+                                            <td>
+                                                <img alt="WARNING" class="msgIcon" src="/s.gif" title="WARNING"/>
+                                            </td>
+                                            <td class="messageCell">
+                                                <div class="messageText">
+                                                    <span><h4>Warning</h4></span>
+                                                    <p>{!$Label.FC_Required_Field_Label}</p>
+                                                    <p><apex:outputField value="{!requiredQuestion.RichQuestion__c}"/></p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </apex:repeat>
+
+                        <apex:pagemessage rendered="{!mapQueToQueAttachment == null || LstQuestions.size <= 0}" severity="Warning" strength="1" summary="{! $Label.FC_Inquiry_Attachment_Empty_Tab_error_message}"></apex:pagemessage>
+                        <apex:repeat var="question" value="{!mapQueToQueAttachment}" rendered="{!LstQuestions != null && LstQuestions.size > 0}">
+                            <apex:outputpanel layout="block" styleclass="ng-non-bindable Quiz_Questions__c"  >
+                                <span ><apex:outputField value="{!question.RichQuestion__c}"/></span>
+                                <br/>
+                                <apex:outputpanel layout="block" styleclass="pbBody">
+                                    <apex:variable var="attachmentIndex" value="{!1}" />
+                                    <div class="uploadManagerComponent" parent-record="{{appQuestionWrapper}}" question-attachment-id="{!mapQueToQueAttachment[question]}" attachments="{{attachments}}" table-translations="{{transationForTable}}" file-input-translations="{{transationForFileUploader}}" initialization-settings="{{initializationSettings}}" style="text-align: center" upload-enabled="false" status-codes="{{translationForStatuses}}" >
+                                    </div>
+                                </apex:outputpanel>
+                            </apex:outputpanel>
+                        </apex:repeat>
+                    </apex:outputpanel>
+                </apex:pageBlock>
+                <apex:pageBlock mode="mainDetail" rendered="{!reviewPage.TabType == 'Custom Profile Tab'}">
+                    <apex:facet name="header">
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tbody>
+                                <tr>
+                                    <td class="pbTitle">
+                                        <h2 class="mainTitle ng-non-bindable">
+                                            {!JSENCODE(reviewPage.name)}
+                                        </h2>
+                                    </td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </apex:facet>
+                    <apex:pageBlockSection title="" collapsible="false" columns="1">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputField value="{!reviewPage.relatedListConfiguration.record.RichInstructionalText__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:outputPanel rendered="{! MapTabIdAndLstCstmPrflTbRcrds != null }" id="cstmPrflTbPnl">
+                            <apex:dataTable value="{!MapTabIdAndLstCstmPrflTbRcrds[reviewPage.Id]}" var="RLCRecord" styleclass="relatedListTable" id="customProfileTabs">
+                                <apex:repeat value="{!MapTabIdLstCstPrflFldLbls[reviewPage.Id]}" var="field">
+                                    <apex:column >
+                                        <apex:facet name="header">{!field}</apex:facet>
+                                        <apex:outputField value="{!RLCRecord[MapTabIdLstCstPrflFldLblsAndAPINames[reviewPage.Id][field]]}"/>
+                                    </apex:column>
+                                </apex:repeat>
+                            </apex:dataTable>
+                        </apex:outputPanel>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+                <apex:pageBlock mode="mainDetail" rendered="{!reviewPage.TabType == 'Organization Tab' }">
+                    <apex:facet name="header">
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tbody>
+                                <tr>
+                                    <td class="pbTitle">
+                                        <h2 class="mainTitle ng-non-bindable">
+                                            {!JSENCODE(reviewPage.name)}
+                                        </h2>
+                                    </td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </apex:facet>
+                    <apex:pageBlockSection title="" collapsible="false" columns="1">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputField value="{!reviewPage.relatedListConfiguration.record.RichInstructionalText__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:repeat var="field" value="{!IF(IsIndividual, $ObjectType.Account.FieldSets.CommunityIndividualProfile ,$ObjectType.Account.FieldSets.CommunityAccountFieldSet)}">
+                            <apex:pageBlockSectionItem labelstyleclass="width40" datastyleclass="width60" >
+                                <apex:outputLabel value="{!field.label}"></apex:outputLabel>
+                                <apex:outputPanel >
+                                    <apex:outputField value="{!userAccount[field]}" rendered="{!field.FieldPath != 'BillingCountry' && field.FieldPath != 'BillingState' && field.FieldPath != 'ShippingCountry' && field.FieldPath != 'ShippingState'}" />
+                                    <apex:outputField value="{!userAccount[field]}"  rendered="{!(!bIsSCPLEnable) && (field.FieldPath == 'BillingCountry' || field.FieldPath == 'BillingState' || field.FieldPath == 'ShippingCountry' || field.FieldPath == 'ShippingState')}" />
+                                    <apex:outputField value="{!userAccount[field+'Code']}" rendered="{!(bIsSCPLEnable) && (field.FieldPath == 'BillingCountry' || field.FieldPath == 'BillingState' || field.FieldPath == 'ShippingCountry' || field.FieldPath == 'ShippingState')}" />
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                        </apex:repeat>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+                <apex:pageBlock mode="mainDetail" rendered="{!reviewPage.TabType == 'Contact Tab' }">
+                    <apex:facet name="header">
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tbody>
+                                <tr>
+                                    <td class="pbTitle">
+                                        <h2 class="mainTitle ng-non-bindable">
+                                            {!JSENCODE(reviewPage.name)}
+                                        </h2>
+                                    </td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </apex:facet>
+                    <apex:pageBlockSection title="" collapsible="false" columns="1">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputField value="{!reviewPage.relatedListConfiguration.record.RichInstructionalText__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:repeat var="field" value="{!IF(IsIndividual, $ObjectType.Contact.FieldSets.CommunityIndividualProfile ,$ObjectType.Contact.FieldSets.CommunityContactFieldSet)}">
+                            <apex:pageBlockSectionItem labelstyleclass="width40" datastyleclass="width60" >
+                                <apex:outputLabel value="{!field.label}"></apex:outputLabel>
+                                <apex:outputPanel >
+                                    <apex:outputField value="{!userContact[field]}" rendered="{!(field.FieldPath != 'MailingCountry' && field.FieldPath != 'MailingState' && field.FieldPath != 'OtherCountry' && field.FieldPath != 'OtherState')}"/>
+                                    <apex:outputField value="{!userContact[field]}" rendered="{!(!bIsSCPLEnable) && (field.FieldPath == 'MailingCountry' || field.FieldPath == 'MailingState' || field.FieldPath == 'OtherCountry' || field.FieldPath == 'OtherState')}" />
+                                    <apex:outputField value="{!userContact[field+'Code']}" rendered="{!bIsSCPLEnable && (field.FieldPath == 'MailingCountry' || field.FieldPath == 'MailingState' || field.FieldPath == 'OtherCountry' || field.FieldPath == 'OtherState')}" />
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                        </apex:repeat>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+                <apex:outputpanel id="relatedlistTable" styleclass="relatedlistTable" rendered="{! reviewPage.TabType == 'Related List With Tab' }">
+                    <apex:outputpanel layout="block" styleclass="tabBottomLine_applicationReview">
+                        <apex:pageblock mode="maindetail" rendered="{!(application!=null && NOT(ISBLANK(application.Id)) && reviewPage.relatedListConfiguration != null)}">
+                            <apex:facet name="header">
+                                <table border="0" cellpadding="0" cellspacing="0">
+                                    <tbody>
+                                        <tr>
+                                            <td class="pbTitle">
+                                                <h2 class="mainTitle ng-non-bindable">
+                                                    {!JSENCODE(reviewPage.name)}
+                                                </h2>
+                                            </td>
+                                            <td>&nbsp;</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </apex:facet>
+                            <apex:pageblocksection title="" collapsible="false" columns="1">
+                                <apex:pageblocksectionitem >
+                                    <apex:outputField value="{!reviewPage.relatedListConfiguration.record.RichInstructionalText__c}"/>
+                                </apex:pageblocksectionitem>
+                                <apex:outputPanel rendered="{! IF( reviewPage.relatedListConfiguration.strRelatedListObject != 'OpportunityTeamMember', TRUE, FALSE ) }">
+                                    <apex:datatable value="{!reviewPage.relatedListConfiguration.lstRelatedListRecord}" var="relatedlistRecord" styleclass="relatedListTable" >
+                                        <apex:repeat var="field" value="{!reviewPage.relatedListConfiguration.lstColumnFields}">
+                                            <apex:column rendered="{!(reviewPage.relatedListConfiguration.mapColumnFields[field] != null && NOT(ISBLANK(reviewPage.relatedListConfiguration.mapColumnFields[field])))}">
+                                                <apex:facet name="header">{!field}</apex:facet>
+                                                <apex:outputfield value="{!relatedlistRecord[reviewPage.relatedListConfiguration.mapColumnFields[field]]}" />
+                                            </apex:column>
+                                        </apex:repeat>
+                                    </apex:datatable>
+                                </apex:outputPanel>
+
+                                <apex:outputPanel layout="block" rendered="{! IF( reviewPage.relatedListConfiguration.strRelatedListObject == 'OpportunityTeamMember', TRUE, FALSE )  }">
+                                    <apex:dataTable value="{!reviewPage.relatedListConfiguration.lstRelatedListRecord}" var="record" styleclass="relatedListTable">
+                                        <apex:repeat value="{! reviewPage.relatedListConfiguration.lstColumnFields }" var="field">
+                                            <apex:column rendered="{! IF( reviewPage.relatedListConfiguration.mapColumnFields[ field ] != null, TRUE, FALSE ) }">
+                                                <apex:facet name="header"> {! field } </apex:facet>
+                                                <apex:outputPanel rendered="{! IF( record['OTM'] != null, TRUE, FALSE ) }">
+                                                    <apex:outputField value="{! record['OTM'][ reviewPage.relatedListConfiguration.mapColumnFields[ field ] ] }" rendered="{! IF( reviewPage.relatedListConfiguration.mapColumnFields[ field ] != 'teammemberrole', TRUE, FALSE ) }"/>
+                                                    <apex:outputText value="{! record['AdditionalRolesRO'] }" rendered="{! IF( reviewPage.relatedListConfiguration.mapColumnFields[ field ] == 'teammemberrole', TRUE, FALSE ) }"/>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel rendered="{! IF( AND( record['OTM'] == null, record['OCR'] != null ), TRUE, FALSE) }">
+                                                    <apex:outputField value="{! record['OCR']['ContactId'] }" rendered="{! IF( reviewPage.relatedListConfiguration.mapColumnFields[ field ] == 'userid', TRUE, FALSE ) }"/>
+                                                    <apex:outputText value="{! record['AdditionalRolesRO'] }" rendered="{! IF( reviewPage.relatedListConfiguration.mapColumnFields[ field ] == 'teammemberrole', TRUE, FALSE ) }"/>
+                                                    <apex:outputText value="-" rendered="{! IF( reviewPage.relatedListConfiguration.mapColumnFields[ field ] == 'opportunityaccesslevel', TRUE, FALSE ) }"/>
+                                                </apex:outputPanel>
+                                            </apex:column>
+                                        </apex:repeat>
+                                    </apex:dataTable>
+                                </apex:outputPanel>
+
+
+                                <apex:outputpanel layout="block" rendered="{!reviewPage.relatedListConfiguration.strRelatedListObject == 'OpportunityTeamMember'}" styleclass="OpportunityTeamPortalUsers">
+                                    <apex:outputpanel layout="block" styleclass="newOpportunityTeamInstruction">
+                                        <apex:outputtext value="{!$Label.fgm_portal__fc_pendingopportunityteammemberlistheading}"> </apex:outputtext>
+                                    </apex:outputpanel>
+                                    <br/>
+                                    <apex:datatable value="{!portalUserTeamMembersRelatedListConfiguration.lstRelatedListRecord}" var="relatedlistRecord" styleclass="relatedListTable" id="pendingTeamMemberTable">
+                                        <apex:repeat var="field" value="{!portalUserTeamMembersRelatedListConfiguration.lstColumnFields}">
+                                            <apex:column rendered="{!(portalUserTeamMembersRelatedListConfiguration.mapColumnFields[field] != null && NOT(ISBLANK(portalUserTeamMembersRelatedListConfiguration.mapColumnFields[field])))}">
+                                                <apex:facet name="header">{!field}</apex:facet>
+                                                <apex:outputtext value="{!IF(portalUserTeamMembersRelatedListConfiguration.mapColumnFields[field] == 'FGM_Portal__UserRole__c',mapOTMolePicklistEnrties[relatedlistRecord['FGM_Portal__UserRole__c']],relatedlistRecord[portalUserTeamMembersRelatedListConfiguration.mapColumnFields[field]])}" />
+                                            </apex:column>
+                                        </apex:repeat>
+                                    </apex:datatable>
+                                </apex:outputpanel>
+
+                            </apex:pageblocksection>
+                        </apex:pageblock>
+                    </apex:outputpanel>
+                </apex:outputpanel>
+                <apex:outputpanel rendered="{!reviewPage.TabType == 'Grantee Budget Tab'}">
+                    <script type="text/javascript">
+                    $(document).ready(function () {
+                        if ($(jQuery('table[id$=tblGBU]')).length > 0)
+                            calculateSubTotalnTotal();
+                    });
+                    </script>
+                    <apex:pageblock mode="maindetail" rendered="{!(application!=null && NOT(ISBLANK(application.Id)) && reviewPage.relatedListConfiguration != null)}">
+                        <apex:facet name="header">
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tbody>
+                                    <tr>
+                                        <td class="pbTitle">
+                                            <h2 class="mainTitle ng-non-bindable">
+                                                {!JSENCODE(reviewPage.name)}
+                                            </h2>
+                                        </td>
+                                        <td>&nbsp;</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </apex:facet>
+                        <apex:pageblocksection title="" collapsible="false" columns="1">
+                            <apex:outputpanel layout="block" styleclass="relatedListInstruction">
+                                <p>
+                                    <span id="spanId">
+                                        <apex:outputField value="{!reviewPage.relatedListConfiguration.record.RichInstructionalText__c}"/>
+                                    </span>
+                                </p>
+                                </apex:outputpanel>
+                                <apex:outputpanel rendered="{!isBudgetGenerated}">
+                                    <apex:pageblock id="pbBlock">
+                                        <div style="overflow:auto;max-width:1265px;">
+                                            <apex:pageblocktable value="{!Budgets}" var="budget" id="tblGBU">
+                                                <apex:column headervalue="{!$ObjectType.Grantee_Budget_Category__c.fields.Parent_Category__c.Label}">
+                                                    <b>  {!budget.strParentcategoryName}</b>
+                                                </apex:column>
+                                                <apex:column headervalue="{!$ObjectType.Grantee_Budget_Update__c.fields.Grantee_Budget_Category__c.Label}">
+                                                    <b>  {!budget.strcategoryName}</b>
+                                                </apex:column>
+                                                <apex:repeat value="{!budget.lstBudgetLineItem}" var="budgetLineItem">
+                                                    <apex:column >
+                                                        <apex:inputtext rendered="{!NOT(budget.bisFooter)}" value="{!budgetLineItem.granteebudgetlineitem.Amount__c}" style="min-width: 10em;display:none" styleclass="{!'txt_'+budgetLineItem.strbudgetYear}" />
+                                                            <apex:outputtext rendered="{!NOT(budget.bisFooter)}" value="{0, Number, Currency}" style="min-width: 10em;" styleclass="{!'txt_'+budgetLineItem.strbudgetYear}">
+                                                                <apex:param value="{!budgetLineItem.granteebudgetlineitem.Amount__c}" />
+                                                                    </apex:outputtext>
+                                                                <apex:outputtext rendered="{!budget.bisFooter}" value="{!budgetLineItem.decbudgetAmount}" styleclass="{!'lbl_'+budgetLineItem.strbudgetYear}" />
+                                                                    </apex:column>
+                                                                </apex:repeat>
+                                                                <apex:repeat value="{!Years}" var="year">
+                                                                    <apex:column headervalue="{!year}" styleclass="empty-column-content"></apex:column>
+                                                                    </apex:repeat>
+                                                                    <apex:column headervalue="{!$Label.fgm_portal__fc_total_columnheaderlabel}">
+                                                                        <apex:outputtext styleclass="{!'lbl_'+budget.strcategoryNameID}" />
+                                                                            </apex:column>
+                                                                        <apex:column headervalue="{!$ObjectType.Grantee_Budget_Update__c.fields.Comment__c.Label}">
+                                                                            <apex:outputtext rendered="{!NOT(budget.bisFooter)}" value="{!budget.strComment}" />
+                                                                                </apex:column>
+                                                                            </apex:pageblocktable>
+                                                                            </div>
+                                                                            </apex:pageblock>
+                                                                            </apex:outputpanel>
+                                                                            </apex:pageblocksection>
+                                                                            </apex:pageblock>
+                                                                            </apex:outputpanel>
+                                                                            </apex:repeat>
+                                                                            <br />
+                                                                                <apex:variable var="isFrom" value="{!urlParamFrom}" ></apex:variable>
+                                                                                <apex:outputpanel layout="block" styleclass="CommunityApplicationReview_buttonplace" rendered="{!NOT(isApplicationSubmitted) && reviewPageList.size > 0 }">
+                                                                                    <apex:commandlink action="{!backToRecord}" styleclass="btn btn-primary noPrint"> {!$Label.fgm_portal__back_to_application} </apex:commandlink>
+                                                                                    <apex:commandlink styleclass="btn btn-primary noPrint" onclick="window.print(); return false;"> <i class="fa fa-print CommunityApplicationReview_printIcon"></i>{!$Label.FC_Print_ButtonLabel}</apex:commandlink>
+                                                                                        <apex:commandbutton value="{!$Label.fgm_portal__fc_submit_buttonlabel}" styleclass="btn btn-primary noPrint" onclick="bootbox.confirm('{! $Label.FC_ConfirmBeforeSubmitApplication}', function(result) { if(result) { submitApplication();  } }); return false;"></apex:commandbutton>
+                                                                                        <apex:actionfunction action="{!submit}" name="submitApplication"></apex:actionfunction>
+                                                                                        </apex:outputpanel>
+                                                                                        <apex:outputpanel layout="block" styleclass="CommunityApplicationReview_buttonplace" rendered="{!(isApplicationSubmitted)}">
+                                                                                            <apex:commandlink action="{!backToRecord}" styleclass="btn btn-primary noPrint">  {!$Label.fgm_portal__back_to_application} </apex:commandlink>
+
+                                                                                            <apex:commandlink styleclass="btn btn-primary noPrint" onclick="window.print(); return false;"> <i class="fa fa-print CommunityApplicationReview_printIcon"></i>{!$Label.FC_Print_ButtonLabel}</apex:commandlink>
+                                                                                                </apex:outputpanel>
+                                                                                            <script type="text/javascript">
+                                                                                                $(document).ready(function() {
+                                                                                                relatedListTables();
+                                                                                            });
+                                $("[id$=sortDiv]").addClass("printableHeaders"); /* FCPROD-1601  Print on proposal do not show complete created date (cuts off the margin) */
+                                </script>
+                            </apex:form>
+                        </div>
+                    </apex:page>

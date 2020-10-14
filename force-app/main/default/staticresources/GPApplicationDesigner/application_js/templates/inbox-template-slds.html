@@ -1,0 +1,106 @@
+<div class="inbox-template">
+    <!-- SLFS: Page Header -->
+    <div class="slds-page-header">
+      <div class="slds-page-header__row">
+        <div class="slds-page-header__col-title">
+          <div class="slds-media">
+            <div class="slds-media__figure">
+              <span class="slds-icon_container slds-icon-standard-opportunity" title="Message">
+                <svg class="slds-icon slds-icon_medium" aria-hidden="true">
+                  <use
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    xlink:href="/apexpages/slds/latest/assets/icons/standard-sprite/svg/symbols.svg#email_chatter"
+                  />
+                </svg>
+                <span class="slds-assistive-text">Message</span>
+              </span>
+            </div>
+            <div class="slds-media__body">
+              <div class="slds-page-header__name">
+                <div class="slds-page-header__name-title">
+                  <h1>
+                    <span class="slds-page-header__title slds-truncate" title="Inbox Page Title">Inbox</span>
+                  </h1>
+                  <div class="actions" ng-if="!isDetail">
+                    <input
+                      type="button"
+                      id="btnCompose"
+                      class="slds-button slds-button_brand"
+                      value="{{ inboxTranslations.composeMessageLabel }}"
+                      ng-click="ComposeMail();"
+                    />
+                    <input
+                      type="button"
+                      id="btnDelMsg"
+                      class="slds-button slds-button_outline-brand"
+                      disabled=""
+                      ng-click="deleteMessage();"
+                      value="{{ inboxTranslations.deleteButtonlabel }}"
+                    />
+                  </div>
+                  <div class="actions" ng-if="isDetail">
+                    <input
+                      type="button"
+                      class="slds-button slds-button_neutral"
+                      ng-click="backToEmails();"
+                      value="{{ inboxTranslations.backButtonLabel }}"
+                    />
+                    <input
+                      type="button"
+                      class="slds-button slds-button_brand"
+                      onclick="window.print(); return false; refreshPageMessage();"
+                      value="{{ inboxTranslations.printButtonLabel }}"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- END - SLFS: Page Header -->
+  
+    <div ng-if="!isDetail">
+      <table id="tblEmailList" class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_striped">
+        <thead>
+          <tr>
+            <th></th>
+            <th>{{ inboxTranslations.FromHeaderLabel }}</th>
+            <th>{{ inboxTranslations.subjectHeaderLabel }}</th>
+            <th>{{ inboxTranslations.dateheaderLabel }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="{{ item.mailStatus }}" ng-repeat="item in activities">
+            <td>
+              <input id="chkId" type="checkbox" ng-click="enableDelete();" class="{{ item.activity.Id }}" />
+            </td>
+            <td>{{ item.respondentName }}</td>
+            <td><a ng-click="showcontent($index)" ng-bind-html="item.subject"></a></td>
+            <td>{{ item.activity.ActivityDate }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <div class="inbox-message-details" ng-if="isDetail">
+      <div id="printableArea">
+        <div class="details">
+          <div class="subject">
+            <span id="headerSub" class="parseCustomHTMLString" ng-bind-html="details.subject"></span>
+          </div>
+          <div class="sender">
+            <img id="profileImage" src="{{ details.profileImageUrl }}" />
+            <div>
+              <p>From: {{ details.userName }} <{{ details.userEmailId }}></p>
+              <p>Received: {{ details.activity.LastModifiedDate | date: "h:mm a, MM/dd/yyyy" }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="content">
+          <span id="emailListSubject" class="parseCustomHTMLString" class="inbox_emailbody" ng-bind-html="details.strBody"></span>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,10 @@
+<apex:page showHeader="false" standardStylesheets="false">
+    <script>
+    var engineMethodPath = 'FGM_Portal.AttachmentUploaderForIEController';
+    var parentName = '{!JSENCODE($CurrentPage.Parameters.sObjectName)}';
+    var parentId = '{!JSENCODE($CurrentPage.Parameters.sObjectId)}';
+    </script>
+    <c:GPStaticResourcesComponent isLocal="{!$CurrentPage.parameters.isLocal}" js="upload-attachment-demo-rest-api.js" css="attachments-upload-manager.css"/>
+    <div ng-app="attachmentUploadRestApi" ng-controller="attachmentUploadRestApiController">
+    </div>
+</apex:page>

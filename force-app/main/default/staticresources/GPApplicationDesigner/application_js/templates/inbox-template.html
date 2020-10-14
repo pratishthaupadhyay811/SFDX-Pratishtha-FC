@@ -1,0 +1,52 @@
+<div ng-if="!isDetail">
+<input type="button" id="btnDelMsg" class="slds-button slds-button_destructive" disabled="" ng-click="deleteMessage();" value="{{inboxTranslations.deleteButtonlabel}}"/>
+                <input type="button" id="btnCompose" class="slds-button slds-button_brand" value="{{inboxTranslations.composeMessageLabel}}"  ng-click="ComposeMail();"/>
+                    <table id="tblEmailList" class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_striped" >
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th>{{inboxTranslations.FromHeaderLabel}}</th>
+                            <th>{{inboxTranslations.subjectHeaderLabel}}</th>
+                            <th>{{inboxTranslations.dateheaderLabel}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="{{item.mailStatus}}" ng-repeat="item in activities">
+                            <td><input id="chkId" type="checkbox" ng-click="enableDelete();" class="{{item.activity.Id}}"/> </td>
+                            <td><span classid="emailDT"><img src="https://www.foundationconnect.org/staticresources/SLDS/icons/utility/email_60.png"></img></span></td>
+                            <td>{{item.respondentName}}</td>
+                            <td ><a ng-click="showcontent($index)" ng-bind-html="item.subject"></a></td>
+                            <td>{{item.activity.ActivityDate}}</td>
+                        </tr>
+                    </tbody>
+                    </table>
+            </div>
+            <div ng-if="isDetail">
+                <input type="button" class="slds-button slds-button_brand" onclick="window.print(); return false; refreshPageMessage();" value="{{inboxTranslations.printButtonLabel}}"/>
+                <input type="button" class="slds-button slds-button_brand" ng-click="backToEmails();" value="{{inboxTranslations.backButtonLabel}}"/>
+                <div id="printableArea">
+                    <div class="printableArea_wrapper">
+                        <div class="padding10">
+                            <span id="headerSub" ng-bind-html="details.subject"></span>
+                            <span class="inbox_datetime">{{details.activity.LastModifiedDate | date : "h:mm a"}}</span>
+                        </div>
+                        <div class="padding10">
+                            <div class="floatleft">
+                                <img id="profileImage" src="{{details.profileImageUrl}}" />
+                                <span class="printableArea_spantext">
+                                    <span>{{details.userName}}</span>  
+                                </span>
+                                <span><{{details.userEmailId}}></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <pre id="emailListSubject" class="inbox_emailbody" ng-bind-html="details.strBody"></pre>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+
+            

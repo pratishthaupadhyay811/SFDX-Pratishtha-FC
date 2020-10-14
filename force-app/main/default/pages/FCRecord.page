@@ -1,0 +1,684 @@
+<apex:page controller="FCRecordController" sidebar="false" standardstylesheets="false" language="{!portalLanguage}" title="{!pageTitle}" action="{!initialize}">
+    <script type="text/javascript">
+    var jsCompile, jsScope;
+    var enforceNavigate = false;
+    var __sfdcSessionId = '{!JSENCODE(GETSESSIONID())}'; // Don't change this; Mandatory for connection.js
+    var engineMethodPath = 'FGM_Portal.FCRecordController';
+    var templateBaseUrl = "{!JSENCODE(URLFOR($Resource.GPApplicationResources, 'application_js/'))}";
+    </script>
+    <c:GPStaticResourcesComponent isLocal="{!$CurrentPage.Parameters.isLocal}" js="attachments-upload-manager.js,fc-record-attachment-manager.js" ></c:GPStaticResourcesComponent>
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/locale.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/fontawesome/font-awesome.min.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/tooltipster/tooltipster.min.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/basic/basic.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/dropzone/dropzone.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/jquery/smoothness/jquery-ui.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/datatable/dataTables.jqueryui.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/bootstrap/bootstrap-3.4.1.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/bootbox/bootbox-4.2.0.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/jquery/smoothness/jquery-ui-1.10.3-smoothness.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/datatable/jquery-dataTables-1.10.1.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/ckeditor/ckeditor.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/datatable/jqueryui-dataTable-integration.be7019ee387.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/datepicker/datepicker.min.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/bootstrap/bootstrap-datepicker-1.3.0.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'fc-community.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/character-count.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/community-application-10.24.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/Attachment-Manager.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/vendor_js/moment.js')}"/>
+    <apex:outputpanel layout="none" rendered="true">
+        <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/fonts-googleapis/font-raleway.css')}" />
+    </apex:outputpanel>
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery.tooltipster-3.0.5.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/fc-record.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/vendor_js/moment/sorting-datetime-moment.1.10.19.js')}"/>
+    <c:GlobalResources islocal="{!$CurrentPage.parameters.local}" />
+    <script type="text/javascript">
+    var emptyPaginationFooter = "{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_emptypaginationfooter)}";
+    var emptyDatatableErrorMsg=  "{!JSENCODE($Label.fgm_portal__fc_jquery_emptydatatable_errormsg)}";
+    var datatablePaginationFooter = "{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_paginationfooter)}";
+    var datatableSearch= "{!JSENCODE($Label.fgm_portal__fc_jquery_datatable_search)}";
+    var datatableFilterFromRecords = "{!JSENCODE($Label.fgm_portal__fc_jquery_datatablefilterfromrecords)}";
+    var datatableZeroRecords =  "{!JSENCODE($Label.fgm_portal__fc_jquery_datatablezerorecords)}";
+    var dateTimeFormat = '{!JSENCODE(date_time)}';
+    var bIsApplicationSubmitted = Boolean('{!JSENCODE(IF(isApplicationSubmitted,'true','false'))}');
+    var urlForCommunityCampaign = '{!JSENCODE(URLFOR($Page.CommunityCampaign))}';
+    var deleteConfirmation =  '{!JSENCODE($Label.fgm_portal__fc_confirmdeleteattachment)}';
+    var counterOf = '{!JSENCODE($Label.FC_Character_Counter_Of)}';
+    var counterCharacters = '{!JSENCODE($Label.FC_Character_Counter_Character)}';
+    var currentParentObj = '{!JSENCODE(currentParentObject)}';
+    if (currentParentObj == 'FGM_Portal__Amendment__c')
+        var jsQueAttachmentLookup = 'FGM_Portal__Amendment__c';
+    if (currentParentObj == 'FGM_Base__Benchmark__c')
+        var jsQueAttachmentLookup = 'FGM_Portal__Benchmark_del__c';
+    if (currentParentObj == 'FGM_Base__Grantee_Report__c')
+        var jsQueAttachmentLookup = 'FGM_Portal__GranteeReport__c';
+    var appId = "{!JSENCODE($CurrentPage.parameters.Id)}";
+    var srLabel = "{!JSENCODE($Label.fgm_portal__fc_srno_columnheaderlabel)}";
+    var nameLabel = "{!JSENCODE($ObjectType.Attachment.Fields.Name.Label)}"
+    var descriptionLabel = "{!JSENCODE($Label.FC_FCRecord_AttachDescription_Label)}";
+    var createdDateLabel = "{!JSENCODE($ObjectType.Attachment.Fields.CreatedDate.Label)}";
+    var actionsLabel = "{!JSENCODE($Label.fgm_portal__FC_Action_ColumnHeaderLabel)}";
+    var deleteLabel = "{!JSENCODE($Label.fgm_portal__FC_Delete_ButtonLabel)}";
+    var uploadLabel="{!JSENCODE($Label.fgm_portal__FC_Upload_ButtonLabel)}";
+    var chooseFileLabel= "{!JSENCODE($Label.fgm_portal__FC_Upload_ChooseFile_ButtonLabel)}";
+    var charactersLabel = "{!JSENCODE($Label.fgm_portal__FC_Character_Counter_Character)}";
+    var characterCountOfLabel = "{!JSENCODE($Label.fgm_portal__FC_Character_Counter_Of)}";
+    var uploadingLabel= "{!JSENCODE($Label.fgm_portal__FC_Uploading_Label)}";
+    var noFileLabel="{!JSENCODE($Label.fgm_portal__FC_Upload_ChooseFile_StatusLabel)}";
+    var zeroByteFileErr = "{!JSENCODE($Label.fgm_portal__FC_zero_byte_File_Error_Message)}";
+    var iEBrowserSupportErr = "{!JSENCODE($Label.fgm_portal__FC_Attachment_Internet_Explorer_Error_Message)}";
+    var IsApplicationSubmitted = Boolean('{!JSENCODE(IF(isApplicationSubmitted,'true','false'))}');
+    var uploadAfterSubmit = Boolean('{!JSENCODE(IF($Setup.FGM_Portal__GlobalPortalSettings__c.FGM_Portal__Enable_Attachments_for_Submitted_Appl__c,'true','false'))}');
+    var pageLanguage = "{!JSENCODE(portalLanguage)}";
+    var languageSpecifications = getLanguageSpecifications( pageLanguage );
+    var uploadFailureMsg = "{!JSENCODE($Label.fgm_portal__FC_AttachmentProcess_ErrorMsg)}";
+    var uploadSuccessMsg = "{!JSENCODE($Label.fgm_portal__FC_File_Upload_Success_Message)}";
+    var fileInfectedMsg = "{!JSENCODE($Label.fgm_portal__FC_Infected_File_Error_Message)}";
+    var extensionNotAllowMsg = "{!JSENCODE($Label.fgm_portal__FC_File_Extension_Not_Allowed)}";
+    var attachmentSizeErrorMsg = "{!JSENCODE($Label.fgm_portal__FC_Attachment_size_ErrorMsg)}";
+    var noRecordsFound = "{!JSENCODE($Label.fgm_portal__FC_NoAttachmentsMessage)}";
+    var deleteConfirmation = "{!JSENCODE($Label.fgm_portal__FC_ConfirmDeleteAttachment)}";
+    var billMailingState = '';
+    var ShipOtherState = '';
+    var billMailingCountry = '';
+    var ShipOtherCountry = '';
+    var theControllerValue = '{!JSENCODE(strFields)}';
+    var isRecordChanged=false;
+    var noFileChosenLabel;
+    var virusScanURL = '{!JSENCODE(virusScanURL)}';
+    var virusEnabled = Boolean('{!JSENCODE(IF(virusEnabled,'true','false'))}');
+    var isEnableQuestionCount=true;
+    var isJSViewRecordLink = {!isViewRecordLink};
+    var jsMode = '{!JSENCODE(mode)}';
+    var jsTabMode = '{!JSENCODE(defaultMode)}';
+    var isAttachmentRecordChanged = false;
+    var bIsApplicationSubmitted;
+    var bIsAttachmentChanged = false;
+    var AttachQuestionCount = 0;
+    var TabID ;
+    var targetLink;
+    var bIsReviewSubmittedClicked = false;
+    var attachmentDesc = null;
+    var attachmentLabel = null;
+    var attachmentChanged = false;
+    var loadingDiv = $('<div class="spinnerContainer" ><div class="spinner"><div class="rect1"></div><div class="rect2"></div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div><br /><span class="spanText">{!$Label.FC_Uploading_Label}</span></div></div>');
+    window.onload = setFocus();
+    </script>
+    <div ng-app="uploaddemo" ng-controller="uploaddemocontroller" style="min-width:900px">
+        <input id="hiddenElement" type="hidden" />
+        <div id="modal--updating-data" class="updating">
+            <div class="alert alert-info info_alert">
+                <apex:image value="/img/loading.gif" styleclass="loadingimg"></apex:image>
+                {!$Label.fgm_portal__fc_uploading_label}
+            </div>
+        </div>
+        <apex:form id="mainForm" styleclass="mainForm" forcessl="true">
+            <apex:variable var="TabID" value="" />
+            <apex:outputpanel id="ModalOutPanel" styleclass="duplicateRecordPopup confirmModal" style="display:none;">
+                <div class="bootbox modal fade bootbox-confirm in application_display" tabindex="-1" role="dialog" aria-hidden="false">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                <div class="bootbox-body">
+                                    <apex:outputtext value="{!$Label.fgm_portal__fc_tabswitchconfirmationmsg}"> </apex:outputtext>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <apex:commandlink value="{!$Label.fgm_portal__fc_ok_buttonlabel}" onclick="hidepopup(); return false;" styleclass="btn btn-default" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-backdrop fade in"></div>
+            </apex:outputpanel>
+
+            <apex:outputpanel id="ModalOutPanelAttachment" styleclass="duplicateRecordPopup confirmModal" style="display:none;">
+                <div class="bootbox modal fade bootbox-confirm in application_display" tabindex="-1" role="dialog" aria-hidden="false">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                <div class="bootbox-body">
+                                    <apex:outputtext value="{!$Label.fgm_portal__fc_upload_attachment_message}"> </apex:outputtext>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <apex:commandlink value="{!$Label.fgm_portal__fc_ok_buttonlabel}" onclick="hidepopup(); return false;" styleclass="btn btn-default" reRender="mainForm" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-backdrop fade in"></div>
+            </apex:outputpanel>
+
+            <apex:outputpanel id="ModalOutPanelForSubmittedApplication" styleclass="duplicateRecordPopup confirmModal" style="display:none;">
+                <div class="bootbox modal fade bootbox-confirm in application_display" tabindex="-1" role="dialog" aria-hidden="false">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                <div class="bootbox-body">
+                                    <apex:outputtext value="{!$Label.fgm_portal__fc_tabswitchconfirmationmsgforsubmittedapplication}"> </apex:outputtext>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <apex:commandlink value="{!$Label.fgm_portal__fc_cancel_popup_yes_button}" onclick="modalHide(); hidepopup();switchTab();return false;" styleclass="btn btn-default" oncomplete="recompileDirectives();"/>
+                                <apex:commandlink value="{!$Label.fgm_portal__fc_cancel_popup_no_button}" onclick="hidepopup(); clearNavigation(); return false;" styleclass="btn btn-default"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-backdrop fade in"></div>
+            </apex:outputpanel>
+
+            <apex:outputpanel id="CancelApplicationPopup" styleclass="duplicateRecordPopup" style="display:none;">
+                <div class="bootbox modal fade bootbox-confirm in application_display" tabindex="-1" role="dialog" aria-hidden="false">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                <div class="bootbox-body">
+                                    <apex:outputtext style="visibility:visible;" value="{!$Label.fgm_portal__fc_cancel_warning_popup_message}"> </apex:outputtext>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <apex:commandlink value="{!$Label.fgm_portal__fc_cancel_popup_no_button}" onClick="$('[id$=CancelApplicationPopup]').hide();return false;" rerender="CancelApplicationPopup,mainborder,mainNavbar" styleclass="btn btn-default"/>
+                                <apex:actionstatus id="yesDashboardStatus">
+                                    <apex:facet name="stop">
+                                        <apex:commandlink value="{!$Label.fgm_portal__fc_cancel_popup_yes_button}" action="{!cancelApplication}" rerender="CancelApplicationPopup" immediate="true" status="yesDashboardStatus" styleclass="btn btn-primary" />
+                                    </apex:facet>
+                                    <apex:facet name="start">
+                                        <apex:commandlink value="{!$Label.fgm_portal__fc_cancel_popup_yes_button}" immediate="true" status="yesDashboardStatus" styleclass="btn btn-default"><i class="fa fa-spinner fa-spin"></i></apex:commandlink>
+                                    </apex:facet>
+                                </apex:actionstatus>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-backdrop fade in"></div>
+            </apex:outputpanel>
+
+            <apex:outputpanel layout="block" styleclass="mainNavbar" id="mainNavbar">
+                <script>setcharcount();
+                </script>
+                <apex:outputpanel styleclass="sectionHeader">
+                    <apex:sectionheader title="{!applicationRecordType}" subtitle="{!application['Name']}"></apex:sectionheader>
+                </apex:outputpanel>
+
+                <apex:actionFunction name="navigateToTab" action="{!saveRecordOnTabChange}" reRender="mainForm" oncomplete="recompileDirectives();" >
+                    <apex:param name="tabId" value=""  />
+                </apex:actionFunction>
+
+                <apex:actionFunction name="ReviewSubmit" action="{!URLFOR($Page.FCRecordReview, null, [id=$CurrentPage.Parameters.Id, quizId=quiz.Id, appID=application['Id'],mode=mode])}" />
+                <!----- To Show the Tabs from RLC Object. ------->
+                <apex:variable var="From" value="{!urlParamFrom}" ></apex:variable>
+                <apex:variable var="parentId" value="{!urlParamParentId}" ></apex:variable>
+                <apex:outputpanel id="tabSection" rendered="{!quiz.id != null}">
+                    <script type="text/javascript">
+                    isRecordChanged=false;
+                    jsTabMode = '{!JSENCODE(defaultMode)}';
+                    </script>
+                    <apex:repeat var="tab" value="{!tabsList}">
+                        <apex:outputpanel style="display: {!IF((tab.RecordType.Name == 'Grantee Budget Update Tab' && bHideGRBudgetUpdateTab), 'none','block')} ;" layout="block"  styleclass="ng-non-bindable nav {!IF(selectedTab == tab.Id, 'active','')}">
+                            <apex:commandlink value="{!tab.Name}" onclick="getTabSwitchId('{!tab.Id}'); if(!confirmChanges()) return false; " action="{!saveRecordOnTabChange}" rerender="mainForm" oncomplete="recompileDirectives();" status="tabSwitch" rendered="{! NOT(tab.RecordType.Name == 'Grantee Budget Update Tab' && bHideGRBudgetUpdateTab)}" >
+                                <apex:param name="tabId" value="{!tab.Id}" />
+                                <apex:param name="id" value="{!$CurrentPage.Parameters.id}" />
+                                <apex:param name="ParentId" value="{!$CurrentPage.Parameters.ParentId}" />
+                                <apex:param name="mode" value="{!$CurrentPage.Parameters.mode}" />
+                                <apex:param name="RecordTypeId" value="{!$CurrentPage.Parameters.RecordTypeId}" />
+                            </apex:commandlink>
+                            &nbsp;
+                            <apex:actionstatus id="tabSwitch">
+                                <apex:facet name="start">
+                                    <apex:outputpanel layout="none">
+                                        <apex:image value="/img/loading.gif" styleclass="loadingimg"></apex:image>
+                                    </apex:outputpanel>
+                                </apex:facet>
+                            </apex:actionstatus>
+                        </apex:outputpanel>
+                    </apex:repeat>
+                    <apex:actionregion >
+                        <div class="FCRecord_reviewbutton">
+                            <apex:outputPanel rendered="{!NOT(IsApplicationSubmitted)}">
+                                <input type="button" value="{!$Label.fgm_portal__fc_cancel_buttonlabel}" onclick="$('[id$=CancelApplicationPopup]').show();" class="btn btn-primary" rendered="{!!isApplicationSubmitted}" immediate="true"/>
+                            </apex:outputPanel>
+                            <apex:commandlink value="{!$Label.fgm_portal__fc_cancel_buttonlabel}" styleclass="btn btn-primary" action="{!goToDashboard}" rendered="{!isApplicationSubmitted}" immediate="true">
+                            </apex:commandlink>
+                            <apex:outputpanel layout="block" styleclass="reviewbtn" rendered="{!quiz.id != null && NOT(isApplicationViewTab)}">
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_review_submit_buttonlabel}" rendered="{!currentTabType =='Related List With Tab' && Not(isApplicationSubmitted)}" styleclass="btn btn-primary" onclick="return confirmChanges();" action="{!reviewSubmit}"></apex:commandbutton>
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_review_submit_buttonlabel}" rendered="{!currentTabType !='Related List With Tab' && Not(isApplicationSubmitted)}" styleclass="btn btn-primary" onclick="return confirmChanges();" action="{!SaveBeforeReviewSubmit}" disabled="{!application['Id'] == null}"></apex:commandbutton>
+                                <apex:commandbutton id="ReviewSubmitBtn" value="{!$Label.fgm_portal__fc_review_print_buttonlabel}" rendered="{!isApplicationSubmitted}" action="{!reviewSubmit}" styleclass="btn btn-primary" onclick=" bIsReviewSubmittedClicked = true; return confirmChanges();" disabled="{!application['Id'] == null}"></apex:commandbutton>
+                            </apex:outputpanel>
+                        </div>
+                    </apex:actionregion>
+                </apex:outputpanel>
+            </apex:outputpanel>
+            <apex:outputPanel id="mainPanel">
+                <div class="mainborder">
+                    <apex:pagemessages id="errorMsgBlock"></apex:pagemessages>
+
+                    <apex:repeat var="requiredQuestion" value="{!requiredQuestionErrors}">
+                        <div class="message warningM3" role="alert">
+                            <table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding: 0px; margin: 0px">
+                                <tbody>
+                                    <tr valign="top">
+                                        <td>
+                                            <img alt="WARNING" class="msgIcon" src="/s.gif" title="WARNING"/>
+                                        </td>
+                                        <td class="messageCell">
+                                            <div class="messageText">
+                                                <span><h4>Warning</h4></span>
+                                                <p>{!$Label.fgm_portal__fc_required_field_label}</p>
+                                                <p><apex:outputField value="{!requiredQuestion.RichQuestion__c}"/></p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </apex:repeat>
+
+                    <apex:outputpanel layout="block" id="questionSection" rendered="{!quiz.id != null}">
+                        <!-- Benchmark-->
+                        <apex:outputPanel layout="block" id="benchmarkPanel"  rendered="{!NOT(isRelatedListView) && !isApplicationViewTab && bIsBUpdateTabSelected}">
+                            <apex:pageBlock >
+                                <apex:pageBlockSection rendered="{!IF(lstBenchmarkUpdateTypeFields.size>0,true,false)}" >
+                                    <apex:repeat value="{!lstBenchmarkUpdateTypeFields}" var="fieldName">
+                                        <apex:inputField value="{!selectedRecord[fieldName]}" rendered="{!bIsEditBenchmarkUpdate}"/>
+                                        <apex:outputField value="{!selectedRecord[fieldName]}" rendered="{!bIsViewBenchmarkUpdate}"/>
+                                    </apex:repeat>
+                                </apex:pageBlockSection>
+                                <apex:outputPanel >
+                                    <apex:commandbutton value="{!$Label.fgm_portal__fc_save_buttonlabel}" onclick="saveTextBeforeReset();"  status="processing" rendered="{!bIsEditBenchmarkUpdate}" action="{!saveBenchMarkUpdate}" styleclass="btn btn-primary" rerender="relatedlistTable,errorMsgBlock,questionSection" oncomplete="initializeTable();disableLookup();changePopupFlag();viewModeRecord();"></apex:commandbutton>
+                                    <apex:commandbutton value="{!$Label.fgm_portal__fc_cancel_buttonlabel}" onclick="modalHide()" status="processing" styleclass="btn btn-primary" rerender="relatedlistTable,relatedlistTableView,questionSection,errorMsgBlock" immediate="true" action="{!backTOrelatedlistView}" oncomplete=" initializeTable(); disableLookup();changePopupFlag();viewModeRecord();"></apex:commandbutton>
+                                    <apex:actionstatus id="processing">
+                                        <apex:facet name="start">
+                                            <apex:outputpanel layout="none">
+                                                <apex:image value="/img/loading.gif" styleclass="loading"></apex:image>
+                                            </apex:outputpanel>
+                                        </apex:facet>
+                                    </apex:actionstatus>
+                                </apex:outputPanel>
+                            </apex:pageBlock>
+                        </apex:outputPanel>
+                        <apex:outputpanel layout="block" styleclass="quizQuestionList" rendered="{!isApplicationViewTab && NOT(ISBLANK(reviewApplicationId))}">
+                            <c:FCRecordReview applicationid="{!reviewApplicationId}"></c:FCRecordReview>
+                        </apex:outputpanel>
+                        <apex:outputpanel layout="block" rendered="{!NOT(isRelatedListView) && NOT(isApplicationViewTab) && NOT(bIsBUpdateTabSelected) }" id="portalTab">
+                            <apex:pagemessage id="ErrormessageBlock" rendered="{!quizQuestionList != null && quizQuestionList.size == 0 && !isSCPLCountryError && AND( currentTabType !='Grantee Budget Update Tab', currentTabType !='IFrame Tab' )}" severity="Warning" strength="1" summary="{!$Label.fgm_portal__fc_questionconfiguration_errormsg}"></apex:pagemessage>
+                            <apex:variable var="questionCount" value="{!1}" />
+                            <apex:repeat var="quizQuestion" value="{!quizQuestionList}">
+                                <apex:outputpanel layout="block" styleclass="Quiz_Questions__c" html-data-type="{!quizQuestion.Question__r.Type__c}" html-data-id="{!quizQuestion.Id}" html-data-required="{!quizQuestion.Required__c == true}">
+                                    <apex:outputpanel layout="none" rendered="{!NOT(ISBLANK(quizQuestion.Question__r.Help_Tip__c))}">
+                                        <div class="help-text tooltip" title="{!quizQuestion.Question__r.Help_Tip__c}">?</div>
+                                    </apex:outputpanel>
+                                    <apex:outputpanel layout="none" rendered="{!AND(quizQuestion.Required__c)}">
+                                        <div class="FCRecord_required-marker" title="{!$Label.fgm_portal__fc_required_field_label}">*</div>
+                                    </apex:outputpanel>
+                                    <apex:outputpanel styleclass="none"></apex:outputpanel>
+                                    <span class="ng-non-bindable" >
+                                        <apex:outputField value="{!quizQuestion.Question__r.RichQuestion__c}" styleclass="Question__c hidden-empty" rendered="{!quizQuestion.Question__r.Type__c == 'Instruction' || (quizQuestion.Question__r.Type__c == 'Attachment' )|| (quizQuestion.Question__r.Type__c == 'Salesforce Data Type' && quizQuestion.Field__c != null)}" id="theOutputField"></apex:outputField>
+                                    </span>
+                                    <br />
+                                    <span class="ng-non-bindable" >
+                                        <apex:outputField value="{!quizQuestion.Question__r.RichPreText__c}" styleclass="Pre_Text__c hidden-empty" rendered="{!OR(NOT(isShowHidePrePostText) , (isShowHidePrePostText && NOT(quizQuestion.Hide_Pre_Text__c)))}"></apex:outputField>
+                                    </span>
+                                    <br />
+                                    <!-- Container for known/simple types -->
+                                    <apex:variable var="matchedType" value="{!0}"></apex:variable>
+                                    <apex:pagemessage severity="Error" strength="1" summary="{!$Label.fgm_portal__fc_attachmentprocess_errormsg}" rendered="{!'Attachment' == quizQuestion.Question__r.Type__c && isErrorInAttachment}"></apex:pagemessage>
+                                    <apex:outputpanel layout="block" rendered="{!'Attachment' == quizQuestion.Question__r.Type__c && !isErrorInAttachment}" id="uploadAttachment">
+                                        <apex:variable var="matchedType" value="{!1}"></apex:variable>
+                                        <apex:outputpanel layout="block" rendered="{!AND(ISBLANK(application['Id']))}">
+                                            <div class="PortalUserFieldMappingwidth">
+                                                <apex:pagemessage severity="Warning" strength="1" summary="{!$Label.fgm_portal__fc_attachmentupload_errormsg}"></apex:pagemessage>
+                                                <div class="FCRecord_required-marker_attachment" title="{!$Label.FC_Required_Field_Label}">*</div>
+                                                <div class="clear"></div>
+                                            </div>
+                                        </apex:outputpanel>
+                                        <apex:outputpanel layout="block" rendered="{!NOT(ISBLANK(application.Id))}" styleclass="pbBody">
+                                            <apex:pageblock id="AttachmentTable" mode="mainDetail" rendered="{!If(mapApplicationAttachments[quizQuestion.Question__c] != null,TRUE,FALSE)}">
+                                                <apex:repeat var="appAttachment" value="{!mapApplicationAttachments[quizQuestion.Question__c]}">
+                                                    <apex:outputPanel rendered="{!isIExplorer}">
+                                                        <div>
+                                                            <apex:iframe html-onload="resizeIframe(this)" src="{!URLFOR($Page.AttachmentUploadIframe, null, [page=$CurrentPage.Name,appId=$CurrentPage.parameters.Id,mode=$CurrentPage.parameters.mode,ln=portalLanguage,queId=appAttachment.strQuestionAttachmentId,uploadEnabled=IF($CurrentPage.parameters.mode=='view',IF(appStage == 'Submitted',IF($Setup.GlobalPortalSettings__c.Enable_Attachments_for_Submitted_Appl__c && quizQuestion.Can_upload_after_submission__c,true,false),false),true)])}" height="385 px;" width="1262 px;" scrolling="true"/>
+                                                        </div>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel rendered="{!!isIExplorer}">
+                                                        <div>
+                                                            <div class="uploadManagerComponent" parent-record="{{appQuestionWrapper}}" question-attachment-id="{!appAttachment.strQuestionAttachmentId}" attachments="{{attachment}}" table-translations="{{transationForTable}}" file-input-translations="{{transationForFileUploader}}" initialization-settings="{{initializationSettings}}" status-codes = "{{translationForStatuses}}" upload-enabled="{!IF(($Currentpage.parameters.mode=='view' || strApplicationMode == 'view'),IF(appStage == 'Submitted',IF($Setup.FGM_Portal__GlobalPortalSettings__c.FGM_Portal__Enable_Attachments_for_Submitted_Appl__c && quizQuestion.FGM_Portal__Can_upload_after_submission__c,true,false),false),true)}" style="text-align: center"></div>
+                                                        </div>
+                                                    </apex:outputPanel>
+                                                </apex:repeat>
+                                                <apex:variable var="attachmentIndex" value="{!1}" />
+                                                <script>
+                                                if(bIsApplicationSubmitted)
+                                                {
+                                                    isRecordChanged = false;
+                                                }
+                                                totalAttachmentQuestions({!questionCount});
+                                                </script>
+                                            </apex:pageblock>
+                                        </apex:outputpanel>
+                                    </apex:outputpanel>
+                                    <apex:outputpanel styleclass="ng-non-bindable" layout="block" rendered="{!quizQuestion.Field__c != null && quizQuestion.Question__r.Type__c == 'Salesforce Data Type' && mode == 'edit' && mapFormulaFields != null && mapFormulaFields[quizQuestion.Field__c] != null && mapFormulaFields[quizQuestion.Field__c] != 'FORMULA'}" id="thePanelId">
+                                        <apex:outputpanel rendered="{!isSCPLEnabled && applicationRecordType == 'Contact' }">
+                                            <apex:inputField styleClass="BillMailCntry" value="{!contact['MailingCountryCode']}" onchange="getCountry(this,'BillMailCountry');" rendered="{!quizQuestion.Field__c == 'Billing_Mailing_Country__c' || quizQuestion.Field__c == 'FGM_Portal__Billing_Mailing_Country__c'}" />
+                                            <apex:inputField styleClass="BillMailState" value="{!contact['MailingStateCode']}" onchange="getState(this,'BillMailState');"  rendered="{!quizQuestion.Field__c == 'Billing_Mailing_State__c' || quizQuestion.Field__c == 'FGM_Portal__Billing_Mailing_State__c'}"/>
+                                            <apex:inputField styleClass="ShipOthrCntry" value="{!contact['OtherCountryCode']}" onchange="getCountry(this,'ShipOthrCountry');" rendered="{!quizQuestion.Field__c == 'Shipping_Other_Country__c' || quizQuestion.Field__c == 'FGM_Portal__Shipping_Other_Country__c'}"/>
+                                            <apex:inputField styleClass="ShipOthrState" value="{!contact['OtherStateCode']}" onchange="getState(this,'ShipOthrState');"  rendered="{!quizQuestion.Field__c == 'Shipping_Other_State__c' || quizQuestion.Field__c == 'FGM_Portal__Shipping_Other_State__c'}"/>
+                                        </apex:outputpanel>
+                                        <apex:outputpanel rendered="{!isSCPLEnabled && applicationRecordType == 'Organization'}">
+                                            <apex:inputField styleClass="BillMailCntry" value="{!account['BillingCountryCode']}" onchange="getCountry(this,'BillMailCountry');" rendered="{!quizQuestion.Field__c == 'Billing_Mailing_Country__c' || quizQuestion.Field__c == 'FGM_Portal__Billing_Mailing_Country__c'}" />
+                                            <apex:inputField styleClass="ShipOthrCntry" value="{!account['ShippingCountryCode']}" onchange="getCountry(this,'ShipOthrCountry');" rendered="{!quizQuestion.Field__c == 'Shipping_Other_Country__c' || quizQuestion.Field__c == 'FGM_Portal__Shipping_Other_Country__c'}"/>
+                                            <apex:inputField styleClass="BillMailState" value="{!account['BillingStateCode']}" onchange="getState(this,'BillMailState');" rendered="{!quizQuestion.Field__c == 'Billing_Mailing_State__c' || quizQuestion.Field__c == 'FGM_Portal__Billing_Mailing_State__c'}"/>
+                                            <apex:inputField styleClass="ShipOthrState" value="{!account['ShippingStateCode']}" onchange="getState(this,'ShipOthrState');" rendered="{!quizQuestion.Field__c == 'Shipping_Other_State__c' || quizQuestion.Field__c == 'FGM_Portal__Shipping_Other_State__c'}"/>
+                                        </apex:outputpanel>
+
+                                        <apex:inputfield id="inputFieldId" value="{!tabObject[quizQuestion.Field__c]}" rendered="{! ((isSCPLEnabled && quizQuestion.Field__c != 'Billing_Mailing_Country__c' && quizQuestion.Field__c != 'FGM_Portal__Billing_Mailing_Country__c' && quizQuestion.Field__c != 'Shipping_Other_Country__c' && quizQuestion.Field__c != 'FGM_Portal__Shipping_Other_Country__c' && quizQuestion.Field__c != 'Billing_Mailing_State__c' && quizQuestion.Field__c != 'FGM_Portal__Billing_Mailing_State__c' && quizQuestion.Field__c != 'Shipping_Other_State__c' && quizQuestion.Field__c != 'FGM_Portal__Shipping_Other_State__c') || !isSCPLEnabled) && IsViewRecordLink == false && ($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Type != 'textarea')}" />
+                                        <apex:inputfield id="inputTextId" styleclass="inputTextCSS" value="{!tabObject[quizQuestion.Field__c]}" rendered="{!IsViewRecordLink == false && ($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Type == 'textarea') && (NOT($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].htmlFormatted))}" />
+                                        <apex:inputtextarea styleclass="ckeditor" richtext="false" id="Id" value="{!tabObject[quizQuestion.Field__c]}" rendered="{!$ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Updateable && IsViewRecordLink == false && ($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Type == 'textarea') && ($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].htmlFormatted)}">
+                                        </apex:inputtextarea>
+                                        <apex:inputfield value="{!tabObject[quizQuestion.Field__c]}" rendered="{!!$ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Updateable && IsViewRecordLink == false && ($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Type == 'textarea') && ($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].htmlFormatted)}" />
+                                        <apex:inputhidden id="theHiddenStrInput" value="{!strHiddenValue}" rendered="{!IsViewRecordLink == false && (($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Type == 'textarea' && $ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].htmlFormatted))}" />
+                                        <apex:outputfield id="viweInputAreaTextId" value="{!tabObject[quizQuestion.Field__c]}" rendered="{!isViewRecordLink == true && ($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Type == 'reference')}">
+                                            <script>
+                                            $( document ).ready(function() {
+                                                disableLookup();
+                                            });
+                                            </script>
+                                        </apex:outputfield>
+                                        <apex:outputtext id="viewTextFieldId" value="{!tabObject[quizQuestion.Field__c]}" rendered="{!isViewRecordLink == true && ($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Type != 'reference')}" />
+                                    </apex:outputpanel>
+                                    <apex:outputpanel styleclass="ng-non-bindable" layout="block" rendered="{!quizQuestion.Field__c != null && quizQuestion.Question__r.Type__c == 'Salesforce Data Type' && NOT(isApplicationSubmitted) && mapFormulaFields != null && mapFormulaFields[quizQuestion.Field__c] == 'FORMULA'}" id="thepanelId1">
+                                        <apex:outputfield value="{!tabObject[quizQuestion.Field__c]} "  />
+                                    </apex:outputpanel>
+                                    <apex:outputpanel styleclass="ng-non-bindable" layout="block"  rendered="{!quizQuestion.Field__c != null && quizQuestion.Question__r.Type__c == 'Salesforce Data Type' && isApplicationSubmitted}" id="theoutputid">
+                                        <apex:outputfield value="{!tabObject[quizQuestion.Field__c]} " />
+                                    </apex:outputpanel>
+                                    <br />
+                                    <!-- Now the post text -->
+                                    <span class="ng-non-bindable" >
+                                        <apex:outputField value="{!quizQuestion.Question__r.RichPostText__c}" styleclass="Post_Text__c hidden-empty" rendered="{!OR(NOT(isShowHidePrePostText) , (isShowHidePrePostText && NOT(quizQuestion.Hide_Post_Text__c)))}"></apex:outputField>
+                                    </span>
+                                    <br />
+                                </apex:outputpanel>
+                            </apex:repeat>
+                            <apex:actionStatus id="portalTabStatus">
+                                <apex:facet name="stop">
+                                    <apex:outputpanel layout="block" styleclass="footer" rendered="{!currentTabType !='Related List With Tab' && AND( currentTabType !='Grantee Budget Update Tab', currentTabType !='IFrame Tab' ) && !isApplicationSubmitted}" id="relatedListId">
+                                        <apex:commandButton value="{!$Label.fgm_portal__fc_save_buttonlabel}" onclick="if(!checkAttachmentChanged()) return false;saveTextBeforeReset();" action="{!SaveRecord}" rerender="mainForm" oncomplete="recompileDirectives();" styleclass="btn btn-primary footer-btn" status="portalTabStatus">
+                                            <apex:param name="id" value="{!$CurrentPage.Parameters.id}" />
+                                            <apex:param name="mode" value="{!$CurrentPage.Parameters.mode}" />
+                                            <apex:param name="ParentId" value="{!$CurrentPage.Parameters.ParentId}" />
+                                            <apex:param name="RecordTypeId" value="{!$CurrentPage.Parameters.RecordTypeId}" />
+                                        </apex:commandButton>
+                                        <apex:commandButton value="{!$Label.fgm_portal__fc_save_next_buttonlabel}" onclick="if(!checkAttachmentChanged()) return false;saveTextBeforeReset(); " action="{!SaveAndNext}" styleclass="btn btn-primary footer-btn" rerender="mainForm" oncomplete="recompileDirectives();" rendered="{!NOT(ISBLANK(nextTabID)) && isLastTab == false }" status="portalTabStatus">
+                                            <apex:param name="id" value="{!$CurrentPage.Parameters.id}" />
+                                            <apex:param name="mode" value="{!$CurrentPage.Parameters.mode}" />
+                                            <apex:param name="ParentId" value="{!$CurrentPage.Parameters.ParentId}" />
+                                            <apex:param name="RecordTypeId" value="{!$CurrentPage.Parameters.RecordTypeId}" />
+                                        </apex:commandButton>
+                                        <apex:commandButton value="{!$Label.fgm_portal__fc_clear_unsaved_changes_button}" onclick="modalHide()" action="{!clearUnsavedChanges}" styleclass="btn btn-primary footer-btn" rerender="mainForm" rendered="{!NOT(ISBLANK(nextTabID))}" oncomplete="recompileDirectives();" status="portalTabStatus">
+                                            <apex:param name="id" value="{!$CurrentPage.Parameters.id}" />
+                                        </apex:commandButton>
+                                    </apex:outputpanel>
+                                </apex:facet>
+                                <apex:facet name="start">
+                                    <apex:outputPanel layout="block">
+                                        <apex:commandbutton value="{!$Label.fgm_portal__fc_wait_label}" styleclass="btn btnNew" onclick="return false;" rendered="{!NOT(IsApplicationSubmitted)}" />
+                                        <apex:commandbutton value="{!$Label.fgm_portal__fc_wait_label}" styleclass="btn btnNew" onclick="return false;" rendered="{!NOT(ISBLANK(nextTabID)) && isLastTab == false && NOT(IsApplicationSubmitted)}" />
+                                        <apex:commandbutton value="{!$Label.fgm_portal__fc_wait_label}" styleclass="btn btnNew" onclick="return false;" rendered="{!NOT(IsApplicationSubmitted)}" />
+                                    </apex:outputPanel>
+                                </apex:facet>
+                            </apex:actionStatus>
+                            <apex:outputpanel layout="block" styleclass="footer" rendered="{!(currentTabType =='Related List With Tab' && quizQuestionList.size > 0)}">
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_save_buttonlabel}" onclick="saveTextBeforeReset();" action="{!SaveRelatedListRecord}" styleclass="btn btn-primary" rerender="relatedlistTable,errorMsgBlock,questionSection" oncomplete="changePopupFlag();initializeTable();viewModeRecord();" rendered="{! NOT( isViewRecordLink ) && quizQuestionList.size > 0 }"></apex:commandbutton>
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_cancel_buttonlabel}" onclick="modalHide()" styleclass="btn btn-primary" immediate="true" action="{!backTOrelatedlistView}" rerender="relatedlistTable,errorMsgBlock,questionSection" oncomplete="disableLookup();changePopupFlag();initializeTable();viewModeRecord();"></apex:commandbutton>
+                            </apex:outputpanel>
+                            <apex:outputpanel layout="block" styleclass="footer" rendered="{!(currentTabType =='Related List With Tab' && quizQuestionList.size == 0)}">
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_back_buttonlabel}" action="{!backTOrelatedlistView}" status="backbtn" immediate="true" rerender="questionSection,relatedlistTable" styleclass="btn btn-primary" oncomplete="disableLookup();"></apex:commandbutton>
+                                <apex:actionstatus id="backbtn">
+                                    <apex:facet name="start">
+                                        <apex:outputpanel layout="none">
+                                            <apex:image value="/img/loading.gif" styleclass="loading"></apex:image>
+                                        </apex:outputpanel>
+                                    </apex:facet>
+                                </apex:actionstatus>
+                            </apex:outputpanel>
+                            <apex:outputpanel layout="block" rendered="{!currentTabType =='Grantee Budget Update Tab'}" style="margin-left:10px;">
+                                <span >
+                                    <apex:outputField value="{!relatedListConfiguration.record.RichInstructionalText__c}" />
+                                </span>
+                                <apex:pageblock rendered="{!NOT(isEditGranteeBudgetUpdate)}">
+                                    <script>
+                                    $(document).ready(function() {
+                                        viewModeRecord();
+                                    });
+                                    </script>
+                                    <apex:pageblocktable value="{!lstGranteeBudgetUpdate}" var="objGranteeBudgetUpdate" footerclass="footerAlign">
+                                        <apex:column headervalue="{!$Label.fgm_portal__fc_action_columnheaderlabel}" rendered="{!NOT(isApplicationSubmitted)}">
+                                            <apex:commandlink value="{!$Label.fgm_portal__fc_edit_buttonlabel}" action="{!editGranteeBudgetUpdate}">
+                                                <apex:param name="selectedGranteeBudgetUpdateID" value="{!objGranteeBudgetUpdate.Id}" assignto="{!selectedGranteeBudgetUpdateID}" />
+                                            </apex:commandlink>
+                                        </apex:column>
+                                        <apex:column headervalue="{!$ObjectType.Grantee_Budget_Category__c.fields.Parent_Category__c.Label}">
+                                            <apex:outputfield value="{!objGranteeBudgetUpdate.Grantee_Budget_Category__r.Parent_Category__c}" />
+                                        </apex:column>
+                                        <apex:column headervalue="{!$ObjectType.Grantee_Budget_Update__c.fields.Grantee_Budget_Category__c.Label}">
+                                            <apex:outputfield value="{!objGranteeBudgetUpdate.Grantee_Budget_Category__c}" />
+                                        </apex:column>
+                                        <apex:column >
+                                            <apex:facet name="header">{!$ObjectType.Grantee_Budget_Update__c.fields.Current_Period_Expenses__c.Label}</apex:facet>
+                                            <apex:outputtext value="{0,Number,Currency}">
+                                                <apex:param value="{!objGranteeBudgetUpdate.Current_Period_Expenses__c}"></apex:param>
+                                            </apex:outputtext>
+                                        </apex:column>
+                                        <apex:column headervalue="{!$ObjectType.Grantee_Budget_Update__c.fields.Comment__c.Label}">
+                                            <apex:outputfield value="{!objGranteeBudgetUpdate.Comment__c}" />
+                                        </apex:column>
+                                        <apex:column >
+                                            <apex:facet name="header">{!$ObjectType.Grantee_Budget_Update__c.fields.Expenditures_to_Date__c.Label}</apex:facet>
+                                            <apex:outputtext value="{0,Number,Currency}">
+                                                <apex:param value="{!objGranteeBudgetUpdate.Expenditures_to_Date__c}"></apex:param>
+                                            </apex:outputtext>
+                                        </apex:column>
+                                        <apex:column >
+                                            <apex:facet name="header">{!$ObjectType.Grantee_Budget_Update__c.fields.Approved_Budget_New__c.Label}</apex:facet>
+                                            <apex:outputtext value="{0,Number,Currency}">
+                                                <apex:param value="{!objGranteeBudgetUpdate.Approved_Budget_New__c}"></apex:param>
+                                            </apex:outputtext>
+                                        </apex:column>
+                                        <apex:column >
+                                            <apex:facet name="header">{!$ObjectType.Grantee_Budget_Update__c.fields.Available_Budget__c.Label}</apex:facet>
+                                            <apex:outputtext value="{0,Number,Currency}">
+                                                <apex:param value="{!objGranteeBudgetUpdate.Available_Budget__c}"></apex:param>
+                                            </apex:outputtext>
+                                        </apex:column>
+                                        <apex:column headervalue="{!$ObjectType.Grantee_Budget_Update__c.fields.Percentage_Used__c.Label}">
+                                            <apex:outputtext value="{!objGranteeBudgetUpdate.Percentage_Used__c}%" />
+                                        </apex:column>
+                                        <apex:facet name="footer">
+                                            <apex:outputtext style="text-align:center" value="{!$Label.fgm_portal__fc_budgetupdate_norecords}" rendered="{!not(lstGranteeBudgetUpdate.size>0)}" />
+                                        </apex:facet>
+                                    </apex:pageblocktable>
+                                </apex:pageblock>
+                                <apex:pageblock rendered="{!isEditGranteeBudgetUpdate}">
+                                    <script>
+                                    $(document).ready(function() {
+                                        editModeRecord();
+                                    });
+                                    </script>
+                                    <apex:pageblocksection >
+                                        <apex:pageblocksectionitem >
+                                            <apex:outputlabel value="{!$ObjectType.Grantee_Budget_Update__c.fields.Approved_Budget_New__c.Label}" />
+                                            <apex:outputtext id="approvedBudget" value="{0,Number,Currency}">
+                                                <apex:param value="{!selectedGranteeBudgetUpdate.Approved_Budget_New__c}" />
+                                            </apex:outputtext>
+                                        </apex:pageblocksectionitem>
+                                        <apex:pageblocksectionitem >
+                                            <apex:outputlabel value="{!$ObjectType.Grantee_Budget_Update__c.fields.Available_Budget__c.Label}" />
+                                            <apex:outputtext value="{0,Number,Currency}">
+                                                <apex:param value="{!selectedGranteeBudgetUpdate.Available_Budget__c}" />
+                                            </apex:outputtext>
+                                        </apex:pageblocksectionitem>
+                                        <apex:pageblocksectionitem >
+                                            <apex:outputlabel value="{!$ObjectType.Grantee_Budget_Update__c.fields.Expenditures_to_Date__c.Label}" />
+                                            <apex:outputtext value="{0,Number,Currency}">
+                                                <apex:param value="{!selectedGranteeBudgetUpdate.Expenditures_to_Date__c}" />
+                                            </apex:outputtext>
+                                        </apex:pageblocksectionitem>
+
+                                        <apex:outputfield value="{!selectedGranteeBudgetUpdate.Grantee_Report__c}" />
+                                        <apex:outputfield value="{!selectedGranteeBudgetUpdate.Percentage_Used__c}" />
+                                        <apex:outputfield value="{!selectedGranteeBudgetUpdate.Grantee_Budget_Category__c}" />
+                                        <apex:inputfield value="{!selectedGranteeBudgetUpdate.Current_Period_Expenses__c}" />
+                                        <apex:inputfield value="{!selectedGranteeBudgetUpdate.Comment__c}" />
+                                    </apex:pageblocksection>
+                                    <div style="text-align:center">
+                                        <apex:commandbutton value="{!$Label.fgm_portal__fc_save_buttonlabel}" action="{!saveGranteeBudgetUpdate}"/>
+                                        <apex:commandbutton value="{!$Label.fgm_portal__fc_cancel_buttonlabel}" action="{!cancelGranteeBudgetUpdate}"/>
+                                    </div>
+                                </apex:pageblock>
+                            </apex:outputpanel>
+                            <apex:outputpanel layout="block" rendered="{!currentTabType == 'IFrame Tab'}">
+                                <apex:iframe src="{!StrIFrameUrl}" html-onload="iframeLoad(this);" width="100%" scrolling="true" />
+                            </apex:outputpanel>
+                        </apex:outputpanel>
+                        <script type="text/javascript">
+                        $(document).ready(function(){
+                            //apply checkbox
+                            try
+                            {
+                                applyCheckBox();
+                            } catch(ex){}
+
+                            //apply datePicker
+                            try
+                            {
+                                applyDatePicker();
+                            } catch(e){}
+
+                            //apply for lookUp field
+                            try
+                            {
+                                applyLookupField();
+                            } catch(e){}
+                        });
+                        initializeCkeditor();
+                        </script>
+                    </apex:outputpanel>
+                    <apex:outputpanel id="relatedlistTable" styleclass="relatedlistTable" >
+                        <apex:outputpanel rendered="{!NOT(isApplicationViewTab)}">
+                            <script type="text/javascript">
+                            $('#modal--updating-data').hide();
+                            $(document).ready(function() {
+
+                                reinitializeTable();
+                                disableLookupLink();
+                            });
+
+                            </script>
+                            <apex:outputpanel id="relatedlistTableView" layout="block" styleclass="tabBottomLine" rendered="{!(currentTabType =='Related List With Tab' && isRelatedListView)}">
+                                <script>initializeTable();
+                                isRecordChanged = false;
+                                </script>
+                                <apex:outputpanel layout="block" rendered="{!AND(ISBLANK(application['Id']))}">
+                                    <apex:pagemessage severity="Warning" strength="1" summary="{!$Label.fgm_portal__fc_saveapplication_errormsg}"></apex:pagemessage>
+                                </apex:outputpanel>
+                                <apex:pageblock mode="maindetail" rendered="{!(NOT(ISBLANK(application['Id'])) && relatedListConfiguration != null)}">
+                                    <apex:outputpanel layout="block" styleclass="relatedListInstruction">
+                                        <span>
+                                            <apex:outputField value="{!relatedListConfiguration.record.RichInstructionalText__c}" />
+                                        </span>
+                                    </apex:outputpanel>
+                                    <apex:outputpanel layout="block" styleclass="newEntrybtn" rendered="{!relatedListConfiguration.IsCreatable && !isApplicationSubmitted}">
+                                        <apex:actionstatus id="addNewEntry">
+                                            <apex:facet name="start">
+                                                <apex:outputpanel layout="none">
+                                                    <apex:image value="/img/loading.gif" styleclass="loading"></apex:image>
+                                                </apex:outputpanel>
+                                            </apex:facet>
+                                        </apex:actionstatus>
+                                        <apex:commandlink styleclass="btn btn-primary" rendered="{!Not(bIsBUpdateTabSelected)}" action="{!getNewRelatedListRecord}" rerender="questionSection,relatedlistTable" status="addNewEntry" oncomplete="setcharcount();editModeRecord();">
+                                            <i class="fa fa-plus"></i> {!$Label.FC_New_ButtonLabel}
+                                        </apex:commandlink>
+                                    </apex:outputpanel>
+                                    <apex:variable var="recordIndex" value="{!0}" />
+                                    <apex:datatable value="{!lstBenchmarkUpdateRecords}" var="relatedlistRecord" styleclass="relatedListTable" id="recordTableBU" rendered="{!bIsBUpdateTabSelected }">
+                                        {!relatedListConfiguration.listColumnFields}
+                                        <apex:repeat var="field" value="{!relatedListConfiguration.listColumnFields}">
+                                            <apex:column rendered="{!(relatedListConfiguration.mapColumnFields[field] != null && NOT(ISBLANK(relatedListConfiguration.mapColumnFields[field])))}">
+                                                <apex:facet name="header">{!field}</apex:facet>
+                                                <apex:outputfield rendered="{!if((BEGINS(relatedListConfiguration.mapColumnFields[field], 'FGM_Base__Benchmark__r')),TRUE,FALSE)}" value="{!relatedlistRecord.objBenchmark[SUBSTITUTE(relatedListConfiguration.mapColumnFields[field],'FGM_Base__Benchmark__r.', '')]}"/>
+                                                <apex:outputfield rendered="{!if(NOT((BEGINS(relatedListConfiguration.mapColumnFields[field], 'FGM_Base__Benchmark__r'))),TRUE,FALSE)}" value="{!relatedlistRecord.objBU[relatedListConfiguration.mapColumnFields[field]]}" />
+                                            </apex:column>
+                                        </apex:repeat>
+                                        <apex:column width="12%">
+                                            <apex:facet name="header">{!relatedListConfiguration.strActionColLabel}</apex:facet>
+                                            <apex:commandlink value="{!$Label.fgm_portal__fc_delete_buttonlabel}" styleclass="deleteLink actionLink" rendered="{!relatedListConfiguration.IsDeletable  && NOT(isApplicationSubmitted) }" rerender="relatedlistTable" status="RelatedListAction" onclick="  if( !confirmDelete()){return};" action="{!deleteBenchmarkUpdateRecord}" oncomplete="initializeTable();disableLookup();">
+                                                <apex:param name="recordIndex" value="{!recordIndex}" />
+                                            </apex:commandlink>
+                                            <apex:commandlink value="{!$Label.fgm_portal__fc_edit_buttonlabel}" styleclass="editLink actionLink" rendered="{!relatedListConfiguration.IsEditable && NOT(isApplicationSubmitted) }" rerender="questionSection,benchmarkPanel,relatedlistTable" status="RelatedListAction" action="{!editBenchmarkUpdateRecord}" oncomplete="disableLookup();setcharcount();" onclick="editModeRecord();">
+                                                <apex:param name="recordIndex" value="{!recordIndex}" />
+                                            </apex:commandlink>
+                                            <apex:commandlink value="{!$Label.fgm_portal__fc_view_buttonlabel}" styleclass="actionLink"  rendered="{!relatedListConfiguration.IsEditable && NOT(isApplicationSubmitted) }" rerender="questionSection,benchmarkPanel,relatedlistTable" status="RelatedListAction" action="{!viewBenchmarkUpdateRecord}" oncomplete="disableLookup();setcharcount();"  onclick="viewModeRecord();">
+                                                <apex:param name="recordIndex" value="{!recordIndex}" />
+                                            </apex:commandlink>
+                                            <apex:actionstatus id="RelatedListAction">
+                                                <apex:facet name="start">
+                                                    <apex:outputpanel layout="none">
+                                                        <apex:image value="/img/loading.gif" styleclass="loading"></apex:image>
+                                                    </apex:outputpanel>
+                                                </apex:facet>
+                                            </apex:actionstatus>
+                                            <apex:variable var="recordIndex" value="{!recordIndex + 1}" />
+                                        </apex:column>
+                                    </apex:datatable>
+                                    <apex:datatable value="{!relatedListConfiguration.lstRelatedListRecord}" var="relatedlistRecord" styleclass="relatedListTable" id="recordTable" rendered="{!(!bIsBUpdateTabSelected) }">
+                                        <apex:repeat var="field" value="{!relatedListConfiguration.listColumnFields}">
+                                            <apex:column rendered="{!(relatedListConfiguration.mapColumnFields[field] != null && NOT(ISBLANK(relatedListConfiguration.mapColumnFields[field])))}">
+                                                <apex:facet name="header">{!field}</apex:facet>
+                                                <apex:outputfield value="{!relatedlistRecord[relatedListConfiguration.mapColumnFields[field]]}" />
+                                            </apex:column>
+                                        </apex:repeat>
+                                        <apex:column width="12%">
+                                            <apex:facet name="header">{!relatedListConfiguration.strActionColLabel}</apex:facet>
+                                            <apex:commandlink value="{!$Label.fgm_portal__fc_delete_buttonlabel}" styleclass="deleteLink actionLink" rendered="{!relatedListConfiguration.IsDeletable  && NOT(isApplicationSubmitted )}" rerender="relatedlistTable" status="RelatedListAction" onclick="if(!confirm('Are you sure you want to delete this record?')){return};" action="{!deleteRelatedListRecord}" oncomplete="disableLookup();">
+                                                <apex:param name="recordIndex" value="{!recordIndex}" />
+                                            </apex:commandlink>
+                                            <apex:commandlink value="{!$Label.fgm_portal__fc_edit_buttonlabel}" styleclass="editLink actionLink" rendered="{!relatedListConfiguration.IsEditable && NOT(isApplicationSubmitted) }" rerender="questionSection,relatedlistTable" status="RelatedListAction" action="{!editRelatedListRecord}" oncomplete="disableLookup();setcharcount();" onclick="editModeRecord();">
+                                                <apex:param name="recordIndex" value="{!recordIndex}" />
+                                            </apex:commandlink>
+                                            <apex:commandlink value="{!$Label.fgm_portal__fc_view_buttonlabel}" styleclass="actionLink" rendered="{!relatedListConfiguration.IsEditable && NOT(isApplicationSubmitted)}" rerender="questionSection,relatedlistTable" status="RelatedListAction" action="{!viewRelatedListRecord}" oncomplete="disableLookup();" onclick="viewModeRecord();">
+                                                <apex:param name="recordIndex" value="{!recordIndex}" />
+                                                <apex:param name="IsViewLink" value="{!isViewRecordLink}" />
+                                            </apex:commandlink>
+                                            <apex:actionstatus id="Actionstatus1">
+                                                <apex:facet name="start">
+                                                    <apex:outputpanel layout="none">
+                                                        <apex:image value="/img/loading.gif" styleclass="loading"></apex:image>
+                                                    </apex:outputpanel>
+                                                </apex:facet>
+                                            </apex:actionstatus>
+                                            <apex:variable var="recordIndex" value="{!recordIndex + 1}" />
+                                        </apex:column>
+                                    </apex:datatable>
+                                    <br/>
+                                    <apex:commandlink value="{!$Label.fgm_portal__fc_next_buttonlabel}" styleclass="btn btn-primary" action="{!next}" onclick="if(!checkAttachmentChanged()) return false;saveTextBeforeReset();" reRender="mainForm" rendered="{!currentTabType =='Related List With Tab' && !isApplicationSubmitted && NOT(ISBLANK(nextTabID)) && isLastTab == false}" oncomplete="recompileDirectives();">
+                                        <apex:param name="id" value="{!$CurrentPage.Parameters.id}" />
+                                        <apex:param name="appID" value="{!$CurrentPage.Parameters.appID}" />
+                                    </apex:commandlink>
+                                </apex:pageblock>
+                            </apex:outputpanel>
+                        </apex:outputpanel>
+                    </apex:outputpanel>
+                </div>
+            </apex:outputPanel>
+            <script>
+            initializeCkeditor();
+            </script>
+        </apex:form>
+    </div>
+</apex:page>

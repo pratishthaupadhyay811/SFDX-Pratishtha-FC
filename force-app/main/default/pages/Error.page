@@ -1,0 +1,4 @@
+<apex:page >
+    <apex:pageMessage severity="error" strength="3" summary="Please contact your administrator to enable the Application Designer Pilot to use this functionality.">
+    </apex:pageMessage>
+</apex:page>

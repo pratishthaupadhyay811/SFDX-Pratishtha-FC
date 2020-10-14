@@ -1,0 +1,9 @@
+{
+	"fgm_portal__FC_AttachmentProcess_ErrorMsg" : "Error occured during file upload",
+	"fgm_portal__FC_File_Upload_Success_Message" : "File Uploaded successfully",
+	"fgm_portal__FC_Infected_File_Error_Message" : "File found infected. Cannot proceed with upload process",
+	"fgm_portal__FC_Upload_ChooseFile_StatusLabel" : "No file chosen",
+	"fgm_portal__FC_Upload_ChooseFile_ButtonLabel" : "Choose file",
+	"fgm_portal__FC_File_Extension_Not_Allowed" : "This file extension is not allowed to upload",
+	"fgm_portal__FC_Attachment_size_ErrorMsg" : "File of this size cannot be Uploaded"
+}

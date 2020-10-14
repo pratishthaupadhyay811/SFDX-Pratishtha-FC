@@ -1,0 +1,12 @@
+.download-items-div
+        {
+            background-color: #e0e3e5;
+            display: inline-block;
+            padding: 1%;
+            width: 98%;
+            border-radius: 5px;
+        }
+         
+.bPageTitle .ptBody { 
+        overflow: visible !important; 
+        } 

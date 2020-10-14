@@ -1,0 +1,82 @@
+<apex:page controller="RecommendationController" sidebar="false" >
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/fontawesome/font-awesome-4.1.0.min.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/bootstrap/bootstrap-3.4.1.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/bootbox/bootbox-4.2.0.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/datatable/jqueryui-dataTable-integration.be7019ee387.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/jquery/smoothness/jquery-ui-1.10.3-smoothness.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/datatable/jquery-dataTables-1.10.1.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/datatable/jqueryui-dataTable-integration.be7019ee387.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/application_js/recommendation-review.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource, '/application_css/recommendation-review.css')}" />
+    <apex:sectionHeader title="Review/Submit" subtitle="{!application['Name']}"></apex:sectionHeader>
+    <c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}"/>
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+        initialize();
+    });
+    </script>
+
+    <apex:form forceSSL="true" styleClass="mainForm">
+        <span >
+            <apex:pageMessages id="errorMsgBlock" ></apex:pageMessages>
+        </span>
+        <apex:outputPanel layout="block" styleClass="FCRecordReview_float" rendered="{!NOT(showFeedbackMsg)}">
+            <apex:commandLink action="{!URLFOR($Page.FGM_Portal__Recommendation, null, [id=$CurrentPage.Parameters.Id])}" styleClass="btn btn-primary noPrint" > {!$Label.fgm_portal__back_to_application} </apex:commandLink>
+            <apex:commandLink styleClass="btn btn-primary noPrint" onclick="window.print(); return false;">
+                <i class="fa fa-print  FCRecordReview_print" ></i>{!$Label.FC_Print_ButtonLabel}
+            </apex:commandLink>
+            <apex:commandLink value="{!$Label.fgm_portal__fc_submit_buttonlabel}" styleClass="btn btn-primary" rendered="{!Not(isFeedbackSubmitted)}" onclick="bootbox.confirm('Are you sure you want to Submit? You will not be able to edit this form once it is submitted.', function(result) { if(result) { submitApplication();  } }); return false;"></apex:commandLink>
+            <apex:actionFunction action="{!submit}" name="submitApplication"></apex:actionFunction>
+        </apex:outputPanel>
+{!reviewPageList}
+        <apex:repeat var="reviewPage" value="{!reviewPageList}" rendered="{!NOT(showFeedbackMsg)}">
+            <apex:pageBlock title="{!reviewPage.name}" mode="mainDetail" rendered="{!reviewPage.TabType == 'Portal Tab'}">
+                <apex:pageBlockSection title="" collapsible="false" columns="1">
+                    <apex:repeat var="reviewQuestion" value="{!reviewPage.reviewQuestionList}">
+                        <apex:pageBlockSectionItem labelStyleClass="width40" dataStyleClass="width60" rendered="{!reviewQuestion.questionType != 'Attachment'}" id="sectionId">
+                            <apex:outputLabel ><apex:outputField value="{!reviewQuestion.question.RichQuestion__c}"/></apex:outputLabel>
+                            <apex:outputPanel id="panelId">
+                                <span >
+                                    <apex:outPutField id="outputFieldId" rendered="{!application[reviewQuestion.field]!=null && reviewQuestion.strFieldType == 'REFERENCE'}" value="{!application[reviewQuestion.field]}"/>
+                                    <apex:outPutText id="outputTextId" rendered="{!application[reviewQuestion.field]!=null && reviewQuestion.strFieldType != 'REFERENCE'}" value="{!application[reviewQuestion.field]}"/>
+                                </span>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:outputPanel rendered="{!reviewQuestion.questionType == 'Attachment'}">
+                            <apex:outputLabel style="font-weight: bold;"><apex:outputField value="{!reviewQuestion.question.RichQuestion__c}"/></apex:outputLabel>
+                            <apex:outputPanel layout="block" id="uploadAttachment" styleClass="uploadedAttachment">
+                                <apex:outputPanel layout="block" rendered="{!NOT(ISBLANK(application.Id))}" styleClass="pbBody">
+                                    <apex:pageBlock mode="mainDetail" rendered="{!mapApplicationAttachments[reviewQuestion.questionId] != null}">
+                                        <apex:repeat var="Appattachment" value="{!mapApplicationAttachments[reviewQuestion.questionId]}">
+                                            <apex:variable var="attachmentIndex" value="{!1}"/>
+                                            <apex:pageBlockTable var="oldAttachment" value="{!Appattachment.mapOldAttachments}" styleClass="attachmentList">
+                                                <apex:column headerValue="{!$Label.fgm_portal__fc_srno_columnheaderlabel}" width="8%" styleClass="serialNumberColumn">
+                                                    <apex:outputText >{!attachmentIndex}</apex:outputText>
+                                                    <apex:variable var="attachmentIndex" value="{!attachmentIndex + 1}"/>
+                                                </apex:column>
+
+                                                <apex:column styleClass="nameColumn" width="75%" headerValue="{!$ObjectType.Attachment.Fields.Name.Label}">
+                                                    <apex:outputLink value="{!URLFOR($Action.Attachment.Download, Appattachment.mapOldAttachments[oldAttachment].Id)}" target="_blank"> {!Appattachment.mapOldAttachments[oldAttachment].Name} </apex:outputLink>
+                                                </apex:column>
+
+                                                <apex:column styleClass="createdDateColumn" width="15%" headerValue="{!$ObjectType.Attachment.Fields.CreatedDate.Label}">
+                                                    <apex:outputField value="{!Appattachment.mapOldAttachments[oldAttachment].CreatedDate}"/>
+                                                </apex:column>
+                                            </apex:pageBlockTable>
+                                        </apex:repeat>
+                                    </apex:pageBlock>
+                                </apex:outputPanel>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                    </apex:repeat>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:repeat>
+        <apex:outputPanel rendered="{!showFeedbackMsg}" layout="block">
+            <apex:pageMessage severity="Info" summary="{!$Label.fgm_portal__fc_recommendationreview_feedbackmessage}" strength="2"></apex:pageMessage>
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

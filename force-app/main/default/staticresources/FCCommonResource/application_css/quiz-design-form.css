@@ -1,0 +1,26 @@
+.clsQuestion{
+    display: inline-flex !important;
+}
+.clsQuestion:first-child{
+    width: 100% ;
+}
+.FGM_Portal__Question__add.none{
+    width: 100% ;
+}
+tfoot {
+    display: table-footer-group !important; 
+}
+.Custom18Block table tr td{
+    border-bottom: none !important;
+}
+.categoryControlBtn .btn-primary{
+    padding: 8px 20px !important;
+}
+
+.ui-sortable tr {cursor:move;}  
+.ui-sortable-handle tr:hover{
+    background: brown !important;
+}
+.FGM_Portal__Quiz_Questions__c thead {
+    display: none;
+ }

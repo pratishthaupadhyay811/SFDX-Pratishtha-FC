@@ -1,0 +1,95 @@
+<apex:page controller="PortalUserFieldMappingController">
+    <apex:slds />
+    <c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}" ApplicationResources="application.css,toaster.css" />
+    <script type="text/javascript">
+    var isAccess = {!isAccess};
+        function showProcessing() {
+           $('.spinnerContainerprocessing').fadeIn("slow" ,function() {
+                window.scrollTo(0, 0);
+                $(".spinnerContainerprocessing").addClass("spinnerContainer_display");
+            });
+        }
+    </script>
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:form id="mainForm" styleclass="mainForm GuidestarFieldMapping_margintop">
+        <apex:panelgrid columns="2" styleclass="config_section PortalUserFieldMappingwidth">
+            <apex:sectionheader subtitle="Portal User Field Mapping" />
+            <apex:commandbutton value="Back To Configuration" styleclass="btn btn-primary" immediate="true" action="{!URLFOR($Page.fcportalManager)}" />
+        </apex:panelgrid>
+        <div ng-app="App" ng-controller="PortalUserFieldMappingControllerd" ng-init="getPortalUserFields();">
+            <div ng-show="isLoaded">
+                <toaster-container toaster-options="{'time-out': 3000, 'progressBar': true,'animation-class': 'toast-top-center'}"></toaster-container>
+                <processing></processing>
+                <div ng-if="showMessageComponent"><message-component messagewrapper="exception" show-message-action="showPageMessage"> </message-component></div>
+                <div class="PortalUserFieldMapping_center">
+                    <apex:outputlabel value="Select Mapping Object   :" styleclass="PortalUserFieldMapping_mappingObject" />
+                    <select ng-model="selectdObject" ng-init="selectdObject = '--None--'" ng-change="onObjectChange();">
+                        <option value='--None--' ng-selected="true">--Select Mapping--</option>
+                        <option value="Account">Account</option>
+                        <option value="Contact">Contact</option>
+                    </select>
+                </div>
+                <!-- Contact Mapping -->
+                <br />
+                <br />
+                <center ng-show="selectdObject != '--None--' && isAccess">
+                    <input type="button" ng-click="UpsertRecord();" value="Save" ng-show="selectdObject == 'Contact'" class="btn btn-primary"  ng-disabled="communityConfiguration.FGM_Portal__JsonData__c.PortalUserToContact.length == 0" />
+                    <input type="button" ng-click="UpsertRecord();" value="Save" ng-show="selectdObject == 'Account'" class="btn btn-primary"  ng-disabled="communityConfiguration.FGM_Portal__JsonData__c.PortalUserToAccount.length == 0" />
+                    <input type="button" ng-click="cancel();" value="Cancel" class="btn btn-primary" />
+                </center>
+                <br />
+                <br />
+                <div ng-show="selectdObject == 'Contact'  && isAccess">
+                    <apex:pageblock mode="maindetail" title="Contact Field Mapping" >
+                        <apex:pageblocksection title="" collapsible="false" columns="1">
+                            <table id="tblContact">
+                                <tr ng-repeat="rowFields in contactFieldsByRow">
+                                    <td class="firstcol"><label class="colLabel" ng-bind="rowFields.first.Label"></label></td>
+                                    <td>
+                                        <select ng-model="rowFields.selectedFirstField" ng-show="rowFields.first.Label != undefined" ng-options=" value.Label for (key,value) in mapPortlUserFields" ng-change="onFieldChange(rowFields.first,rowFields.selectedFirstField,$index,'firstRow');">
+                                            <option ng-selected='true' value="--None--">--None--</option>
+                                        </select>
+                                    </td>
+                                    <td class="firstcol"> <label class="colLabel" ng-bind="rowFields.second.Label"> </label></td>
+                                    <td>
+                                        <select ng-model="rowFields.selectedSecondField" ng-show="rowFields.second.Label != undefined" ng-options=" value.Label for (key,value) in mapPortlUserFields" ng-change="onFieldChange(rowFields.second,rowFields.selectedSecondField,$index,'secondRow');">
+                                            <option ng-selected='true' value="--None--">--None--</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </table>
+                        </apex:pageblocksection>
+                    </apex:pageblock>
+                </div>
+                <!-- Account Mapping -->
+                <div ng-show="selectdObject == 'Account'  && isAccess">
+                    <apex:pageblock mode="maindetail" title="Account Field Mapping">
+                        <apex:pageblocksection title="" collapsible="false" columns="1">
+                            <table id="tblAccount">
+                                <tr ng-repeat="rowFields in accountFieldsByRow">
+                                    <td class="firstcol"><label class="colLabel" ng-bind="rowFields.first.Label"> </label></td>
+                                    <td>
+                                        <select ng-model="rowFields.selectedFirstField" ng-show="rowFields.first.Label != undefined" ng-options=" value.Label for (key,value) in mapPortlUserFields" ng-change="onFieldChange(rowFields.first,rowFields.selectedFirstField,$index,'firstRow');">
+                                            <option ng-selected='true' value="--None--">--None--</option>
+                                        </select>
+                                    </td>
+                                    <td class="firstcol"> <label class="colLabel" ng-bind="rowFields.second.Label"> </label></td>
+                                    <td>
+                                        <select ng-model="rowFields.selectedSecondField" ng-show="rowFields.second.Label != undefined" ng-options=" value.Label for (key,value) in mapPortlUserFields" ng-change="onFieldChange(rowFields.second,rowFields.selectedSecondField,$index,'secondRow');">
+                                            <option ng-selected='true' value="--None--">--None--</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </table>
+                        </apex:pageblocksection>
+                    </apex:pageblock>
+                </div>
+                <center ng-show="selectdObject != '--None--'  && isAccess">
+                    <input type="button" ng-click="UpsertRecord();" value="Save" ng-show="selectdObject == 'Contact'" class="btn btn-primary"  ng-disabled="communityConfiguration.FGM_Portal__JsonData__c.PortalUserToContact.length == 0"/>
+                    <input type="button" ng-click="UpsertRecord();" value="Save" ng-show="selectdObject == 'Account'" class="btn btn-primary"  ng-disabled="communityConfiguration.FGM_Portal__JsonData__c.PortalUserToAccount.length == 0"/>
+                    <input type="button" ng-click="cancel();" value="Cancel" class="btn btn-primary"/>
+                </center>
+            </div>
+        </div>
+    </apex:form>
+</apex:page>

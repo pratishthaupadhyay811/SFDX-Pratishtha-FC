@@ -1,0 +1,250 @@
+<apex:page controller="RecommendationController1" sidebar="false" standardstylesheets="false" title="Recommendations" >
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/jquery/smoothness/jquery-ui.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/bootstrap/bootstrap-3.4.1.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/jquery/smoothness/jquery-ui-1.10.3-smoothness.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/datatable/jquery-dataTables-1.10.1.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/datepicker/datepicker.min.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/bootstrap/bootstrap-datepicker-1.3.0.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/ckeditor/ckeditor.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/datatable/jqueryui-dataTable-integration.be7019ee387.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'fc-community.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />  
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/character-count.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/recommendation.js')}" />  
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource, '/application_css/recommendation.css')}" />   
+    <c:GlobalResources islocal="{!$CurrentPage.parameters.local}" />
+
+    <script type="text/javascript">
+    var theControllerValue = '{!JSENCODE(strFields)}';
+    var bIsApplicationSubmitted = {!isFeedbackSubmitted};
+    var isRecordChanged = false;
+    var isFeedbackSubmitted ={!isFeedbackSubmitted};
+    </script>
+
+    <apex:form id="mainForm" styleclass="mainForm" forcessl="true">
+        <apex:outputpanel id="ModalOutPanel" styleclass="duplicateRecordPopup" style="display:none;">
+            <div class="bootbox modal fade bootbox-confirm in application_display" tabindex="-1" role="dialog" aria-hidden="false">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <div class="bootbox-body">
+                                <apex:outputtext value="{!$Label.fgm_portal__fc_tabswitchconfirmationmsg}"> </apex:outputtext>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <apex:commandlink value="{!$Label.fgm_portal__fc_ok_buttonlabel}" onclick="hidepopup(); return false;" styleclass="btn btn-default" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop fade in"></div>
+        </apex:outputpanel>
+        <apex:pageblock >
+            <!-- Display Tabs as per RecordType-->
+            <apex:outputpanel layout="block" styleclass="mainNavbar" id="mainNavbar">
+                <apex:outputpanel styleclass="sectionHeader">
+                    <apex:sectionheader title="{!applicationRecordType}" subtitle="{!application['Name']}"></apex:sectionheader>
+                </apex:outputpanel>
+                <apex:outputpanel id="tabSection" rendered="{!quiz.id != null}">
+                    
+                    <apex:repeat var="tab" value="{!tabsList}">
+                        <apex:outputpanel layout="block" styleclass="nav {!IF(selectedTab == tab.Id, 'active','')}">
+                            <apex:actionstatus id="tabSwitch">
+                                <apex:facet name="start">
+                                    <apex:outputpanel layout="none">
+                                        <apex:image value="/img/loading.gif" styleclass="loadingimg"></apex:image>
+                                    </apex:outputpanel>
+                                </apex:facet>
+                            </apex:actionstatus>
+                            <apex:commandlink value="{!tab.Name}" action="{!initializeQuizQuestionList}" immediate="true" onClick="if(!verifyRecordChange()) return false">
+                               {!tab.id} 
+                                <apex:param name="tabId" value="{!tab.Id}" />
+                                <apex:param name="id" value="{!$CurrentPage.Parameters.id}" />
+                                <apex:param name="ParentId" value="{!$CurrentPage.Parameters.ParentId}" />
+                                <apex:param name="RecordTypeId" value="{!$CurrentPage.Parameters.RecordTypeId}" />
+                            </apex:commandlink>
+                        </apex:outputpanel>
+                    </apex:repeat>
+                    <apex:actionregion >
+                        <div class="FCRecord_reviewbutton">
+                            <apex:outputpanel layout="block" styleclass="reviewbtn" rendered="{!quiz.id != null }">
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_review_submit_buttonlabel}" styleclass="btn btn-primary" rendered="true" action="{!beforeSave}"  onclick="if(isRecordChanged){ $(jQuery('[id$=ModalOutPanel]')[0]).show(); return false;} else return true;"></apex:commandbutton>
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_review_print_buttonlabel}" styleclass="btn btn-primary" rendered="{!isFeedbackSubmitted}" action="{!URLFOR($Page.RecommendationReview, null, [id=$CurrentPage.Parameters.Id, quizId=quiz.Id, appID=application.Id])}" disabled="{!application.Id == null}"></apex:commandbutton>
+                            </apex:outputpanel>
+                        </div>
+                    </apex:actionregion>
+                </apex:outputpanel>
+            </apex:outputpanel>
+            <!-- Display Question associated with Selected Tab and Quiz-->
+            <div class="mainborder">
+                <span >
+                    <apex:pagemessages id="errorMsgBlock" ></apex:pagemessages>
+
+                    <apex:repeat var="requiredQuestion" value="{!requiredQuestionErrors}">
+                        <div class="message warningM3" role="alert">
+                            <table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding: 0px; margin: 0px">
+                                <tbody>
+                                    <tr valign="top">
+                                        <td>
+                                            <img alt="WARNING" class="msgIcon" src="/s.gif" title="WARNING"/>
+                                        </td>
+                                        <td class="messageCell">
+                                            <div class="messageText">
+                                                <span><h4>Warning</h4></span>
+                                                <p>{!$Label.fgm_portal__fc_required_field_label}</p>
+                                                <p><apex:outputField value="{!requiredQuestion.RichQuestion__c}"/></p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </apex:repeat>
+
+                </span>
+                <apex:outputpanel layout="block" id="questionSection" rendered="{!quiz.id != null}">
+                    <script>
+                    checkIsRecordChanged();
+                    </script>
+                    <apex:outputpanel layout="block" styleclass="quizQuestionList">
+                        <apex:variable var="questionCount" value="{!1}" />
+                        <apex:repeat var="quizQuestion" value="{!quizQuestionList}">
+                            <apex:outputpanel layout="block" styleclass="FGM_Portal__Quiz_Questions__c" html-data-type="{!quizQuestion.FGM_Portal__Question__r.Type__c}" html-data-id="{!quizQuestion.Id}" html-data-required="{!quizQuestion.Required__c == true}">
+                                <apex:outputpanel layout="none" rendered="{!NOT(ISBLANK(quizQuestion.FGM_Portal__Question__r.Help_Tip__c))}">
+                                    <div class="help-text tooltip" title="{!quizQuestion.FGM_Portal__Question__r.Help_Tip__c}">?</div>
+                                </apex:outputpanel>
+                                <apex:outputpanel layout="none" rendered="{!AND(quizQuestion.Required__c)}">
+                                    <div class="FCRecord_required-marker" title="This is a required field.">*</div>
+                                </apex:outputpanel>
+                                <span >
+                                    <apex:outputField value="{!quizQuestion.FGM_Portal__Question__r.RichQuestion__c}" styleclass="FGM_Portal__Question__c hidden-empty" rendered="{!quizQuestion.FGM_Portal__Question__r.Type__c == 'Instruction' || quizQuestion.FGM_Portal__Question__r.Type__c == 'Attachment' || (quizQuestion.FGM_Portal__Question__r.Type__c == 'Salesforce Data Type' && quizQuestion.Field__c != null)}" id="theOutputField"></apex:outputField>
+                                </span>
+                                <br/>
+                                <!-- Pre Text-->
+                                <span >
+                                    <apex:outputField value="{!quizQuestion.FGM_Portal__Question__r.RichPreText__c}" styleclass="FGM_Portal__Pre_Text__c hidden-empty" rendered="{!OR(NOT(isFeedbackSubmitted) , (isFeedbackSubmitted && NOT(quizQuestion.Hide_Pre_Text__c)))}"></apex:outputField>
+                                </span>
+                                <br />
+                                <!-- Questions-->
+                                <!-- For Attachment Type Question -->
+                                <apex:variable var="matchedType" value="{!0}"></apex:variable>
+                                <apex:pagemessage severity="Error" strength="1" summary="{!$Label.fgm_portal__fc_attachmentprocess_errormsg}" rendered="{!'Attachment' == quizQuestion.FGM_Portal__Question__r.Type__c && isErrorInAttachment}"></apex:pagemessage>
+                                <apex:outputpanel layout="block" rendered="{!'Attachment' == quizQuestion.FGM_Portal__Question__r.Type__c && !isErrorInAttachment}" id="uploadAttachment">
+                                    <apex:variable var="matchedType" value="{!1}"></apex:variable>
+                                    <apex:outputpanel layout="block" rendered="{! ISBLANK(application.Id)}">
+                                        <div class="PortalUserFieldMappingwidth">
+                                            <apex:pagemessage severity="Warning" strength="1" summary="{!$Label.fgm_portal__fc_attachmentupload_errormsg}"></apex:pagemessage>
+                                            <div class="clear"></div>
+                                        </div>
+                                    </apex:outputpanel>
+                                    <apex:outputpanel layout="block" rendered="{!application.Id != null}" styleclass="pbBody">
+                                        <apex:pageblock mode="mainDetail" rendered="{!(mapApplicationAttachments[quizQuestion.Question__c] != null)}">
+                                            <apex:repeat var="Appattachment" value="{!mapApplicationAttachments[quizQuestion.Question__c]}">
+                                                <apex:variable var="attachmentIndex" value="{!1}" />
+                                                <apex:pageblocktable var="oldAttachment" value="{!Appattachment.mapOldAttachments}" styleclass="attachmentList" rendered="{!Appattachment.oldMapSize > 0}">
+                                                    <apex:column headervalue="{!$Label.fgm_portal__fc_srno_columnheaderlabel}" width="2%" styleclass="serialNumberColumn">
+                                                        <apex:outputtext >{!attachmentIndex}</apex:outputtext>
+                                                        <apex:variable var="attachmentIndex" value="{!attachmentIndex + 1}" />
+                                                    </apex:column>
+                                                    <apex:column styleclass="nameColumn" width="20%" headervalue="{!$ObjectType.Attachment.Fields.Name.Label}" id="footerId">
+                                                        <apex:outputlink value="{!URLFOR($Action.Attachment.Download, Appattachment.mapOldAttachments[oldAttachment].Id)}" target="_blank"> {!Appattachment.mapOldAttachments[oldAttachment].Name} </apex:outputlink>
+                                                        <apex:facet name="footer">
+                                                            <apex:outputpanel >
+                                                                <apex:actionregion rendered="{!NOT(isFeedbackSubmitted)}">
+                                                                    <apex:inputtextarea rows="3" html-placeholder="{!$Label.fgm_portal__fc_communityapplication_attachdescription_label}" value="{!Appattachment.newAttachment.Description}" /><br />
+                                                                    <apex:inputfile value="{!Appattachment.newAttachment.Body}" filename="{!Appattachment.newAttachment.Name}" id="file" onchange="Handlechange(this,'lbl{!questionCount}');" styleclass="file{!questionCount}" style="display:none"></apex:inputfile>
+                                                                    <input type="button" value="{!$Label.FC_Upload_ChooseFile_ButtonLabel}" id="fakeBrowse1" onclick="HandleBrowseClick('file{!questionCount}');" />
+                                                                    <label class="lblFileInput lbl{!questionCount}" id="lblfilename" onclick="HandleBrowseClick('file{!questionCount}');">{!$Label.FC_Upload_ChooseFile_StatusLabel}</label>
+                                                                    <apex:commandlink action="{!uploadAttachment}" style="pointer-events: none" styleclass="btn upload_btn lbl{!questionCount}" value="{!$Label.fgm_portal__fc_upload_buttonlabel}" onclick="showProcessing();">
+                                                                        <apex:param assignto="{!attachedQuestionId}" name="attachedQuestionId" value="{!quizQuestion.Question__c}" />
+                                                                    </apex:commandlink>
+                                                                    <apex:variable var="questionCount" value="{!questionCount + 1}" />
+                                                                </apex:actionregion>
+                                                            </apex:outputpanel>
+                                                        </apex:facet>
+                                                    </apex:column>
+                                                    <apex:column styleclass="createdDateColumn" width="10%" headervalue="{!$ObjectType.Attachment.Fields.CreatedDate.Label}">
+                                                        <apex:outputtext value="{0,date,MM'/'dd'/'yyyy}" rendered="{!NOT(ISBLANK(Appattachment.mapOldAttachments[oldAttachment].CreatedDate))}">
+                                                            <apex:param value="{!Appattachment.mapOldAttachments[oldAttachment].CreatedDate}" />
+                                                        </apex:outputtext>
+                                                        <apex:outputtext value="{0,date,MM'/'dd'/'yyyy}" rendered="{!ISBLANK(Appattachment.mapOldAttachments[oldAttachment].CreatedDate)}">
+                                                            <apex:param value="{!Now()}"/>
+                                                        </apex:outputtext>
+                                                    </apex:column>
+                                                    <apex:column styleclass="actionColumn" width="12%" headerclass="actionColumn" headervalue="Action" rendered="{!NOT(isFeedbackSubmitted)}">
+                                                        <apex:commandlink styleclass="actionLink" value="{!$Label.fgm_portal__fc_delete_buttonlabel}" action="{!deleteAttachment}" immediate="true" onclick="return confirmDelete();">
+                                                            <apex:param name="attachedQuestionId" value="{!quizQuestion.Question__c}" />
+                                                            <apex:param name="attachedId" value="{!Appattachment.mapOldAttachments[oldAttachment].Id}" />
+                                                        </apex:commandlink>
+                                                    </apex:column>
+                                                </apex:pageblocktable>
+                                                <apex:pageblocktable var="newAttachment" value="{!Appattachment}" styleclass="attachmentList" id="newAttachmenttableId" rendered="{!Appattachment.oldMapSize <= 0}">
+                                                    <apex:column styleclass="nameColumn hidden_element" headerclass="hidden_element">
+                                                        <apex:facet name="footer">
+                                                            <apex:outputpanel style="visibility:{!if(false,'hidden','visible')}" id="inputFileId">
+                                                                <apex:outputpanel rendered="{!quizQuestion.Required__c}"/>
+                                                                <apex:actionregion rendered="{!NOT(isFeedbackSubmitted)}">
+                                                                    <apex:inputtextarea rows="3" html-placeholder="{!$Label.fgm_portal__fc_communityapplication_attachdescription_label}" value="{!Appattachment.newAttachment.Description}" /><br />
+                                                                    <apex:inputfile value="{!Appattachment.newAttachment.Body}" filename="{!Appattachment.newAttachment.Name}" id="file" onchange="Handlechange(this,'lbl{!questionCount}');" styleclass="file{!questionCount}" style="display:none"></apex:inputfile>
+                                                                    <input type="button" value="{!$Label.FC_Upload_ChooseFile_ButtonLabel}" id="fakeBrowse1" onclick="HandleBrowseClick('file{!questionCount}');" />
+                                                                    <label class="lblFileInput lbl{!questionCount}" id="lblfilename" onclick="HandleBrowseClick('file{!questionCount}');">{!$Label.FC_Upload_ChooseFile_StatusLabel}</label>
+                                                                    <apex:commandlink action="{!uploadAttachment}" style="pointer-events: none" styleclass="btn upload_btn lbl{!questionCount}" value="{!$Label.fgm_portal__fc_upload_buttonlabel}" onclick="showProcessing();">
+                                                                        <apex:param assignto="{!attachedQuestionId}" name="attachedQuestionId" value="{!quizQuestion.Question__c}" />
+                                                                    </apex:commandlink>
+                                                                    <apex:variable var="questionCount" value="{!questionCount + 1}" />
+                                                                </apex:actionregion>
+                                                            </apex:outputpanel>
+                                                        </apex:facet>
+                                                    </apex:column>
+                                                </apex:pageblocktable>
+                                            </apex:repeat>
+                                        </apex:pageblock>
+                                    </apex:outputpanel>
+                                </apex:outputpanel>
+                                <!-- For Salesforce Data Type and Not formula Field -->
+                                <apex:outputpanel layout="block" rendered="{!quizQuestion.Field__c != null && quizQuestion.FGM_Portal__Question__r.Type__c == 'Salesforce Data Type' && NOT(isFeedbackSubmitted) && mapFormulaFields != null && mapFormulaFields[quizQuestion.Field__c] != 'FORMULA'}" id="thePanelId">
+                                    <apex:inputfield id="inputFieldId"  value="{!tabObject[quizQuestion.Field__c]}" rendered="{!($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Type != 'textarea')}" />
+                                    <apex:inputfield id="inputTextId" styleclass="inputTextCSS" value="{!tabObject[quizQuestion.Field__c]}" rendered="{!$ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Type == 'textarea' && NOT($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].htmlFormatted)}" />
+                  
+                                       <apex:inputtextarea styleclass="ckeditor" richtext="false"  id="inputRichTextAreaId" value="{!tabObject[quizQuestion.Field__c]}" rendered="{! $ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Type == 'textarea' && $ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].htmlFormatted }">
+                                        <script>
+                                        initializeCkeditor();
+                                        setCharCountForCkEditor();  
+                                        </script>
+                                    </apex:inputtextarea> <!--!$ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Updateable && -->
+                                    <apex:inputfield value="{!tabObject[quizQuestion.Field__c]}" rendered="{!($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Type == 'textarea') && ($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].htmlFormatted)}" />
+                                    <apex:inputhidden id="theHiddenStrInput" value="{!strHiddenValue}" rendered="{!(($ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].Type == 'textarea' && $ObjectType[ApplicationObjectName].fields[quizQuestion.Field__c].htmlFormatted))}" />
+                                </apex:outputpanel>
+                                <apex:outputpanel layout="block" rendered="{!quizQuestion.Field__c != null && quizQuestion.FGM_Portal__Question__r.Type__c == 'Salesforce Data Type' && isFeedbackSubmitted}" id="theoutputid">
+                                    <apex:outputfield value="{!tabObject[quizQuestion.Field__c]}" />
+                                </apex:outputpanel>	
+                                <!-- For Formula Fields-->
+                                <apex:outputpanel layout="block" rendered="{!quizQuestion.Field__c != null && quizQuestion.FGM_Portal__Question__r.Type__c == 'Salesforce Data Type' && mapFormulaFields != null && mapFormulaFields[quizQuestion.Field__c] == 'FORMULA'}" id="thepanelId1">
+                                    <apex:outputfield value="{!tabObject[quizQuestion.Field__c]}" />
+                                </apex:outputpanel>
+                                <!-- Now the post text -->
+                                <span >
+                                    <apex:outputField value="{!quizQuestion.FGM_Portal__Question__r.RichPostText__c}" styleclass="FGM_Portal__Post_Text__c hidden-empty" rendered="{!OR(NOT(isFeedbackSubmitted) , (isFeedbackSubmitted && NOT(quizQuestion.Hide_Post_Text__c)))}"></apex:outputField>
+                                </span>
+                            </apex:outputpanel>
+                        </apex:repeat>
+                        <!-- Command Button For save and Cancel-->
+                        <apex:outputpanel layout="block" styleclass="footer" id="relatedListId" rendered="{!NOT(isFeedbackSubmitted)}">
+                            <apex:actionregion >
+                                
+                                <apex:commandlink value="{!$Label.fgm_portal__fc_save_buttonlabel}" action="{!saveRecord}" styleclass="btn btn-primary">
+                                   
+                                    <apex:param name="id" value="{!$CurrentPage.Parameters.id}" />
+                                    <apex:param name="ParentId" value="{!$CurrentPage.Parameters.ParentId}" />
+                                    <apex:param name="RecordTypeId" value="{!$CurrentPage.Parameters.RecordTypeId}" />
+                                </apex:commandlink>
+                                <apex:commandlink value="Cancel" action="{!cancel}" styleclass="btn btn-primary" immediate="true"></apex:commandlink>
+                            </apex:actionregion>
+                        </apex:outputpanel>
+                    </apex:outputpanel>
+                </apex:outputpanel>
+            </div>
+        </apex:pageblock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,15 @@
+<apex:page controller="CommunityStateCountryConfigController">
+    <apex:form title="State Country Configuration">
+        <apex:pagemessages id="message"></apex:pagemessages>
+            <apex:pageBlock title="State Country Configuration">
+                <apex:pageBlockButtons >
+                    <apex:commandButton value="Sync" action="{!SyncStateCountries}" />
+                    <apex:commandButton value="Cancel" action="{!Cancel}"/>
+                </apex:pageBlockButtons>
+                <apex:pageBlockTable value="{!StateCountries}" var="statecountry" id="table">
+                    <apex:column value="{!statecountry.countryName}" headerValue="Country" />
+                    <apex:column value="{!statecountry.stateCount}" headerValue="No. of Configured States"/>
+                </apex:pageBlockTable>
+            </apex:pageBlock>
+    </apex:form>
+</apex:page>

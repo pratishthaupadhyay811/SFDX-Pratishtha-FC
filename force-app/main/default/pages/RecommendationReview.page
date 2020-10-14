@@ -1,0 +1,11 @@
+<apex:page controller="RecommendationController" sidebar="false" standardStylesheets="false" lightningStylesheets="true">
+<style type="text/css">
+    .headerSearchContainer, #setupLink {
+        display: none !important;
+    }
+</style>
+<apex:form rendered="{!NOT(initialized)}">
+    <c:ConfirmModal actionToInvoke="{!initializeReview}" message="{!$Label.fgm_portal__fc_recommendationreview_confirm}" cancelLabel="{!$Label.fgm_portal__fc_back_buttonlabel}" isCancel="true"/>
+</apex:form>
+<apex:include pageName="{!$Page.RecommendationReviewInitialized}" rendered="{!initialized}"/>
+</apex:page>

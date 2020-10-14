@@ -1,0 +1,375 @@
+<apex:page controller="CommunityProfileController" sidebar="false" showheader="true" standardstylesheets="false" language="{!portalLanguage}" title="Profile" action="{!initialize}">
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/locale.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/jquery/smoothness/jquery-ui-1.10.3-smoothness.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/fontawesome/font-awesome-4.1.0.min.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/datatable/jqueryui-dataTable-integration.be7019ee387.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/datatable/jquery-dataTables-1.10.1.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/datatable/jqueryui-dataTable-integration.be7019ee387.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/datepicker/datepicker.min.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/bootstrap/bootstrap-datepicker-1.3.0.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/character-count.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/ckeditor/ckeditor.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/vendor_js/moment.js')}"/>
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/community-application-10.24.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.GPApplicationDesigner, '/vendor_js/moment/sorting-datetime-moment.1.10.19.js')}"/>
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/community-profile.js')}" />
+    <c:GlobalResources islocal="{!$CurrentPage.parameters.local}" />
+    <script type='text/javascript'>
+        var jsMode = '{!JSENCODE(tabmode)}';
+        var isJSViewRecordLink = false;
+        var AttachQuestionCount = 0;
+        var portalLanguage = '{!JSENCODE(portalLanguage)}';
+        var dateTimes = '{!JSENCODE(strDateTime)}';
+        var theControllerValue = '{!JSENCODE(strFields)}';
+        var characterCounterOf = '{!JSENCODE($Label.FC_Character_Counter_Of)}';
+        var characterCounterCharacter = '{!JSENCODE($Label.FC_Character_Counter_Character)}';
+        var updateLabel = '{!JSENCODE($Label.FC_Updating_Label)}';
+        var fc_License_Limit_Exceeded = '{!JSENCODE($Label.FC_LICENSE_LIMIT_EXCEEDED)}';
+        var updateButtonLabel = '{!JSENCODE($Label.FC_Update_ButtonLabel)}';
+        var emptyPaginationFooter = '{!JSENCODE($Label.FC_jQuery_Datatable_EmptyPaginationFooter)}';
+        var emptyDatatableErrorMsg = '{!JSENCODE($Label.FC_jQuery_EmptyDatatable_ErrorMsg)}';
+        var datatablePaginationFooter = '{!JSENCODE($Label.FC_jQuery_Datatable_PaginationFooter)}';
+        var datatableSearch = '{!JSENCODE($Label.FC_jQuery_Datatable_Search)}';
+        var datatableFilterFromRecords = '{!JSENCODE($Label.FC_jQuery_DatatableFilterFromRecords)}';
+        var datatableZeroRecords = '{!JSENCODE($Label.FC_jQuery_DatatableZeroRecords)}';
+        var datatablePaginationHeader = '{!JSENCODE($Label.FC_jQuery_Datatable_PaginationHeader)}';
+        var isRecordChanged=false;
+        var mapUser = {};
+        var errorMsg = '';
+        var isSCPLEnabled= Boolean('{!JSENCODE(IF(isSCPLEnable,'true','false'))}');
+        var languageSpecifications = getLanguageSpecifications( portalLanguage );
+        $(document).ready(function () {
+            initilizeTable();
+            addClassOnReady();
+            initializaUMtable();
+            applyDatePicker();
+            removelookupLink();
+        });
+        CKEDITOR.on('instanceCreated', function(e) {
+            e.editor.on('contentDom', function() {
+                e.editor.document.on('keyup', function(event) {
+                    isRecordChanged=true;
+                });
+            });
+        });
+    </script>
+    <apex:form styleclass="mainForm" forcessl="true" id="mainForm">
+        <script>
+            applyDatePicker();
+            jsMode = '{!JSENCODE(tabmode)}';
+        </script>
+        
+         <apex:outputpanel id="ModalOutPanel" styleclass="duplicateRecordPopup" style="display:none;">
+                <div class="bootbox modal fade bootbox-confirm in application_display" tabindex="-1" role="dialog" aria-hidden="false">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                <div class="bootbox-body">
+                                    <apex:outputtext value="{!$Label.fgm_portal__fc_tabswitchconfirmationmsg}"> </apex:outputtext>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <apex:commandlink value="{!$Label.fgm_portal__fc_ok_buttonlabel}" onclick="hidePopup(); return false;" styleclass="btn btn-default" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-backdrop fade in"></div>
+            </apex:outputpanel>
+
+        <apex:panelgrid columns="2">
+            <apex:sectionheader title="{!selectedTab}" subtitle="{!$Label.fgm_portal__fc_profile_headername}" rendered="{!NOT(isRelatedListTab)}"></apex:sectionheader>
+            <apex:sectionheader title="{!selectedTabName}" subtitle="{!$Label.fgm_portal__fc_profile_headername}" rendered="{!isRelatedListTab}"></apex:sectionheader>
+            <apex:outputpanel layout="block">
+             <span ><apex:outputField value="{!CustomHTMLDescription.RichDescription__c}"></apex:outputField></span>
+            </apex:outputpanel>
+        </apex:panelgrid>
+        <apex:outputpanel >
+            <!-- Tabs Block -->
+            <apex:outputpanel layout="block" styleclass="mainNavbar" id="mainNavbar" rendered="{!profileType == 'Organization' || profileType == 'Individual'}">
+                <apex:outputpanel layout="block" rendered="{!(profileType == 'Organization' && isShowOrganizationTabToOrganization) || (profileType == 'Individual' && isShowOrganizationTabToIndividual)}" styleclass="nav {!IF(selectedTab == 'organization', 'active','')}">
+                    <apex:commandlink id="tabOrganizations" action="{!getOrganizationInformation}" onClick="return confirmChanges();" value="{!$Label.fgm_portal__fc_organization_tablabel}"/>
+                </apex:outputpanel>
+                <apex:outputpanel layout="block" rendered="{!(profileType == 'Organization' && isShowContactTabToOrganization) || (profileType == 'Individual' && isShowContactTabToIndividual)}" styleclass="nav {!IF(selectedTab == 'contact', 'active','')}">
+                    <apex:commandlink value="{!$Label.fgm_portal__fc_contact_tablabel}" onClick="return confirmChanges();" action="{!getContcatInformation}"/>
+                </apex:outputpanel>
+                <!-- From here dynamic tab will show up -->
+                <apex:repeat var="tab" value="{!lstTabs}">
+                    <apex:outputpanel layout="block" styleclass="nav {!IF(selectedTab == tab.Id, 'active','')}">
+                        <apex:commandlink id="tabTab" value="{!tab.Name}" onClick="return confirmChanges();" action="{!initializeRelatedListTab}" >
+                            <apex:param name="tabId" value="{!tab.Id}" />
+                        </apex:commandlink>
+                    </apex:outputpanel>
+                </apex:repeat>
+                <apex:outputpanel layout="block" rendered="{!currentUser != null && currentUser.Portal_Account_Admin__c && profileType == 'Organization'}" styleclass="nav {!IF(selectedTab == 'UserMngmt', 'active','')}">
+                    <apex:actionstatus id="UserMngmtTabSwitch">
+                        <apex:facet name="start">
+                            <apex:outputpanel layout="none">
+                                <apex:image value="/img/loading.gif" styleclass="loadingimg"></apex:image>
+                            </apex:outputpanel>
+                        </apex:facet>
+                    </apex:actionstatus>
+                    <apex:commandlink value="{!$Label.fgm_portal__fc_usermanagement_tablabel}" onClick="return confirmChanges();" action="{!userManagementTab}"/>
+                </apex:outputpanel>
+                <div class="separetor"></div>
+            </apex:outputpanel>
+            <!-- -----------Informative Popup to Ensure the Changes mage into the exsisting data----------- -->
+            <apex:outputpanel styleclass="duplicateRecordPopup confirmModal" style="display:none;">
+                <div class="bootbox modal fade bootbox-confirm in application_display" tabindex="-1" role="dialog" aria-hidden="false">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                <div class="bootbox-body">
+                                    <div>{!$Label.FC_TabSwitchConfirmationMsg}</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <apex:commandlink value="{!$Label.fgm_portal__fc_ok_buttonlabel}" onclick="hidePopup(); return false;" styleclass="btn btn-default" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-backdrop fade in"></div>
+            </apex:outputpanel>
+            <!-- ------------------------------------------------------------------------------------------ -->
+            <apex:pageblock title="Information" rendered="{!isButtonsVisible && NOT(isRelatedListTab)}" mode="readonly">
+                <!-- Button & Status Section -->
+                <apex:pageblockbuttons location="top">
+                    <apex:actionstatus id="mainStatus">
+                        <apex:facet name="stop">
+                            <apex:outputpanel layout="none">
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_edit_buttonlabel}" status="mainStatus" styleclass="btn btnNew" action="{!getEditMode}" rendered="{!(selectedTab == 'contact' && iscontactEditable && tabMode == 'readonly' && isButtonsVisible)}" rerender="mainForm" oncomplete="setcharcount();removelookupLink();" />
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_edit_buttonlabel}" status="mainStatus" styleclass="btn btnNew" action="{!getEditMode}" rendered="{!(selectedTab == 'organization' && isAccountEditable && tabMode == 'readonly' && isButtonsVisible)}" rerender="mainForm" oncomplete="setcharcount();removelookupLink();" />
+                                <apex:commandlink value="{!$Label.fgm_portal__fc_changerequest_buttonlabel}" status="mainStatus" styleclass="btn btnNew" action="{!createAmendmentRecord}" oncomplete="setApexpStyleClass();removelookupLink();" rendered="{!(selectedTab == 'organization' && NOT(isAccountEditable) && tabMode == 'readonly' && isButtonsVisible)}" rerender="mainForm" onclick="if(!confirm('{!$Label.fgm_portal__fc_amendment_confirmationmessage}')){return};" />
+                                <apex:commandlink value="{!$Label.fgm_portal__fc_changerequest_buttonlabel}" status="mainStatus" styleclass="btn btnNew" action="{!createAmendmentRecord}" oncomplete="setApexpStyleClass();removelookupLink();" rendered="{!(selectedTab == 'contact' && NOT(iscontactEditable) && tabMode == 'readonly' && isButtonsVisible)}" rerender="mainForm" onclick="if(!confirm('{!$Label.fgm_portal__fc_amendment_confirmationmessage}')){return};" />
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_save_buttonlabel}" status="mainStatus" styleclass="btn btnNew" action="{!Save}" onclick="saveTextBeforeReset();" oncomplete="setApexpStyleClass();resetModalFlag();removelookupLink(); checkFieldSetRequired('{!JSENCODE(JSONmapRequiredField)}');" rendered="{!(tabMode == 'edit' && isButtonsVisible)}" rerender="mainForm" />
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_cancel_buttonlabel}" status="mainStatus" styleclass="btn btnNew" action="{!cancel}" oncomplete="setApexpStyleClass();resetModalFlag();removelookupLink();" rendered="{!(tabMode == 'edit' && isButtonsVisible)}" rerender="mainForm" immediate="true" />
+                            </apex:outputpanel>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:outputpanel layout="none">
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_wait_label}" styleclass="btn btnNew" disabled="true" rendered="{!(tabMode == 'readonly' && isButtonsVisible)}" />
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_wait_label}" styleclass="btn btnNew" disabled="true" rendered="{!(tabMode == 'edit' && isButtonsVisible)}" />
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_wait_label}" styleclass="btn btnNew" disabled="true" rendered="{!(tabMode == 'edit' && isButtonsVisible)}" />
+                            </apex:outputpanel>
+                        </apex:facet>
+                    </apex:actionstatus>
+                </apex:pageblockbuttons>
+                <div class="clear"></div>
+                <apex:outputpanel > <apex:pagemessages id="errorMessages" /> </apex:outputpanel>
+                <apex:outputpanel layout="block" id="tabContent" styleclass="tabContent">
+                    <script>
+                            if(isSCPLEnabled)
+                            {
+                                checkFieldSetRequired('{!JSENCODE(JSONmapRequiredField)}');
+                            }
+                     </script>
+                    <!-- Block to Show Account Information -->
+                    <apex:outputpanel rendered="{!selectedTab == 'organization' && userAccount != null}">
+                    <script>setcharcount();
+                        </script>
+                        <apex:pageblocksection rendered="{!tabMode == 'edit'}">
+                            <apex:repeat var="field" value="{!IF(profileType == 'Organization',$ObjectType.Account.FieldSets.CommunityAccountFieldSet, $ObjectType.Account.FieldSets.CommunityIndividualProfile)}">
+                                <apex:inputfield styleclass="form_control" value="{!userAccount[field]}" rendered="{!((($ObjectType['Account'].Fields[field].Type == 'textarea' && NOT($ObjectType['Account'].fields[field].htmlFormatted)) || ($ObjectType['Account'].fields[field].Type != 'textarea'))) && field.FieldPath != 'BillingCountry' && field.FieldPath != 'BillingState' && field.FieldPath != 'ShippingCountry' && field.FieldPath != 'ShippingState' && field != 'Name'}" required="{!OR(field.required, field.dbrequired)}" />
+                                <apex:inputfield styleclass="form_control" value="{!userAccount[field]}" rendered="{!(!isSCPLEnable) && (field.FieldPath == 'BillingCountry' || field.FieldPath == 'BillingState' || field.FieldPath == 'ShippingCountry' || field.FieldPath == 'ShippingState')}" required="{!OR(field.required, field.dbrequired)}" />
+                                <apex:inputfield styleclass="form_control" value="{!userAccount[field]}" rendered="{!field == 'Name' && !!isOrgNameEditable && profileType!='Individual'}"/>
+                                <apex:outputfield styleclass="form_control" value="{!userAccount[field]}" rendered="{!field == 'Name' && !isOrgNameEditable && profileType!='Individual'}" />
+                                <apex:inputfield styleclass="form_control" value="{!userAccount[field]}" rendered="{!field == 'Name' && profileType=='Individual'}" />
+                                <apex:inputfield styleclass="form_control" label="{!$ObjectType['Account'].Fields[field].Label}" value="{!userAccount[field+'Code']}" rendered="{!isSCPLEnable && (field.FieldPath == 'BillingCountry' || field.FieldPath == 'BillingState' || field.FieldPath == 'ShippingCountry' || field.FieldPath == 'ShippingState')}" required="{!OR(field.required, field.dbrequired)}" />
+                                <apex:inputtextarea styleclass="ckeditor" label="{!$ObjectType['Account'].Fields[field].Label}" id="inputRichTextAreaId" value="{!userAccount[field]}" rendered="{!$ObjectType['Account'].Fields[field].Type == 'textarea' && $ObjectType['Account'].fields[field].htmlFormatted && $ObjectType['Account'].fields[field].updateable}" required="{!OR(field.required, field.dbrequired)}">
+                                    <script> initializeCkeditor();
+                                    </script>
+                                </apex:inputtextarea>
+                                <apex:outputfield value="{!userAccount[field]}" rendered="{!$ObjectType['Account'].Fields[field].Type == 'textarea' && $ObjectType['Account'].fields[field].htmlFormatted && !$ObjectType['Account'].fields[field].updateable}"/>
+                            </apex:repeat>
+                        </apex:pageblocksection>
+                        <apex:pageblocksection rendered="{!tabMode == 'readonly'}">
+                            <apex:repeat var="field" value="{!IF(profileType == 'Organization',$ObjectType.Account.FieldSets.CommunityAccountFieldSet, $ObjectType.Account.FieldSets.CommunityIndividualProfile)}">
+                                <apex:outputfield value="{!userAccount[field]}" />
+                            </apex:repeat>
+                        </apex:pageblocksection>
+                    </apex:outputpanel>
+                    <!-- Block to Show Contact Information -->
+                    <apex:outputpanel rendered="{!selectedTab == 'contact' && userContact != null}">
+                    <script>setcharcount();
+                        </script>
+                        <apex:pageblocksection rendered="{!tabMode == 'edit'}">
+                            <apex:repeat var="field" value="{!IF(profileType == 'Organization',$ObjectType.Contact.FieldSets.CommunityContactFieldSet,$ObjectType.Contact.FieldSets.CommunityIndividualProfile)}">
+                                <apex:inputfield styleclass="form_control" value="{!userContact[field]}" rendered="{!(($ObjectType['Contact'].Fields[field].Type == 'textarea' && NOT($ObjectType['Contact'].fields[field].htmlFormatted)) || ($ObjectType['Contact'].fields[field].Type != 'textarea')) && field.FieldPath != 'MailingCountry' && field.FieldPath != 'MailingState' && field.FieldPath != 'OtherCountry' && field.FieldPath != 'OtherState'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                <apex:inputfield styleclass="form_control" label="{!$ObjectType['Contact'].Fields[field].Label}" value="{!userContact[field]}" rendered="{!(!isSCPLEnable) && (field.FieldPath == 'MailingCountry' || field.FieldPath == 'MailingState' || field.FieldPath == 'OtherCountry' || field.FieldPath == 'OtherState')}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                <apex:inputfield styleclass="form_control" label="{!$ObjectType['Contact'].Fields[field].Label}" value="{!userContact[field+'Code']}" rendered="{!isSCPLEnable && (field.FieldPath == 'MailingCountry' || field.FieldPath == 'MailingState' || field.FieldPath == 'OtherCountry' || field.FieldPath == 'OtherState')}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                <apex:inputtextarea styleclass="ckeditor" label="{!$ObjectType['Contact'].Fields[field].Label}" richtext="false" id="inputRichTextAreaId" value="{!userContact[field]}" rendered="{!$ObjectType['Contact'].Fields[field].Type == 'textarea' && $ObjectType['Contact'].fields[field].htmlFormatted && $ObjectType['Contact'].fields[field].updateable}" required="{!OR(field.required, field.dbrequired)}">
+                                    <script> initializeCkeditor();
+                                    </script>
+                                </apex:inputtextarea>
+                                <apex:outputfield value="{!userContact[field]}" rendered="{!$ObjectType['Contact'].Fields[field].Type == 'textarea' && $ObjectType['Contact'].fields[field].htmlFormatted && !$ObjectType['Contact'].fields[field].updateable}"/>
+                            </apex:repeat>
+                        </apex:pageblocksection>
+                        <apex:pageblocksection rendered="{!tabMode == 'readonly'}">
+                            <apex:repeat var="field" value="{!IF(profileType == 'Organization',$ObjectType.Contact.FieldSets.CommunityContactFieldSet,$ObjectType.Contact.FieldSets.CommunityIndividualProfile)}">
+                                <apex:outputfield value="{!userContact[field]}" />
+                            </apex:repeat>
+                        </apex:pageblocksection>
+                    </apex:outputpanel>
+                </apex:outputpanel>
+            </apex:pageblock>
+            <apex:outputpanel id="RelatedListTabBlock">
+                <script>applyDatePicker();setcharcount();
+                </script>
+                <apex:pageblock mode="maindetail" rendered="{!isRelatedListTab && selectedTab != 'UserMngmt'}">
+                    <!-- Block to Show related List controller object records  -->
+                    <apex:outputpanel id="relatedlistTable" styleclass="relatedlistTable">
+                        <apex:outputpanel rendered="{!relatedListConfiguration != null && NOT(isRecordDetailView)}" styleclass="ren skip-block">
+                            <script type="text/javascript">
+                                $('#modal--updating-data').hide();
+                                initilizeTable();
+                                removelookupLink();
+                            </script>
+                            <apex:outputpanel layout="block" styleclass="tabBottomLine ">
+                                <apex:pageblock mode="maindetail">
+                                    <apex:outputpanel layout="block" styleclass="relatedListInstruction">
+                                        <apex:outputField value="{!relatedListConfiguration.record.RichInstructionalText__c}" />
+                                    </apex:outputpanel>
+                                    <apex:outputpanel layout="block" styleclass="newEntrybtn" rendered="{!relatedListConfiguration.isCreatable}">
+                                        <apex:actionstatus id="addNewEntry">
+                                            <apex:facet name="start">
+                                                <apex:outputpanel layout="none">
+                                                    <apex:image value="/img/loading.gif" styleclass="loadingimg"></apex:image>
+                                                </apex:outputpanel>
+                                            </apex:facet>
+                                        </apex:actionstatus>
+                                        <apex:commandlink styleclass="btn btnNew" action="{!getNewRelatedListRecord}" rerender="RelatedListTabBlock" status="addNewEntry" oncomplete="setcharcount();removelookupLink();setApexpStyleClass();">
+                                            <i class="fa fa-plus icon_padding"></i>{!$Label.FC_New_ButtonLabel}
+                                        </apex:commandlink>
+                                    </apex:outputpanel>
+                                    <div class="clear" />
+                                    <apex:outputpanel > <apex:pagemessages id="errorMessages" /> </apex:outputpanel>
+                                    <apex:variable var="recordIndex" value="{!0}" />
+                                    <apex:datatable value="{!relatedListConfiguration.lstRelatedListRecord}" var="relatedlistRecord" styleclass="relatedListTable" id="recordTable">
+                                        <apex:column rendered="{!(relatedListConfiguration.isAmendmentEnable)}" width="5%" headerclass="amendmentCol">
+                                            <apex:facet name="header">{!$Label.fgm_portal__fc_amend_label}</apex:facet>
+                                            <apex:commandlink action="{!saveAmendmentRecord}" id="amendmentLink" oncomplete="setApexpStyleClass(); setcharcount();" onclick="if(!confirm('{!$Label.fgm_portal__fc_amendment_confirmationmessage}')){return};" rerender="errorMessages">
+                                                <i class="fa fa-file-text-o"></i>
+                                                <apex:param name="ParentId" value="{!relatedlistRecord['Id']}" />
+                                            </apex:commandlink>
+                                        </apex:column>
+                                        <apex:repeat var="field" value="{!relatedListConfiguration.listColumnFields}">
+                                            <apex:column rendered="{!(relatedListConfiguration.mapColumnFields[field] != null && NOT(ISBLANK(relatedListConfiguration.mapColumnFields[field])))}">
+                                                <apex:facet name="header">{!field}</apex:facet>
+                                                <apex:outputfield value="{!relatedlistRecord[relatedListConfiguration.mapColumnFields[field]]}" />
+                                            </apex:column>
+                                        </apex:repeat>
+                                        <apex:column width="12%">
+                                            <apex:facet name="header">{!relatedListConfiguration.strActionColLabel}</apex:facet>
+                                            <apex:commandlink value=" {!$Label.fgm_portal__fc_delete_buttonlabel}  " styleclass="deleteLink actionLink" action="{!deleteTabRecord}" rendered="{!relatedListConfiguration.isDeletable}" onclick="if(!confirm('{!$Label.fgm_portal__fc_confirmdeleteattachment}')){return};" status="RelatedListAction" rerender="RelatedListTabBlock,errorMessages" oncomplete="removelookupLink();">
+                                                <apex:param name="recordIndex" value="{!recordIndex}" />
+                                            </apex:commandlink>
+                                            <apex:commandlink value=" {!$Label.fgm_portal__fc_edit_buttonlabel} " styleclass="editLink actionLink " rendered="{!relatedListConfiguration.isEditable}" status="RelatedListAction" action="{!editTabRecord}" rerender="RelatedListTabBlock,errorMessages" oncomplete="setcharcount();removelookupLink();">
+                                                <apex:param name="recordIndex" value="{!recordIndex}" />
+                                            </apex:commandlink>
+                                            <apex:commandlink value=" {!$Label.fgm_portal__fc_view_buttonlabel} " styleclass="actionLink" action="{!viewTabRecord}" rerender="RelatedListTabBlock,errorMessages" status="RelatedListAction" oncomplete="removelookupLink();">
+                                                <apex:param name="recordIndex" value="{!recordIndex}" />
+                                            </apex:commandlink>
+                                            <apex:actionstatus id="RelatedListAction">
+                                                <apex:facet name="start">
+                                                    <apex:outputpanel layout="none">
+                                                        <apex:image value="/img/loading.gif" styleclass="loadingimg"></apex:image>
+                                                    </apex:outputpanel>
+                                                </apex:facet>
+                                            </apex:actionstatus>
+                                            <apex:variable var="recordIndex" value="{!recordIndex + 1}" />
+                                        </apex:column>
+                                    </apex:datatable>
+                                </apex:pageblock>
+                            </apex:outputpanel>
+                        </apex:outputpanel>
+                    </apex:outputpanel>
+                    <apex:outputpanel rendered="{!isRecordDetailView && selectedTab != 'UserMngmt'}" styleclass="ren skip-block">
+                        <apex:pageblock >
+                            <apex:pageblockbuttons location="top">
+                                <apex:actionstatus id="mainStatus">
+                                    <apex:facet name="stop">
+                                        <apex:outputpanel layout="none">
+                                            <apex:commandbutton value="{!$Label.fgm_portal__fc_edit_buttonlabel}" status="mainStatus" styleclass="btn btnNew" action="{!getEditMode}" rendered="{!(tabMode == 'readonly' && relatedListConfiguration.isEditable)}" rerender="RelatedListTabBlock,errorMessages" />
+                                            <apex:commandbutton value="{!$Label.fgm_portal__fc_save_buttonlabel}" status="mainStatus" styleclass="btn btnNew" action="{!Save}" onclick="saveTextBeforeReset();" oncomplete="setApexpStyleClass();resetModalFlag();setcharcount();" rendered="{!(tabMode == 'edit')}" rerender="RelatedListTabBlock" />
+                                            <apex:commandbutton value="{!$Label.fgm_portal__fc_cancel_buttonlabel}" status="mainStatus" styleclass="btn btnNew" action="{!cancel}" oncomplete="setApexpStyleClass();resetModalFlag();" rendered="{!(tabMode == 'edit' || tabMode == 'readonly')}" rerender="RelatedListTabBlock,errorMessages" immediate="true" />
+                                        </apex:outputpanel>
+                                    </apex:facet>
+                                    <apex:facet name="start">
+                                        <apex:outputpanel layout="none">
+                                            <apex:commandbutton value="{!$Label.fgm_portal__fc_wait_label}" styleclass="btn btnNew" disabled="true" rendered="{!(tabMode == 'readonly')}" />
+                                            <apex:commandbutton value="{!$Label.fgm_portal__fc_wait_label}" styleclass="btn btnNew" disabled="true" rendered="{!(tabMode == 'edit')}" />
+                                            <apex:commandbutton value="{!$Label.fgm_portal__fc_wait_label}" styleclass="btn btnNew" disabled="true" rendered="{!(tabMode == 'edit' || tabMode == 'readonly')}" />
+                                        </apex:outputpanel>
+                                    </apex:facet>
+                                </apex:actionstatus>
+                            </apex:pageblockbuttons>
+                            <div class="clear" />
+                            <apex:outputpanel > <apex:pagemessages id="errorMessages" /> </apex:outputpanel>
+                            <apex:outputpanel layout="block" id="tabContent" styleclass="tabContent">
+                                <apex:outputpanel rendered="{!lstFieldsName != null && lstFieldsName.size > 0 && isRecordDetailView}">
+                                    <apex:pageblocksection rendered="{!tabMode == 'edit'}">
+                                    <script> 
+                                        initInput();
+                                        jsMode = '{!JSENCODE(tabmode)}';
+                                    </script>   
+                                    <apex:repeat var="field" value="{!lstFieldsName}">
+                                            <apex:inputfield styleclass="form_control"  value="{!tabObject[field]}" required="{!OR(field.required, field.dbrequired)}" rendered="{!field != relatedListConfiguration.relatedListLookUp && (($ObjectType[ApplicationObjectName].Fields[field].Type == 'textarea' && NOT($ObjectType[ApplicationObjectName].fields[field].htmlFormatted)) || ($ObjectType[ApplicationObjectName].fields[field].Type != 'textarea'))}"></apex:inputfield>
+                                            <apex:inputtextarea styleclass="ckeditor" label="{!$ObjectType[ApplicationObjectName].Fields[field].Label} " richtext="false" id="inputRichTextAreaId" value="{!tabObject[field]}" rendered="{!field != relatedListConfiguration.relatedListLookUp && ($ObjectType[ApplicationObjectName].Fields[field].Type == 'textarea' && $ObjectType[ApplicationObjectName].fields[field].htmlFormatted && $ObjectType[ApplicationObjectName].fields[field].updateable)}">
+                                                <script> initializeCkeditor();
+                                                </script>
+                                            </apex:inputtextarea>
+                                            <apex:outputfield value="{!tabObject[field]}" rendered="{!$ObjectType[ApplicationObjectName].Fields[field].Type == 'textarea' && $ObjectType[ApplicationObjectName].fields[field].htmlFormatted && !$ObjectType[ApplicationObjectName].fields[field].updateable}"/>
+                                        </apex:repeat>
+                                    </apex:pageblocksection>
+                                    <apex:pageblocksection rendered="{!tabMode == 'readonly'}">
+                                        <apex:repeat var="field" value="{!lstFieldsName}">
+                                            <apex:outputfield value="{!tabObject[field]}" />
+                                        </apex:repeat>
+                                    </apex:pageblocksection>
+                                </apex:outputpanel>
+                            </apex:outputpanel>
+                        </apex:pageblock>
+                    </apex:outputpanel>
+                </apex:pageblock>
+            </apex:outputpanel>
+            <!-- Block to Show User Management Tab Information -->
+            <apex:pageblock title="{!$Label.fgm_portal__fc_usermanagement_tablabel}" rendered="{!currentUser != null && currentUser.Portal_Account_Admin__c && selectedTab == 'UserMngmt'}" mode="edit">
+                <apex:pageblockbuttons location="top">
+                    <a id="umUpdateBtn" class="btn btnNew" onclick="updateUsers(event);">{!$Label.FC_Update_ButtonLabel}</a>
+                    <apex:actionfunction name="refreshUMTable" rerender="umTable" oncomplete="updateStatus();resetModalFlag();" />
+                    <apex:commandbutton value="{!$Label.fgm_portal__fc_cancel_buttonlabel}" rerender="umTable" styleclass="btn btnNew" oncomplete="resetModalFlag();"/>
+                </apex:pageblockbuttons>
+                <apex:outputpanel styleclass="umMsgBlock none">
+                    <apex:pagemessage severity="error" />
+                </apex:outputpanel>
+                <apex:outputpanel id="umTable">
+                    <script>initializaUMtable();
+                    </script>
+                    <apex:datatable value="{!users}" var="user" styleclass="userManagement">
+                        <apex:column headervalue="{!$ObjectType.Contact.fields.Name.label}">
+                            <apex:outputtext value="{!user.userObj.Contact.Name}" />
+                        </apex:column>
+                        <apex:column headervalue="{!$ObjectType.Contact.fields.Title.label}">
+                            <apex:outputtext value="{!user.userObj.Contact.Title}" />
+                        </apex:column>
+                        <apex:column headervalue="{!$ObjectType.Contact.fields.Email.label}">
+                            <apex:outputtext value="{!user.userObj.Contact.Email}" />
+                        </apex:column>
+                        <apex:column headervalue="{!$ObjectType.User.fields.Username.label}">
+                            <apex:outputtext value="{!user.userObj.Username}" />
+                        </apex:column>
+                        <apex:column headervalue="{!$ObjectType.User.fields.LastLoginDate.label}">
+                            <apex:outputtext value="{!user.userObj.LastLoginDate}" />
+                        </apex:column>
+                        <apex:column headervalue="{!$ObjectType.User.fields.IsActive.label}">
+                            <apex:inputfield value="{!user.userObj.IsActive}" onchange="getUpdatedUsers('{!user.userObj.Id}',event);" />
+                        </apex:column>
+                    </apex:datatable>
+                </apex:outputpanel>
+            </apex:pageblock>
+        </apex:outputpanel>
+    </apex:form>
+</apex:page>

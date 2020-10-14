@@ -1,0 +1,445 @@
+<apex:page controller="PTWorkbenchController"  sidebar="false">
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}"/>
+
+    <script>
+        jQuery(document).ready(function(){
+            jQuery(".apexp").addClass("apexp_dashboard");
+            jQuery('.mainForm .attachmentList .headerRow').addClass('campaignBlock_table_border');
+            jQuery('body .bPageBlock .pbBody .pbSubheader').addClass('pbSubheader_new');
+            jQuery('.apexp .bPageBlock .detailList').addClass('floatNone');
+            jQuery('body .apexp .pbBody table.list td ').addClass('padding_none');
+            jQuery('body .pbBody table.list tr.dataRow td ').addClass('dateRow_border');
+            jQuery('.pbBody table.list tr.dataRow td:first-child ').addClass('dataRow_center');
+        });
+
+        function setCssStyle() {
+            jQuery(".apexp").addClass("apexp_dashboard");
+            jQuery('.mainForm .attachmentList .headerRow').addClass('campaignBlock_table_border');
+            jQuery('body .bPageBlock .pbBody .pbSubheader').addClass('pbSubheader_new');
+            jQuery('.apexp .bPageBlock .detailList').addClass('floatNone');
+            jQuery('body .apexp .pbBody table.list td ').addClass('padding_none');
+            jQuery('body .pbBody table.list tr.dataRow td ').addClass('dateRow_border');
+            jQuery('.pbBody table.list tr.dataRow td:first-child ').addClass('dataRow_center');
+        }
+    </script>
+
+    <script>
+      $.noConflict();
+      $(".apexp").addClass("apexp_dashboard");
+      $('.mainForm .attachmentList .headerRow').addClass('campaignBlock_table_border');
+      var arrImg = null;
+      var index = 0;
+      function ClickHelp(SourceElement) {
+          if(SourceElement != null && SourceElement != undefined) {
+               var helpValue =  SourceElement.attributes['data-Help'].value;
+               if(helpValue != null && helpValue != undefined ) {
+                   if(helpValue.toLowerCase().indexOf('gif') > -1 || helpValue.toLowerCase().indexOf('png') > -1 || helpValue.toLowerCase().indexOf('jpeg') > -1 || helpValue.toLowerCase().indexOf('jpg') > -1 || helpValue.toLowerCase().indexOf('bmp') > -1) {
+                        index = 0;
+                       arrImg = helpValue.split(',');
+
+                       if(arrImg != null && arrImg != undefined && jQuery.isArray(arrImg) && arrImg.length > 0) {
+                           var overlayDiv = jQuery("<div>").addClass("overlayScreen").attr("onclick","removeImg(); return false;");
+                           var imgCollection = null;
+                           var imgdiv = jQuery("<div>").addClass("imgdiv");
+                           var closeX = jQuery("<span>").addClass("closeX").attr("onclick","removeImg(); return false;");
+
+                           var navigationdiv = jQuery("<div>").addClass("navigationdiv");
+                           var paginatordiv = jQuery("<div>").addClass("paginatordiv");
+                           var paginatorspan = jQuery("<span>").addClass("paginatorspan");
+                           jQuery(paginatorspan).append(jQuery("<span>").addClass("controlspan").append(jQuery("<img>").attr('src','/s.gif').addClass("firstoff").attr('alt','First Image')));
+                           jQuery(paginatorspan).append(jQuery("<span>").addClass("controlspan").append(jQuery("<img>").attr('src','/s.gif').addClass("prevoff").attr('alt','Previous')).append("Previous"));
+
+                           if(arrImg.length > 1) {
+                               jQuery(paginatorspan).append(jQuery("<span>").attr('onclick','Next_Click(this); return false;').addClass("controlspan activecontrolspan").append("Next").append(jQuery("<img>").attr('src','/s.gif').addClass("nextoff").attr('alt','Next')));
+                               jQuery(paginatorspan).append(jQuery("<span>").attr('onclick','Last_Click(this); return false;').addClass("controlspan activecontrolspan").append(jQuery("<img>").attr('src','/s.gif').addClass("lastoff").attr('alt','Last Page')));
+                           } else {
+                               jQuery(paginatorspan).append(jQuery("<span>").addClass("controlspan").append("Next").append(jQuery("<img>").attr('src','/s.gif').addClass("nextoff").attr('alt','Next')));
+                               jQuery(paginatorspan).append(jQuery("<span>").addClass("controlspan").append(jQuery("<img>").attr('src','/s.gif').addClass("lastoff").attr('alt','Last Page')));
+                           }
+
+                           jQuery(paginatorspan).append(closeX);
+                           jQuery(paginatordiv).append(paginatorspan);
+                           jQuery(navigationdiv).append(paginatordiv);
+                           jQuery(imgdiv).append(navigationdiv);
+                           imgCollection = jQuery("<div>");
+                           var imgUrl = "https://img.foundationconnect.org/Multilanguage/" + arrImg[index];
+                           var img = jQuery("<img>").attr('name','imgSlider').addClass("overlayImg").attr("src",imgUrl);
+                           jQuery(imgCollection).append(img);
+                           jQuery(imgdiv).append(imgCollection);
+                           jQuery("body").append(imgdiv);
+                           jQuery("body").append(overlayDiv);
+
+                          }
+                       } else {
+                            var ParentElement = SourceElement.parentNode;
+                            var helpText = helpValue;
+                            if (ParentElement != undefined && ParentElement != null && helpText != undefined && helpText!= '') {
+                                jQuery(ParentElement).addClass("tooltip");
+                                var spanTag = document.createElement('span');
+                                spanTag.innerText = helpText;
+                                ParentElement.appendChild(spanTag);
+                            }
+                       }
+
+                   }
+              }
+          }
+
+      function Next_Click(SourceElement) {
+          if(arrImg != null && arrImg != undefined && jQuery.isArray(arrImg) && arrImg.length > 0) {
+               index = index + 1;
+               var imgName = arrImg[index];
+
+           if(IsValidImage(imgName)) {
+               var imgUrl = "https://img.foundationconnect.org/Multilanguage/" + arrImg[index];
+               document.imgSlider.src = imgUrl;
+               if(arrImg.length == index + 1) {
+                   SourceElement.removeAttribute('onclick');
+                   jQuery(SourceElement).removeClass('activecontrolspan');
+
+                   var LastImgElement = SourceElement.nextElementSibling;
+                   if(LastImgElement != null && LastImgElement != undefined && LastImgElement.tagName == 'SPAN') {
+                       LastImgElement.removeAttribute('onclick');
+                       jQuery(LastImgElement).removeClass('activecontrolspan');
+                   }
+               }
+               EnablePreviousControls(SourceElement);
+            }
+        }
+
+      }
+
+      function EnablePreviousControls(SourceElement) {
+        var PrevImgbtn = SourceElement.previousElementSibling;
+           if(PrevImgbtn != null && PrevImgbtn != undefined && PrevImgbtn.tagName == 'SPAN') {
+               jQuery(PrevImgbtn).attr('onclick','Prev_Click(this); return false;');
+               jQuery(PrevImgbtn).addClass('activecontrolspan');
+
+               var FirstImgbtn = PrevImgbtn.previousElementSibling;
+               if(FirstImgbtn != null && FirstImgbtn != undefined && FirstImgbtn.tagName == 'SPAN') {
+                   jQuery(FirstImgbtn).attr('onclick','First_Click(this); return false;');
+                   jQuery(FirstImgbtn).addClass('activecontrolspan');
+               }
+           }
+      }
+
+      function EnableNextControls(SourceElement) {
+       var NextImgbtn = SourceElement.nextElementSibling;
+           if(NextImgbtn != null && NextImgbtn != undefined && NextImgbtn.tagName == 'SPAN') {
+               jQuery(NextImgbtn).attr('onclick','Next_Click(this); return false;');
+               jQuery(NextImgbtn).addClass('activecontrolspan');
+
+               var LastImgbtn = NextImgbtn.nextElementSibling;
+               if(LastImgbtn != null && LastImgbtn != undefined && LastImgbtn.tagName == 'SPAN') {
+                   jQuery(LastImgbtn).attr('onclick','Last_Click(this); return false;');
+                   jQuery(LastImgbtn).addClass('activecontrolspan');
+               }
+           }
+      }
+
+      function Last_Click(SourceElement) {
+
+          if(arrImg != null && arrImg != undefined && jQuery.isArray(arrImg) && arrImg.length > 0) {
+               index = arrImg.length - 1;
+               var imgName = arrImg[index];
+               if(IsValidImage(imgName)) {
+                   var imgUrl = "https://img.foundationconnect.org/Multilanguage/" + arrImg[index];
+                   document.imgSlider.src = imgUrl;
+                   if(arrImg.length == index + 1) {
+                       SourceElement.removeAttribute('onclick');
+                       jQuery(SourceElement).removeClass('activecontrolspan');
+
+                       var NextImgElement = SourceElement.previousElementSibling;
+                       if(NextImgElement != null && NextImgElement != undefined && NextImgElement.tagName == 'SPAN') {
+                           NextImgElement.removeAttribute('onclick');
+                           jQuery(NextImgElement).removeClass('activecontrolspan');
+                       }
+                   }
+                   EnablePreviousControls(SourceElement.previousElementSibling);
+                }
+           }
+      }
+
+      function IsValidImage(imgName) {
+          if(imgName.toLowerCase().indexOf('gif') > -1 || imgName.toLowerCase().indexOf('png') > -1 || imgName.toLowerCase().indexOf('jpeg') > -1 || imgName.toLowerCase().indexOf('jpg') > -1 || imgName.toLowerCase().indexOf('bmp') > -1){
+            return true;
+          } else{
+             return false;
+            }
+      }
+
+      function Prev_Click(SourceElement) {
+          if(arrImg != null && arrImg != undefined && jQuery.isArray(arrImg) && arrImg.length > 0) {
+               index = index - 1;
+               var imgName = arrImg[index];
+           if(IsValidImage(imgName)) {
+               var imgUrl = "https://img.foundationconnect.org/Multilanguage/" + arrImg[index];
+               document.imgSlider.src = imgUrl;
+             if(index == 0) {
+               SourceElement.removeAttribute('onclick');
+               jQuery(SourceElement).removeClass('activecontrolspan');
+
+               var FirstImgElement = SourceElement.previousElementSibling;
+               if(FirstImgElement != null && FirstImgElement != undefined && FirstImgElement.tagName == 'SPAN') {
+                   FirstImgElement.removeAttribute('onclick');
+                   jQuery(FirstImgElement).removeClass('activecontrolspan');
+               }
+             }
+             EnableNextControls(SourceElement);
+           }
+        }
+      }
+
+      function First_Click(SourceElement) {
+          if(arrImg != null && arrImg != undefined && jQuery.isArray(arrImg) && arrImg.length > 0) {
+               index = 0;
+               var imgName = arrImg[index];
+           if(IsValidImage(imgName)) {
+               var imgUrl = "https://img.foundationconnect.org/Multilanguage/" + arrImg[index];
+               document.imgSlider.src = imgUrl;
+
+                   SourceElement.removeAttribute('onclick');
+                   jQuery(SourceElement).removeClass('activecontrolspan');
+
+                   var PrevImgElement = SourceElement.nextElementSibling;
+                   if(PrevImgElement != null && PrevImgElement != undefined && PrevImgElement.tagName == 'SPAN') {
+                       PrevImgElement.removeAttribute('onclick');
+                       jQuery(PrevImgElement).removeClass('activecontrolspan');
+                   }
+
+                   EnableNextControls(SourceElement.nextElementSibling);
+                   }
+               }
+
+      }
+
+      function ShowToolTip(SourceElement) {
+         var helpValue =  SourceElement.attributes['data-Help'].value;
+           if(helpValue != null && helpValue != undefined ) {
+               if(helpValue.toLowerCase().indexOf('gif') > -1 || helpValue.toLowerCase().indexOf('png') > -1 || helpValue.toLowerCase().indexOf('jpeg') > -1 || helpValue.toLowerCase().indexOf('jpg') > -1 || helpValue.toLowerCase().indexOf('bmp') > -1) {
+                    var ParentElement = SourceElement.parentNode;
+                    var helpText = helpValue;
+                    if (ParentElement != undefined && ParentElement != null && helpText != undefined && helpText!= '') {
+                        jQuery(ParentElement).addClass("tooltip");
+                        var spanTag = document.createElement('span');
+                        spanTag.innerText = "Click to open Screen shot";
+                        ParentElement.appendChild(spanTag);
+                    }
+               } else {
+                    var ParentElement = SourceElement.parentNode;
+                    var helpText = helpValue;
+                    if (ParentElement != undefined && ParentElement != null && helpText != undefined && helpText!= '') {
+                        jQuery(ParentElement).addClass("tooltip");
+                        var spanTag = document.createElement('span');
+                        spanTag.innerText = helpText;
+                        ParentElement.appendChild(spanTag);
+                    }
+               }
+
+            }
+       }
+
+       function hideHelpText(SourceElement) {
+        var OldSpan = SourceElement.nextElementSibling;
+        if (OldSpan != undefined && OldSpan != null && OldSpan.tagName == 'SPAN') {
+            OldSpan.remove();
+        }
+
+       }
+
+       function Cancel_Click() {
+        if(getIsLanguageSelected() ==  "true") {
+            if(confirm('Are you sure you want to cancel? All unsaved data will be lost. Please click OK to confirm or click on Cancel to stay on this page.')){
+                return true;
+            } else{
+                return false;
+              }
+        } else{
+          return true;
+         }
+       }
+
+       function Previous_Click() {
+        if(confirm('Are you sure you want to move on previous page? All unsaved data will be lost. Please click OK to confirm or click on Cancel to stay on this page.')) {
+            return true;
+        } else{
+            return false;
+          }
+       }
+
+       function removeImg() {
+          arrImg = null;
+          index = 0;
+           var overlayScreen = jQuery(".overlayScreen");
+           var imgdiv = jQuery(".imgdiv");
+           if(overlayScreen[0] != null && overlayScreen[0] != undefined && imgdiv[0] != null && imgdiv[0] != undefined) {
+               (overlayScreen[0].parentNode).removeChild(overlayScreen[0]);
+               (imgdiv[0].parentNode).removeChild(imgdiv[0]);
+           }
+        }
+      </script>
+
+      <apex:form >
+        <apex:outputPanel id="PortalLangPanel">
+        <script>
+            var IsLanguageSelected = '{!IsLanguageSelected}';
+            function getIsLanguageSelected()
+            {
+                return IsLanguageSelected;
+            }
+        </script>
+        <apex:pageMessages ></apex:pageMessages>
+        <apex:pageBlock >
+          <apex:pageBlockButtons location="top">
+              <label>Enter Language Code: </label>
+              <apex:inputText value="{!strPortalLanguage}"  styleClass="" />
+              <apex:commandButton value="Continue" styleClass="btn btnNew" rendered="{!!IsLanguageSelected}" action="{!LoadLanguage}" onComplete="setCssStyle();" reRender="PortalLangPanel" status="counterStatus"/>
+              <apex:commandButton value="Previous" styleClass="btn btnNew" onclick="return Previous_Click();" action="{!PreviousClick}" onComplete="setCssStyle();" rendered="{!IsLanguageSelected}"/>
+              <apex:commandButton value="Save"  styleClass="btn btnNew" rendered="{!IsLanguageSelected}" action="{!SaveLanguage}" onComplete="setCssStyle();"/>
+              <apex:commandButton value="Cancel" styleClass="btn btnNew" onclick="return Cancel_Click();" action="{!CancelClick}" onComplete="setCssStyle();"/>
+          </apex:pageBlockButtons>
+          <apex:actionStatus id="counterStatus">
+                <apex:facet name="start">
+                    <div class="waitingSearchDiv" id="el_loading el_loading_new" >
+                        <div class="waitingHolder" >
+                            <img class="waitingImage" src="/img/loading32.gif" title="Please Wait..." />
+                            <span class="waitingDescription">Loading...</span>
+                        </div>
+                    </div>
+                </apex:facet>
+          </apex:actionStatus>
+          <apex:variable value="{!objFieldInfo}" var="FieldInfo"/>
+          <apex:outputPanel rendered="{!IsLanguageSelected}">
+               <apex:pageBlockSection columns="1" title="Labels">
+               <apex:variable var="Index" value="{!1}"/>
+               <apex:pageBlockTable value="{!lstLabelFields}" var="field" width="100%" columns="4">
+                    <apex:column headerValue="Sr. Number"  headerClass="header header_width5">
+                        <apex:outputLabel value="{!Index}"/>
+                    </apex:column>
+                    <apex:column headerValue="English Translation" headerClass="header header_width40" >
+                       <apex:outputLabel value="{!FieldInfo.mapDescription[field]}" />
+                    </apex:column>
+                    <apex:column headerValue="Translation" headerClass="header">
+                       <apex:outputPanel rendered="{!FieldInfo.mapHelpData[field]!= 'Help Text not provided'}">
+                       <span>
+                         <img src="/s.gif" alt="" class="helpImg" onclick='ClickHelp(this); return false;' onmouseover="ShowToolTip(this);" onmouseout='hideHelpText(this);' data-Help="{!FieldInfo.mapHelpData[field]}"></img>
+                       </span>
+          </apex:outputPanel>
+          <apex:outputPanel rendered="{!FieldInfo.mapHelpData[field]== 'Help Text not provided'}">
+             <span>
+                 <img src="/s.gif" alt="" class="EmptyImg"></img>
+             </span>
+          </apex:outputPanel>
+          <apex:inputField value="{!FieldInfo.CurrentTranslation[field]}" label="" styleClass="input_width"/>
+          <apex:variable var="Index" value="{!Index + 1}"/>
+       </apex:column>
+     </apex:pageBlockTable>
+   </apex:pageBlockSection>
+   <apex:pageBlockSection columns="1" title="Button/Link Label">
+       <apex:variable var="Index" value="{!1}"/>
+       <apex:pageBlockTable value="{!lstbtnLabelFields}" var="field" width="100%" columns="4">
+            <apex:column headerValue="Sr. Number"  headerClass="header header_width5">
+               <apex:outputLabel value="{!Index}"/>
+            </apex:column>
+            <apex:column headerValue="English Translation" headerClass="header header_width40" >
+                <apex:outputLabel value="{!FieldInfo.mapDescription[field]}" />
+            </apex:column>
+            <apex:column headerValue="Translation" headerClass="header">
+               <apex:outputPanel rendered="{!FieldInfo.mapHelpData[field]!= 'Help Text not provided'}">
+                   <span>
+                         <img src="/s.gif" alt="" class="helpImg" onclick='ClickHelp(this); return false;' onmouseover="ShowToolTip(this);" onmouseout='hideHelpText(this);' data-Help="{!FieldInfo.mapHelpData[field]}"></img>
+                   </span>
+               </apex:outputPanel>
+               <apex:outputPanel rendered="{!FieldInfo.mapHelpData[field] == 'Help Text not provided'}">
+                   <span>
+                     <img src="/s.gif" alt="" class="EmptyImg"></img>
+                   </span>
+               </apex:outputPanel>
+               <apex:inputField value="{!FieldInfo.CurrentTranslation[field]}" label="" styleClass="input_width"/>
+               <apex:variable var="Index" value="{!Index + 1}"/>
+           </apex:column>
+       </apex:pageBlockTable>
+   </apex:pageBlockSection>
+   <apex:pageBlockSection columns="1" title="Messages">
+       <apex:variable var="Index" value="{!1}"/>
+       <apex:pageBlockTable value="{!lstMessageFields}" var="field" width="100%" columns="4">
+            <apex:column headerValue="Sr. Number"  headerClass="header header_width5">
+               <apex:outputLabel value="{!Index}"/>
+            </apex:column>
+            <apex:column headerValue="English Translation" headerClass="header header_width40" >
+               <apex:outputLabel value="{!FieldInfo.mapDescription[field]}" />
+            </apex:column>
+            <apex:column headerValue="Translation" headerClass="header">
+               <apex:outputPanel rendered="{!FieldInfo.mapHelpData[field]!= 'Help Text not provided'}">
+                   <span>
+                     <img src="/s.gif" alt="" class="helpImg" onclick='ClickHelp(this); return false;' onmouseover="ShowToolTip(this);" onmouseout='hideHelpText(this);' data-Help="{!FieldInfo.mapHelpData[field]}"></img>
+                   </span>
+               </apex:outputPanel>
+               <apex:outputPanel rendered="{!FieldInfo.mapHelpData[field] == 'Help Text not provided'}">
+                   <span>
+                         <img src="/s.gif" alt="" class="EmptyImg"></img>
+                   </span>
+               </apex:outputPanel>
+               <apex:inputField value="{!FieldInfo.CurrentTranslation[field]}" label="" styleClass="input_width"/>
+               <apex:variable var="Index" value="{!Index + 1}"/>
+           </apex:column>
+       </apex:pageBlockTable>
+   </apex:pageBlockSection>
+
+   <apex:pageBlockSection columns="1" title="Error">
+       <apex:variable var="Index" value="{!1}"/>
+       <apex:pageBlockTable value="{!lstErrorFields}" var="field" width="100%" columns="4">
+            <apex:column headerValue="Sr. Number" headerClass="header header_width5">
+               <apex:outputLabel value="{!Index}"/>
+            </apex:column>
+            <apex:column headerValue="English Translation" headerClass="header header_width40">
+                <apex:outputLabel value="{!FieldInfo.mapDescription[field]}" />
+            </apex:column>
+            <apex:column headerValue="Translation" headerClass="header">
+               <apex:outputPanel rendered="{!FieldInfo.mapHelpData[field]!= 'Help Text not provided'}">
+                   <span>
+                     <img src="/s.gif" alt="" class="helpImg" onclick='ClickHelp(this); return false;' onmouseover="ShowToolTip(this);" onmouseout='hideHelpText(this);' data-Help="{!FieldInfo.mapHelpData[field]}"></img>
+                   </span>
+               </apex:outputPanel>
+               <apex:outputPanel rendered="{!FieldInfo.mapHelpData[field] == 'Help Text not provided'}">
+                   <span>
+                         <img src="/s.gif" alt="" class="EmptyImg"></img>
+                   </span>
+               </apex:outputPanel>
+               <apex:inputField value="{!FieldInfo.CurrentTranslation[field]}" label="" styleClass="input_width"/>
+               <apex:variable var="Index" value="{!Index + 1}"/>
+           </apex:column>
+       </apex:pageBlockTable>
+   </apex:pageBlockSection>
+
+   <apex:pageBlockSection columns="1" title="Other">
+       <apex:variable var="Index" value="{!1}"/>
+           <apex:pageBlockTable value="{!lstOtherFields}" var="field" width="100%" columns="4">
+                <apex:column headerValue="Sr. Number"  headerClass="header header_width5">
+                   <apex:outputLabel value="{!Index}"/>
+                </apex:column>
+                <apex:column headerValue="English Translation" headerClass="header header_width40" >
+                   <apex:outputLabel value="{!FieldInfo.mapDescription[field]}" />
+                </apex:column>
+                <apex:column headerValue="Translation" headerClass="header">
+                   <apex:outputPanel rendered="{!FieldInfo.mapHelpData[field]!= 'Help Text not provided'}">
+                       <span>
+                         <img src="/s.gif" alt="" class="helpImg" onclick='ClickHelp(this); return false;' onmouseover="ShowToolTip(this);" onmouseout='hideHelpText(this);' data-Help="{!FieldInfo.mapHelpData[field]}" ></img>
+                       </span>
+                   </apex:outputPanel>
+                   <apex:outputPanel rendered="{!FieldInfo.mapHelpData[field] == 'Help Text not provided'}">
+                       <span>
+                             <img src="/s.gif" alt="" class="EmptyImg"></img>
+                       </span>
+                   </apex:outputPanel>
+                   <apex:inputField value="{!FieldInfo.CurrentTranslation[field]}" label="" styleClass="input_width"/>
+                   <apex:variable var="Index" value="{!Index + 1}"/>
+                </apex:column>
+           </apex:pageBlockTable>
+       </apex:pageBlockSection>
+   </apex:outputPanel>
+  </apex:pageBlock>
+  </apex:outputPanel>
+  </apex:form>
+</apex:page>

@@ -1,0 +1,41 @@
+<!-------- To Manage FC Community Portal. ------->
+<apex:page controller="FCPortalManagerController">
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/fontawesome/font-awesome-4.1.0.min.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-2.1.1.min.js')}" />
+    <c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}"/>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('.mainForm .config_section').addClass('FCPortalManager_config_section');
+            $('.mainForm .bDetailBlock.bPageBlock .pbBody .pbSubheader').addClass('FCPortalManager_pbSubheader');
+        });
+    </script >
+    <apex:sectionHeader title="FoundationConnect" subtitle="{!$Label.fgm_portal__grantecommunitymanagerheader}"></apex:sectionHeader>
+    <apex:form styleClass="mainForm">
+        <apex:panelGrid columns="2" columnClasses="config_section"  width="100%">
+            <!-- PageLayout Global Configuration Block  -->
+            <apex:pageBlock mode="maindetail">
+                <apex:pageBlockSection title="PageLayout Configuration" columns="1">
+                    <apex:dataTable value="{!PageLayoutConfiguration}" var="layoutConfiguration">
+                        <apex:column styleClass="link_col">
+                            <i class="fa fa-angle-double-right"></i>
+                            <apex:commandLink value="{!layoutConfiguration}" action="{!PageLayoutConfiguration[layoutConfiguration]}" styleClass="configureLink">
+                            </apex:commandLink>
+                        </apex:column>
+                    </apex:dataTable>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+            <!-- Portal Global Configuration Block   -->
+            <apex:pageBlock mode="maindetail">
+                <apex:pageBlockSection title="Global Portal Configuration" columns="1">
+                    <apex:dataTable value="{!GlobalConfiguration}" var="layoutConfiguration">
+                        <apex:column styleClass="link_col">
+                            <i class="fa fa-angle-double-right"></i>
+                            <apex:commandLink value="{!layoutConfiguration}" action="{!GlobalConfiguration[layoutConfiguration]}" styleClass="configureLink">
+                            </apex:commandLink>
+                        </apex:column>
+                    </apex:dataTable>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:panelGrid>
+    </apex:form>
+</apex:page>

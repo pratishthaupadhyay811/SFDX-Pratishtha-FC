@@ -1,0 +1,55 @@
+<apex:page controller="CommunityUserFieldMappingController" >
+<apex:slds />
+<c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}" ApplicationResources="application.css,toaster.css"/>
+    <script type="text/javascript">
+    var isAccess = {!isAccess};
+        function showProcessing(){
+            $('.spinnerContainerprocessing').fadeIn("slow" ,function() {
+                window.scrollTo(0, 0);
+                $(".spinnerContainerprocessing").addClass("spinnerContainer_display");
+            });
+        }
+    </script>
+    <apex:form id="mainForm" styleClass="mainForm GuidestarFieldMapping_margintop">
+        <apex:panelGrid columns="2" styleClass="config_section PortalUserFieldMappingwidth">
+            <apex:sectionHeader subtitle="Community User Field Mapping"/>
+            <apex:commandButton value="Back To Configuration" styleClass="btn btn-primary" immediate="true" action="{!URLFOR($Page.fcportalManager)}"/>
+        </apex:panelGrid>
+        <div ng-app="communityUserFieldMappingApp" ng-controller="communityUserFieldMappingController" ng-init="getCommunityUserFields();onObjectChange();">
+            <toaster-container toaster-options="{'time-out': 6000, 'progressBar': true,'animation-class': 'toast-top-center'}"></toaster-container>
+            <processing></processing>
+            <div ng-if="showMessageComponent"><message-component messagewrapper="exception" show-message-action="showPageMessage"> </message-component></div>
+            <center  ng-show="isAccess">
+                <input type="button" value="Save" ng-disabled="communityConfiguration.FGM_Portal__JsonData__c.CommunityUserToContact.length == 0" ng-click="UpsertRecord();" Class="btn btn-primary"/>
+                <!--<apex:commandLink value="Cancel" immediate="true" action="{!URLFOR($Page.CommunityUserFieldMapping)}" styleClass="btn btn-primary"/>-->
+                <input type="button" value="Cancel" ng-click="cancel();"  Class="btn btn-primary"/>
+            </center>
+            <br/>
+            <br/>
+            <!--  apex:pageMessages ></apex:pageMessages-->
+            <div ng-show="isAccess">
+                <apex:pageBlock mode="maindetail" title="Contact Field Mapping"  >
+                    <apex:pageBlockSection title="" collapsible="false" columns="1">
+                        <table id="tblContact">
+                            <tr ng-repeat="rowFields in contactFieldsByRow">
+                                <td class="firstcol"><label class="colLabel" ng-bind="rowFields.first.Label"></label></td>
+                                <td>
+                                    <select ng-model="rowFields.selectedFirstField" ng-show="rowFields.first.Label != undefined" ng-options=" value.Label for (key,value) in mapCommunityUserFields" ng-change="onFieldChange(rowFields.first,rowFields.selectedFirstField,$index,'firstRow');">
+                                        <option ng-selected='true' value="--None--">--None--</option>
+                                    </select>
+                                </td>
+                                <td class="firstcol"> <label class="colLabel" ng-bind="rowFields.second.Label"> </label></td>
+                                <td>
+                                    <select ng-model="rowFields.selectedSecondField" ng-show="rowFields.second.Label != undefined" ng-options=" value.Label for (key,value) in mapCommunityUserFields" ng-change="onFieldChange(rowFields.second,rowFields.selectedSecondField,$index,'secondRow');">
+                                        <option ng-selected='true' value="--None--">--None--</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </table>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </div>
+        </div>
+
+    </apex:form>
+</apex:page>

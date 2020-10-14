@@ -1,0 +1,134 @@
+<apex:page standardcontroller="Portal_User__c" extensions="CommunitySignupConfirmExtension" standardstylesheets="false" sidebar="false" showheader="false" cache="false" language="{!portalLanguage}">
+    <head>
+        <title> {!$Label.FC_GranteeSignupConf_PageTitle} </title>
+    </head>
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/bootstrap/bootstrap.min.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-2.1.1.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <c:GlobalResources islocal="{!$CurrentPage.parameters.local}" />
+
+    <style>
+        .required-color, .required-color li {
+            color: rgb(209, 11, 11);
+        }
+    </style>
+
+    <!-- Included in page so extension has access to the fields -->
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.Name)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!NOT(ISBLANK(Portal_User__c.Name))}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.Email__c)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.FirstName__c)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.LastName__c)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.Password__c)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!NOT(ISBLANK(Portal_User__c.Password__c))}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.Confirm_Password__c)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!NOT(ISBLANK(Portal_User__c.Confirm_Password__c))}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.Organization_Legal_Name__c)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.EIN__c)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!Portal_User__c.Account__r.Id}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.Approval_Status__c)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.Confirmation_Code__c)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.Confirmation_Date__c)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.ProfileType__c)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.User_Profile__c)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!ISBLANK(Portal_User__c.Domain__c)}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!Portal_User__c.IsCreatedByOpportunityTeamMember__c}"></apex:outputpanel>
+    <apex:outputpanel layout="none" rendered="{!NOT(ISBLANK(Portal_User__c.RecordTypeId))}"></apex:outputpanel>
+    <apex:includeLightning />
+    <script>
+    </script>
+    <apex:form id="mainForm" forcessl="true">
+        <apex:outputpanel id="init" rendered="true">
+            <script type="text/javascript">
+                $("body").addClass("bg-page");
+            </script>
+        </apex:outputpanel>
+        <apex:outputpanel >
+            <div id="registration" class="container">
+                <div id="registration-wrapper">
+                    <apex:image url="{!ImageLogoUrl}" styleclass="logo-home" />
+                    <hr class="line" />
+                    <apex:outputlabel styleclass="errorMsg_SignupConfirm required-color" rendered="true">
+                        <apex:pagemessages id="errorMessages" rendered="true"></apex:pagemessages>
+                    </apex:outputlabel>
+                    <br/>
+                    <apex:outputpanel id="emailConfirmationBlock" rendered="{!NOT(isOpportunityTeamMemberPortalUser) && NOT(Portal_User__c.IsCreatedByOpportunityTeamMember__c) && isError == false}">
+                        <!-- Shown before the user has confirmed their email address -->
+                        <apex:outputpanel layout="block" styleclass="alert alert-warning signup_textbold" rendered="{!ISBLANK(Portal_User__c.Confirmation_Date__c)}">{!$Label.fgm_portal__fc_signupconfirm_beforeconfirm_customtext}</apex:outputpanel>
+                        <!-- Shown at the time they've confirmed. -->
+                        <apex:outputpanel layout="block" styleclass="alert alert-success signup_textbold" rendered="{!'email-confirmed' == $CurrentPage.Parameters.Message}">
+                            <span >{!$Label.fgm_portal__fc_signupconfirm_confirm_customtext}</span>
+                        </apex:outputpanel>
+                    </apex:outputpanel>
+                      <apex:outputpanel rendered="{!isOpportunityTeamMemberPortalUser}">
+                        <div class="row">
+                            <div class="col-sm-5 signup-panel-1">
+                           <!--    <apex:repeat var="field" value="{!$ObjectType.Portal_User__c.FieldSets.OpportunityTeamMemberRegistrationFields}">
+                                    <div class="form-group input-field " data-object-name="FGM_Portal__Portal_User__c" data-field-name="{!field}" data-field-type="{!field.Type}" data-required="{!OR(field.required, field.dbrequired)}">
+                                        <apex:outputpanel rendered="{!field.Type != 'boolean'}">
+                                            <label class="control-label"><apex:outputpanel styleClass="required-color" rendered="{!OR(field.required, field.dbrequired)}">* </apex:outputpanel>{!field.Label}</label>
+                                            <apex:outputpanel rendered="{!mapPortalUserHelpText != null && mapPortalUserHelpText[field] != 'Blank'}">
+                                                <label class="help-text tooltip" title="{!mapPortalUserHelpText[field]}">?</label>
+                                            </apex:outputpanel>
+                                            <apex:outputpanel rendered="{!field.Type == 'encryptedstring'}">
+                                                <apex:inputsecret value="{!portalUser[field]}" styleclass="form-control col-sm-6 for-password" required="{!OR(field.required, field.dbrequired)}"/>
+                                            </apex:outputpanel>
+                                            <apex:outputpanel rendered="{!field.Type != 'encryptedstring'}">
+                                                <apex:inputfield styleclass="form-control col-sm-6 for-username" value="{!portalUser[field]}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            </apex:outputpanel>
+                                        </apex:outputpanel>
+                                        <apex:outputpanel rendered="{!field.Type == 'boolean'}">
+                                            <apex:inputfield styleclass="form-control col-sm-6 for-username" value="{!portalUser[field]}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            <label class="control-label"><apex:outputpanel styleClass="required-color" rendered="{!OR(field.required, field.dbrequired)}">* </apex:outputpanel>{!field.Label}</label>
+                                        </apex:outputpanel>
+                                    </div>
+                                </apex:repeat> -->
+                                <apex:commandbutton value="{!$Label.fgm_portal__fc_register_buttonlabel}" styleclass="btn btn-primary" action="{!register}" rerender="errorMessages"></apex:commandbutton>
+                            </div>
+                        </div>
+                    </apex:outputpanel>
+
+                    <!-- Shown when they are approved -->
+                    <apex:outputpanel layout="none" rendered="{!'Approved' == Portal_User__c.Approval_Status__c && isError == false}">
+                        <p ><apex:outputtext value="{!$Label.fgm_portal__fc_signupconfirm_approvalcustomtext}"></apex:outputtext></p>
+                        <apex:actionstatus id="activationStatus">
+                            <apex:facet name="stop">
+                                <apex:commandbutton styleclass="btn btn-primary" action="{!activate}" value="{!$Label.fgm_portal__fc_activate_buttonlabel}" status="activationStatus" rerender="mainForm" ></apex:commandbutton>
+                            </apex:facet>
+                            <apex:facet name="start">
+                                <apex:commandbutton styleclass="btn btn-primary" disabled="true" value="{!$Label.fgm_portal__fc_updating_label}">
+                                    <apex:image value="/img/loading.gif"></apex:image>
+                                </apex:commandbutton>
+                            </apex:facet>
+                        </apex:actionstatus>
+                    </apex:outputpanel>
+
+                    <!-- Shown when they are approved -->
+                        <apex:outputpanel layout="none" rendered="{!'Converted' == Portal_User__c.Approval_Status__c && isError == false }">
+                            <p ><apex:outputtext value="{!$Label.fgm_portal__fc_signupconfirm_convertedapprovalcustomtext}"></apex:outputtext></p>
+                            <br /><br />
+                            <apex:commandbutton styleclass="btn btn-primary" action="{goToLogin}" value="{!$Label.fgm_portal__fc_gotologinpage_label}"></apex:commandbutton>
+                            <script type="text/javascript">
+                            window.setTimeout(function () {
+                                window.location = "{!JSENCODE(URLFOR($Page.CommunitySignin))}";
+                            }, 30000);
+                            </script>
+                    </apex:outputPanel>
+                    <!-- Shown when they are still waiting to me approved.. -->
+                    <apex:outputpanel layout="none" rendered="{!'Pending' == Portal_User__c.Approval_Status__c && NOT(isOpportunityTeamMemberPortalUser && isError == false)}">
+                      <span class="signup_textbold"><apex:outputtext value="{!$Label.fgm_portal__fc_signupconfirm_preapprovalcustomtext}"> </apex:outputtext></span>
+                    </apex:outputpanel>
+
+                    <!-- Shown when they have been rejected -->
+                    <apex:outputpanel layout="none" rendered="{!'Rejected' == Portal_User__c.Approval_Status__c && isError == false}">
+                        <span class="signup_textbold"><apex:outputtext value="{!$Label.fgm_portal__fc_signupconfirm_unableapproval_customtext}"> </apex:outputtext></span>
+                    </apex:outputpanel>
+
+                    <div class="quiz-footer">
+                        <p ><apex:outputtext value="{!$Label.fgm_portal__fc_signupconfirm_footer_text}"> </apex:outputtext></p>
+                    </div>
+                </div>
+            </div>
+        </apex:outputpanel>
+    </apex:form>
+</apex:page>

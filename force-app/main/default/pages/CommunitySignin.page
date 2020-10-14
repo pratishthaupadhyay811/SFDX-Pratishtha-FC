@@ -1,0 +1,73 @@
+<apex:page controller="CommunitySigninController" extensions="GlobalResourcesController" showHeader="false" standardStylesheets="false" language="{!portalLanguage}" cache="false" action="{!initialize}">
+    <head> <title>{!$Label.FC_GranteeSignin_PageTitle}</title> </head>
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/bootstrap/bootstrap.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/fontawesome/font-awesome.min.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/select2/select2.css')}"/>
+    <apex:variable var="renderLoginStylesheet" value="" rendered="{!NOT(OR(ISBLANK(loginStylesheetResourceName), ISBLANK(loginStylesheetRelativePath)))}">
+        <apex:stylesheet value="{!'/resource/' + loginStylesheetResourceName + IF(BEGINS(loginStylesheetRelativePath, '/'), '', '/') + loginStylesheetRelativePath}"/>
+    </apex:variable>
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/bootstrap/bootstrap-3.4.1.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/select2/select2-3.4.8.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/community-signin.js')}" />
+    <c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}"/>
+    <script>
+    var invalidCredential = {!invalidCredential};
+    var userName = '{!JSENCODE($Label.fgm_portal__fc_username_placeholderlabel)}';
+    var password = '{!JSENCODE($Label.fgm_portal__fc_password_placeholderlabel)}';
+    var invalidSigninCredential = '{!JSENCODE($Label.fgm_portal__fc_invalidsignincredential_errormsg)}';
+    $(document).ready(function() {
+         jQuery('[id$=hiddenField]').val(['Theme4d', 'Theme4u'].indexOf('{!$User.UIThemeDisplayed}') > -1 ? 'true' : 'false');
+         doinit();
+         initialize();
+    });
+    $("body").addClass("bg-page");
+    $('.logo-home ').addClass('logo_margin');
+   </script>
+    <apex:form forceSSL="true">
+        <!--  END -->
+        <apex:inputHidden value="{!userUITheme}" id="hiddenField"/>
+        <apex:actionfunction action="{!initializeTheme}" name="doinit" rerender="hiddenField" />
+      <div id="registration" class="container">
+        <div id="registration-wrapper">
+            <span class="unsupported_browser_err"> <!-- Fix for duplicate error message. remove sign_errMsg class and apply unsupported_browser_err-->
+           <!--span class="sign_errMsg"-->
+                <apex:pageMessage rendered="{!isIExplorer}" summary="{!$Label.fgm_portal__fc_attachment_internet_explorer_error_message}" severity="error"></apex:pageMessage>
+            </span>
+            <div Class="{!IF(ImageLogoUrl ==null ,'logo-home','')}">
+                <apex:image url="{!ImageLogoUrl}" rendered="{!IF(ImageLogoUrl !=null ,true,false)}" styleClass="logo-home"/>
+            </div>
+            <apex:selectList id="lang" styleClass="ddl-portal-language" value="{!portalLanguage}" multiselect="false" size="1" rendered="true">
+                <apex:selectOptions value="{!lstLanguageOptions}" />
+                <apex:actionSupport event="onchange" oncomplete="intializeForm();"/>
+            </apex:selectList>
+            <div class="row">
+               <br />
+                <div class="col-sm-5"  style="border-radius: 4px;">
+                        <apex:outputLabel id="errMsg" rendered="true" styleClass="sign_errMsg"    style="width:97.5% !important; text-align: justify; border-radius: 4px;">
+                           <span class="CredentialError" style="position:Relative; Padding-top:2%; ">
+                                <apex:pageMessages rendered="true"></apex:pageMessages>
+                            </span>
+                       </apex:outputLabel>
+                    <apex:inputText styleClass="form-control col-sm-6 for-username" value="{!username}"></apex:inputText>
+                    <apex:inputSecret styleClass="form-control col-sm-6 for-password" value="{!password}"></apex:inputSecret>
+                    <apex:commandButton value="{!$Label.fgm_portal__fc_signinbuttonlabel}" styleClass="btn btn-action" action="{!save}" onclick="form.target='_top'"></apex:commandButton>
+                    <div class="divLinkButton">
+                        <apex:commandLink action="{!cannotAccessAccount}" style="font-family: verdana;font-size: 12px;">{!$Label.fgm_portal__fc_signin_can_t_access_account_buttonlabel}</apex:commandLink>
+                        <span>&nbsp;|&nbsp;</span>
+                        <apex:commandLink action="{!newUser}" style="font-family: verdana;font-size: 12px;">{!$Label.fgm_portal__fc_newuser_linkbuttonlabel}</apex:commandLink>
+                    </div>
+                </div>
+                <div Style="Overflow-x: hidden !important; Overflow-y: auto !important; max-height: 222px !important; min-height: 222px !important; bottom: 5% !important; Padding-left: 1%;">
+                    <div class="col-sm-6 col-sm-offset-1" style="margin-left: -1% !important; width: 95% !important; margin-top: 3% !important;">
+                        <apex:outputPanel id="informationTextPanelOrganization" rendered="{!profileType == 'Organization'}">
+                            <p><apex:outputField value="{!CustomHTMLDescription.RichDescription__c}"></apex:outputField></p>
+                        </apex:outputPanel>
+                    </div>
+                </div>
+         </div>
+        </div>
+      </div>
+    </apex:form>
+</apex:page>

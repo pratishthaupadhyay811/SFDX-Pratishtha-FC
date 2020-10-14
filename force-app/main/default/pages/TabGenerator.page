@@ -1,0 +1,291 @@
+<apex:page standardcontroller="Related_List_Controller__c" extensions="TabGenratorExtension">
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/select2/select2-3.4.8.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/select2/select2-3.4.8.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/fontawesome/font-awesome-4.1.0.min.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/tinymce/tinymce.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'fc-community.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/jquery/smoothness/jquery-ui-1.11.4-themes-smoothness.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-ui.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/application_js/tab-generator.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/application_css/tab-generator.css')}" />
+    <c:GlobalResources islocal="{!$CurrentPage.parameters.local}" />
+    <script type='text/javascript'>
+        $(document).ready(function () {
+            initialize();
+        });
+    </script>
+    <!----- To add show form to add New tab for Profile. --------->
+    <apex:form id="relatedListForm" styleclass="mainForm">
+        <apex:panelgrid columns="2" styleclass="config_section" width="100%">
+            <apex:sectionheader title="Profile/Dashboard" subtitle="Tab Generator"></apex:sectionheader>
+            <apex:commandbutton value="Back To Configuration" styleclass="btn  btn-primary" immediate="true" action="{!URLFOR($Page.fcportalManager)}" />
+        </apex:panelgrid>
+        <apex:outputpanel >
+            <apex:outputpanel id="confirmDialog" styleclass="duplicateRecordPopup" style="display:none;">
+                <div class="bootbox modal fade bootbox-confirm in application_display" tabindex="-1" role="dialog" aria-hidden="false">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                <div class="bootbox-body" >
+                                    <apex:outputtext value="Are you sure you want to delete this layout?"></apex:outputtext>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <apex:commandlink value="Yes" onclick="hideDialog();" action="{!DeleteExistingTabRecord}" rerender="relatedListForm" status="existingTab" oncomplete="initializetinymce();"  styleclass="btn hideSaveModel"/>
+                                <apex:commandlink value="No" onclick="resetTabsList();hideDialog();"  oncomplete="initializeForm();" styleclass="btn hideSaveModel"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-backdrop fade in"></div>
+            </apex:outputpanel>
+            <apex:outputpanel id="tabCreator">
+                <apex:pageblock mode="maindetail">
+                    <apex:pageblocksection title="" collapsible="false" columns="1"></apex:pageblocksection>
+                    <apex:pagemessages ></apex:pagemessages>
+                    <apex:pageblocksection columns="1">
+                        <apex:pageblocksectionitem >
+                            <apex:outputlabel value="Select Portal Type: "></apex:outputlabel>
+                            <apex:selectlist size="1" value="{!associatedPortal}" styleclass="tabOptions">
+                                <apex:selectoption itemvalue="" itemlabel="--- Select Portal Type ---"></apex:selectoption>
+                                <apex:selectoptions value="{!PortalType}"></apex:selectoptions>
+                                <apex:actionsupport event="onchange" oncomplete="initializeForm()" action="{!showassociatedTab}" rerender="tabCreator" status="fillChildFields"></apex:actionsupport>
+                                <apex:actionstatus id="fillChildFields">
+                                    <apex:facet name="start">
+                                        <apex:outputpanel layout="none">
+                                            <apex:image value="/img/loading.gif" styleclass="loadingImageStyle"></apex:image>
+                                        </apex:outputpanel>
+                                    </apex:facet>
+                                </apex:actionstatus>
+                            </apex:selectlist>
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem rendered="{!showAssociatedTab}">
+                            <apex:outputlabel value="Select Tab Type: "></apex:outputlabel>
+                            <apex:selectlist size="1" value="{!assoiciatedTab}" styleclass="AssociatetabOptions">
+                                <apex:selectoption itemvalue="" itemlabel="--- Select Associated Tab ---"></apex:selectoption>
+                                <apex:selectoptions value="{!TabType}"></apex:selectoptions>
+                                <apex:actionstatus id="fillChildFields">
+                                    <apex:facet name="start">
+                                        <apex:outputpanel layout="none">
+                                            <apex:image value="/img/loading.gif" styleclass="loadingImageStyle"></apex:image>
+                                        </apex:outputpanel>
+                                    </apex:facet>
+                                </apex:actionstatus>
+                            </apex:selectlist>
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem rendered="{!showAssociatedTab}">
+                            <apex:outputlabel value="Select Language: "></apex:outputlabel>
+                            <apex:selectlist id="languagePicklist" value="{!portalLanguage}" multiselect="false" size="1" rendered="true" styleclass="AssociatetabOptions">
+                                <apex:selectoption itemvalue="" itemlabel="--- Select Language ---"></apex:selectoption>
+                                <apex:selectoptions value="{!lstLanguageOptions}" />
+                                <apex:actionsupport event="onchange" action="{!getExistingTabs}" oncomplete="initializeForm()" rerender="ExistingTabSection" status="fillChildFields"></apex:actionsupport>
+                            </apex:selectlist>
+                        </apex:pageblocksectionitem>
+                    </apex:pageblocksection>
+                </apex:pageblock>
+                <apex:outputpanel id="ExistingTabSection" styleclass="recordTypeSection">
+                    <apex:pageblock title="Open Existing Tab Record" mode="maindetail" rendered="{!lstExistingTabOptions != null && lstExistingTabOptions.size > 0}">
+                        <apex:pageblocksection title="" collapsible="false" columns="1"></apex:pageblocksection>
+                        <apex:pageblocksection id="tabsList" columns="1">
+                            <apex:pageblocksectionitem >
+                                <apex:outputlabel value="Select Existing Tab Record: "></apex:outputlabel>
+                                <apex:selectlist size="1" value="{!existingTabRecord}" styleclass="ddlExistingRecords">
+                                    <apex:selectoptions value="{!lstExistingTabOptions}"></apex:selectoptions>
+                                </apex:selectlist>
+                            </apex:pageblocksectionitem>
+                            <apex:pageblocksectionitem >
+                                <apex:outputlabel value=""></apex:outputlabel>
+                                <apex:outputpanel >
+                                    <apex:commandbutton value="Open" action="{!OpenExistingTabRecord}" rerender="relatedListForm" status="existingTab" oncomplete="initializetinymce();" styleclass="btn btn-primary">
+                                        <apex:actionstatus id="existingTab">
+                                            <apex:facet name="start">
+                                                <apex:outputpanel layout="none">
+                                                    <apex:image value="/img/loading.gif" styleclass="loadingImageStyle"></apex:image>
+                                                </apex:outputpanel>
+                                            </apex:facet>
+                                        </apex:actionstatus>
+                                    </apex:commandbutton>
+                                    <apex:commandbutton value="Delete" onclick="$(jQuery('[id$=confirmDialog]')[0]).show(); return false;" styleclass="btn btn-primary">
+                                       <apex:actionstatus >
+                                            <apex:facet name="start">
+                                                <apex:outputpanel layout="none">
+                                                    <apex:image value="/img/loading.gif" styleclass="loadingImageStyle"></apex:image>
+                                                </apex:outputpanel>
+                                            </apex:facet>
+                                        </apex:actionstatus>
+                                    </apex:commandbutton>
+                                </apex:outputpanel>
+                            </apex:pageblocksectionitem>
+                        </apex:pageblocksection>
+                    </apex:pageblock>
+                    <apex:pageblock mode="maindetail" title="Create New Page Layout" rendered="{!NOT(ISBLANK(assoiciatedTab)) && assoiciatedTab != null && assoiciatedTab != ''}">
+                        <apex:pageblocksection title="" collapsible="false" columns="1"></apex:pageblocksection>
+                        <apex:pageblocksection columns="1">
+                            <apex:pageblocksectionitem >
+                                <apex:outputlabel value="Enter New Tab Name: "></apex:outputlabel>
+                                <apex:inputtext value="{!newTabName}"></apex:inputtext>
+                            </apex:pageblocksectionitem>
+                            <apex:pageblocksectionitem >
+                                <apex:outputlabel value=""></apex:outputlabel>
+                                <apex:commandbutton value="Create New" action="{!createNewTab}" rerender="relatedListForm" status="newTab" styleclass="btn btn-primary">
+                                    <apex:actionstatus id="newTab">
+                                        <apex:facet name="start">
+                                            <apex:outputpanel layout="none">
+                                                <apex:image value="/img/loading.gif" styleclass="loadingImageStyle"></apex:image>
+                                            </apex:outputpanel>
+                                        </apex:facet>
+                                    </apex:actionstatus>
+                                </apex:commandbutton>
+                            </apex:pageblocksectionitem>
+                        </apex:pageblocksection>
+                    </apex:pageblock>
+                </apex:outputpanel>
+            </apex:outputpanel>
+
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    initializeForm();
+                });
+            </script>
+        </apex:outputpanel>
+        <apex:outputpanel styleclass="reltaedListtForm popup">
+            <apex:outputpanel styleclass="relatedListForm-wrapper" rendered="{!currentRLCRecord != null}">
+                <div class="modal-backdrop fade in"></div>
+                <apex:pageblock mode="maindetail">
+                    <div id="myModal" class="modal fade in" tabindex="-1">
+                        <div class="modal-header">
+                            <apex:commandbutton status="mainStatus" action="{!closeRLCPopUp}" rerender="relatedListForm" value="X" styleclass="close" immediate="true"> </apex:commandbutton>
+                            <h3>{!currentRLCRecord.AssociatedType}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <apex:pagemessages ></apex:pagemessages>
+                            <apex:pageblocksection rendered="{!currentRLCRecord.lstRLCFields != null}" id="formBlock">
+                                <apex:repeat var="field" value="{!currentRLCRecord.lstRLCFields}">
+                                    <apex:repeat var="fieldMap" value="{!field}">
+                                        <apex:pageblocksectionitem rendered="{!(fieldMap != 'FGM_Portal__ParentObject__c' && fieldMap != 'FGM_Portal__ObjectName__c' && fieldMap != 'FGM_Portal__SortField__c' && fieldMap != 'FGM_Portal__RichInstructionalText__c')}">
+                                            <apex:outputlabel value="{!field[fieldMap]}"> <apex:image url="/s.gif" styleclass="helpOrb" rendered="{!(fieldMap == 'FGM_Portal__Show_Tab_to_Organization_Users__c' || fieldMap == 'FGM_Portal__Show_Tab_to_Individual_Users__c')}" title="{!if(fieldMap == 'FGM_Portal__Show_Tab_to_Organization_Users__c',$ObjectType.Related_List_Controller__c.Fields.Show_Tab_to_Organization_Users__c.inlineHelpText,if(fieldMap == 'FGM_Portal__Show_Tab_to_Individual_Users__c',$ObjectType.Related_List_Controller__c.Fields.Show_Tab_to_Individual_Users__c.inlineHelpText,''))}" /> </apex:outputlabel>
+                                            <apex:inputfield styleclass="form_control {!IF(fieldMap == 'FGM_Portal__SortFieldOrder__c','select','')}" label="{!field[fieldMap]}" value="{!currentRLCRecord.currentRelatedListController[fieldMap]}"></apex:inputfield>
+                                        </apex:pageblocksectionitem>
+                                        <apex:pageblocksectionitem rendered="{!fieldMap == 'FGM_Portal__ParentObject__c'}">
+                                            <apex:outputlabel value="{!field[fieldMap]}"></apex:outputlabel>
+                                            <apex:selectlist value="{!currentRLCRecord.currentRelatedListController[fieldMap]}" multiselect="false" size="1" styleclass="select">
+                                                <apex:selectoption itemvalue="" itemlabel="--- None ---"></apex:selectoption>
+                                                <apex:selectoptions value="{!parentObjects}" />
+                                            </apex:selectlist>
+                                        </apex:pageblocksectionitem>
+                                        <apex:pageblocksectionitem rendered="{!fieldMap == 'FGM_Portal__SortField__c'}">
+                                            <apex:outputlabel value="{!field[fieldMap]}"></apex:outputlabel>
+                                            <apex:selectlist value="{!currentRLCRecord.currentRelatedListController[fieldMap]}" multiselect="false" size="1" styleclass="searchSelect">
+                                                <apex:selectoption itemvalue="" itemlabel="--- Select Field ---"></apex:selectoption>
+                                                <apex:selectoptions value="{!childObjectFieldsOptions}" />
+                                            </apex:selectlist>
+                                        </apex:pageblocksectionitem>
+                                        <apex:pageblocksectionitem rendered="{!(fieldMap == 'FGM_Portal__ObjectName__c')}">
+                                            <apex:outputlabel value="{!field[fieldMap]}"></apex:outputlabel>
+                                            <apex:selectlist value="{!currentRLCRecord.currentRelatedListController[fieldMap]}" styleclass="searchSelect FGM_Portal__ObjectName__c">
+                                                <apex:selectoption itemvalue="" itemlabel="--- Select Object ---"></apex:selectoption>
+                                                <apex:selectoptions value="{!AvailableObjects}"></apex:selectoptions>
+                                                <apex:actionsupport event="onchange" action="{!getObjectFields}" oncomplete="initializeSelect();" status="fillChildFields" rerender="formBlock,ColConfigBlock"></apex:actionsupport>
+                                                <apex:actionstatus id="fillChildFields">
+                                                    <apex:facet name="start">
+                                                        <apex:outputpanel layout="none">
+                                                            <apex:image value="/img/loading.gif" styleclass="loadingImageStyle"></apex:image>
+                                                        </apex:outputpanel>
+                                                    </apex:facet>
+                                                </apex:actionstatus>
+                                            </apex:selectlist>
+                                        </apex:pageblocksectionitem>
+                                        <apex:outputpanel rendered="{!fieldMap == 'FGM_Portal__RichInstructionalText__c'}">
+                                            <tr>
+                                                <td class="labelCol vfLabelColTextWrap"><apex:outputlabel value="{!field[fieldMap]}"></apex:outputlabel></td>
+                                                <td colspan="3">
+                                                    <apex:inputTextArea styleclass="form_control txtinstruction" label="{!field[fieldMap]}" value="{!currentRLCRecord.currentRelatedListController [fieldMap]}"></apex:inputTextArea>
+                                                </td>
+                                            </tr>
+                                        </apex:outputpanel>
+                                    </apex:repeat>
+                                </apex:repeat>
+
+                                <script type="text/javascript">
+                                    initializetinymce()
+                                </script>
+                            </apex:pageblocksection>
+                            <apex:pageblocksection id="ColConfigBlock" columns="1">
+                                <apex:variable var="columnIndex" value="{!0}"></apex:variable>
+                                <apex:pageblocktable var="column" value="{!currentRLCRecord.relatedListColumns}" width="100%" rendered="{!(NOT(ISBLANK(currentRLCRecord.currentRelatedListController['FGM_Portal__ObjectName__c'])))}">
+                                    <apex:column headervalue="Column Label" width="35%">
+                                        <apex:facet name="header">Column Label</apex:facet>
+                                        <apex:outputlabel value="{!column.colLabel}">
+                                        </apex:outputlabel>
+                                        <apex:facet name="footer">
+                                            <apex:outputpanel layout="none">
+                                                <apex:inputtext value="{!currentRLCRecord.newColumn.colLabel}"></apex:inputtext>
+                                            </apex:outputpanel>
+                                        </apex:facet>
+                                    </apex:column>
+                                    <apex:column headervalue="Column Field" width="35%">
+                                        <apex:facet name="header">Column Field</apex:facet>
+                                        <apex:outputlabel value="{!column.colfieldLabel}">
+                                        </apex:outputlabel>
+                                        <!-- Footer -->
+                                        <apex:facet name="footer">
+                                            <apex:outputpanel layout="none">
+                                                <apex:selectlist value="{!currentRLCRecord.newColumn.colField}" multiselect="false" styleclass="searchSelect" size="1">
+                                                    <apex:selectoption itemvalue="" itemlabel="--- Select Field ---"></apex:selectoption>
+                                                    <apex:selectoptions value="{!childObjectFieldsOptions}" />
+                                                </apex:selectlist>
+                                            </apex:outputpanel>
+                                        </apex:facet>
+                                    </apex:column>
+                                    <apex:column headervalue="Action" width="28%">
+                                        <apex:facet name="header">Action</apex:facet>
+                                        <apex:commandlink value="Remove" action="{!removeColumnFromRelatedListTable}" rerender="ColConfigBlock" oncomplete="setApexpStyleClass();">
+                                            <apex:param name="columnIndex" value="{!columnIndex}"></apex:param>
+                                        </apex:commandlink>
+                                        <apex:variable var="columnIndex" value="{!columnIndex + 1}"></apex:variable>
+                                        <apex:facet name="footer">
+                                            <apex:outputpanel layout="none">
+                                                <apex:commandbutton value="Add Column" styleclass="btn btn-primary" action="{!addColumnInRelatedListTable}" oncomplete="setApexpStyleClass();" status="addColumn" rerender="ColConfigBlock"></apex:commandbutton>
+                                                <apex:actionstatus id="addColumn">
+                                                    <apex:facet name="start">
+                                                        <apex:outputpanel layout="none">
+                                                            <apex:image value="/img/loading.gif" styleclass="loadingImageStyle"></apex:image>
+                                                        </apex:outputpanel>
+                                                    </apex:facet>
+                                                </apex:actionstatus>
+                                            </apex:outputpanel>
+                                        </apex:facet>
+                                    </apex:column>
+                                </apex:pageblocktable>
+                                <apex:pageblocksectionitem >
+                                </apex:pageblocksectionitem>
+                            </apex:pageblocksection>
+                        </div>
+                        <div class="modal-footer">
+                            <apex:actionfunction name="saveRelatedListControllerRecord" action="{!saveRelatedListControllerRecord}" rerender="relatedListForm" status="mainStatus">
+                            </apex:actionfunction>
+                            <apex:actionstatus id="mainStatus">
+                                <apex:facet name="stop">
+                                    <apex:outputpanel layout="none">
+                                        <apex:commandbutton value="Save" status="mainStatus" onclick="saveTabRecord(); return false;" styleclass="btn-success  btn-primary" />
+                                        <apex:commandbutton value="Cancel" action="{!closeRLCPopUp}" rerender="relatedListForm" styleclass="btn-success btn-primary" immediate="true" />
+                                    </apex:outputpanel>
+                                </apex:facet>
+                                <apex:facet name="start">
+                                    <apex:outputpanel layout="none">
+                                        <apex:commandbutton value="Saving..." styleclass="btn-success btn-primary" disabled="true" />
+                                        <apex:commandbutton value="Saving..." styleclass="btn-success btn-primary" disabled="true" />
+                                    </apex:outputpanel>
+                                </apex:facet>
+                            </apex:actionstatus>
+                        </div>
+                    </div>
+                </apex:pageblock>
+            </apex:outputpanel>
+        </apex:outputpanel>
+        <script type="text/javascript">
+            initializeSelect();
+        </script>
+    </apex:form>
+</apex:page>

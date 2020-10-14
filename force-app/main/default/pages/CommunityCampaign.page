@@ -1,0 +1,198 @@
+<apex:page standardcontroller="Campaign"
+    extensions="CommunityCampaignExtension"
+    showheader="true" sidebar="false"
+    tabstyle="CommunitiesExplore__tab"
+    title="{!IF(shouldUseFieldTranslation['Name'], campaignTranslations['Name'].Translation_Value__c, Campaign.Name)}"
+    language="{!portalLanguage}"
+    action="{!initializeTranslations}">
+
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource, '/application_css/community-campaign.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/community-campaign.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/angular/angular.min.1.7.8.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/community-application-10.24.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/translationMapping_10.12.js')}" />
+
+    <c:GlobalResources islocal="{!$CurrentPage.parameters.local}" />
+    <apex:form >
+        <apex:pageMessages />
+        <apex:pageBlock >
+
+            <apex:pageBlockSection >
+                <apex:pageBlockSectionItem >
+                    <apex:sectionheader title="{!CampaignRecordTypeName}"
+                        subtitle="{!IF(shouldUseFieldTranslation['Name'], campaignTranslations['Name'].Translation_Value__c, Campaign.Name)}">
+                    </apex:sectionheader>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputpanel styleclass="sidebar sidebar-default" layout="block" style="text-align: left; float: right; background-color: #e0e3e5; padding: 2%; border-radius: 5px;">
+                        <h3>
+                            <span >{!$Label.fgm_portal__fc_communitiescampaign_postedon_label}</span>
+                        </h3>
+                        <apex:outputtext styleclass="posted-date" value="{0, date, dd' 'MMM ' 'yyyy}">
+                            <apex:param value="{!campaign.CreatedDate}"></apex:param>
+                        </apex:outputtext>
+                        <br/>
+                        <br/>
+                        <apex:outputtext rendered="{!ISBLANK(campaign.EndDate)}">
+                            <span >{!$Label.fgm_portal__fc_communitiescampaign_deadlineblock}</span>
+                        </apex:outputtext>
+                        <apex:outputPanel rendered="{!NOT(ISBLANK(campaign.EndDate))}">
+                            <h3>
+                                <span >{!$Label.fgm_portal__fc_communitiescampaign_endon_label}</span>
+                            </h3>
+                            <apex:outputtext styleclass="posted-date" value="{0, date, dd' 'MMM ' 'yyyy}">
+                                <apex:param value="{!campaign.EndDate}"></apex:param>
+                            </apex:outputtext>
+                        </apex:outputPanel>
+                    </apex:outputpanel>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <apex:panelgrid columns="2" width="100%" styleclass="detail-view" columnclasses="col-1, col-2">
+            <apex:outputpanel layout="none">
+                <h2>
+                    <span >{!$ObjectType.Campaign.Fields.Description.Label}</span>
+                </h2>
+                    <apex:outputField value="{!campaignTranslations['Description'].Translation_Value__c}"
+                        rendered="{!shouldUseFieldTranslation['Description']}">
+                    </apex:outputField>
+                    <apex:outputField value="{!Campaign.Description}"
+                        rendered="{!NOT(shouldUseFieldTranslation['Description'])}">
+                    </apex:outputField>
+                <h2>
+                    <span >{!$ObjectType.Campaign.Fields.Description__c.Label}</span>
+                </h2>
+                <apex:outputtext >
+                    <span style="display:inline-block; margin-bottom: 14px;">
+                        <apex:outputField value="{!campaignTranslations['FGM_Portal__Description__c'].Translation_Value__c}"
+                            rendered="{!shouldUseFieldTranslation['FGM_Portal__Description__c']}">
+                        </apex:outputField>
+
+                        <apex:outputField value="{!Campaign.Description__c}"
+                            rendered="{!NOT(shouldUseFieldTranslation['FGM_Portal__Description__c'])}">
+                        </apex:outputField>
+                    </span>
+                </apex:outputtext>
+                <apex:outputPanel rendered="{!showAttachmentBlock}">
+                    <span class="download-items-div">
+                        <h3>{!$Label.fgm_portal__fc_downloadfile_label}</h3>
+                        <br/>
+                        <br/>
+                        <apex:repeat value="{!Campaign.Attachments}" var="attachment">
+                            <apex:outputpanel layout="block" styleclass="attachment-item" html-data-content-type="{!attachment.ContentType}">
+                                <apex:outputpanel rendered="{!attachment.ContentType == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}" styleclass="fa fa-file-word-o"></apex:outputpanel>
+                                <apex:outputpanel rendered="{!attachment.ContentType == 'EXCEL'}" styleclass="fa fa-file-excel-o"></apex:outputpanel>
+                                <p>
+                                    <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachment.Id)}">{!attachment.Name}</apex:outputLink>
+                                </p>
+                                <p>
+                                    <apex:outputtext styleclass="description"><span >{!attachment.Description}</span></apex:outputtext>
+                                </p>
+                                <p>
+                                    <apex:outputtext value="{!FLOOR(attachment.BodyLength / 1024)} KB" styleclass="size"></apex:outputtext>
+                                </p>
+                            </apex:outputpanel>
+                        </apex:repeat>
+                        <apex:repeat value="{!lstContentDocumentLinkForCampaign}" var="contentDocumentLink">
+                            <apex:outputpanel layout="block" styleclass="attachment-item" html-data-content-type="{!contentDocumentLink.ContentDocument.FileType}">
+                                 <apex:outputpanel rendered="{!contentDocumentLink.ContentDocument.FileType == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}" styleclass="fa fa-file-word-o"></apex:outputpanel>
+                                 <apex:outputpanel rendered="{!contentDocumentLink.ContentDocument.FileType == 'EXCEL'}" styleclass="fa fa-file-excel-o"></apex:outputpanel>
+                                 <p>
+                                     <apex:outputlink value="/sfc/servlet.shepherd/version/download/{!contentDocumentLink.ContentDocument.LatestPublishedVersionId}?asPdf=false&operationContext=CHATTER" target="_blank" > {!contentDocumentLink.ContentDocument.Title} </apex:outputlink>
+                                 </p>
+                                 <p>
+                                     <apex:outputtext styleclass="description"><span >{!contentDocumentLink.ContentDocument.Description}</span></apex:outputtext>
+                                 </p>
+                                 <p>
+                                     <apex:outputtext value="{!FLOOR(contentDocumentLink.ContentDocument.ContentSize / 1024)} KB" styleclass="size"></apex:outputtext>
+                                 </p>
+                             </apex:outputpanel>
+                       </apex:repeat>
+                    </span>
+                </apex:outputPanel>
+            </apex:outputpanel>
+        </apex:panelgrid>
+        <apex:repeat value="{!LstCampaignQuizzes}" var="campQuiz">
+            <apex:panelGrid columns="2" width="100%" styleclass="detail-view" columnclasses="col-1, col-2">
+                <apex:outputpanel layout="none">
+                    <h2>
+                        <span>
+                            <apex:outputField value="{!campQuiz.translations['Name'].Translation_Value__c}"
+                                rendered="{!campQuiz.shouldUseFieldTranslation['Name']}">
+                            </apex:outputField>
+
+                            <apex:outputPanel layout="none" rendered="{!NOT(campQuiz.shouldUseFieldTranslation['Name'])}">
+                                <apex:outputField rendered="{!NOT(ISNULL(campQuiz.quiz))}"
+                                    value="{!campQuiz.quiz.Name}">
+                                </apex:outputField>
+                                <apex:outputField rendered="{!NOT(ISNULL(campQuiz.campaignQuiz))}"
+                                    value="{!campQuiz.campaignQuiz.Name}">
+                                </apex:outputField>
+                            </apex:outputPanel>
+                        </span>
+                    </h2>
+                    <span>
+                        <apex:outputField value="{!campQuiz.translations['FGM_Portal__Rich_Instructional_Text__c'].Translation_Value__c}"
+                            rendered="{!campQuiz.shouldUseFieldTranslation['FGM_Portal__Rich_Instructional_Text__c']}">
+                        </apex:outputField>
+                        <apex:outputPanel layout="none" rendered="{!NOT(campQuiz.shouldUseFieldTranslation['FGM_Portal__Rich_Instructional_Text__c'])}">
+                            <apex:outputField rendered="{!NOT(ISNULL(campQuiz.quiz))}"
+                                value="{!campQuiz.quiz.Introduction_Text__c}">
+                            </apex:outputField>
+                            <apex:outputField rendered="{!NOT(ISNULL(campQuiz.campaignQuiz))}"
+                                value="{!campQuiz.campaignQuiz.Rich_Instructional_Text__c}">
+                            </apex:outputField>
+                        </apex:outputPanel>
+                    </span>
+                    <br/><br/>
+                    <apex:outputPanel rendered="{!IF( campQuiz.Attachments.size > 0 || campQuiz.lstContentDocumentLink.size > 0 , TRUE, FALSE )}">
+                        <span class="download-items-div">
+                            <h4>{!$Label.fgm_portal__fc_downloadfile_label}</h4>
+                            <br/>
+                            <br/>
+                            <apex:repeat value="{!campQuiz.Attachments}" var="attachment">
+                                <apex:outputpanel layout="block" styleclass="attachment-item" html-data-content-type="{!attachment.ContentType}">
+                                    <apex:outputpanel rendered="{!attachment.ContentType == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}" styleclass="fa fa-file-word-o"></apex:outputpanel>
+                                    <apex:outputpanel rendered="{!attachment.ContentType == 'EXCEL'}" styleclass="fa fa-file-excel-o"></apex:outputpanel>
+                                    <p>
+                                        <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachment.Id)}">{!attachment.Name}</apex:outputLink>
+                                    </p>
+                                    <p>
+                                        <apex:outputtext styleclass="description"><span>{!attachment.Description}</span></apex:outputtext>
+                                    </p>
+                                    <p>
+                                        <apex:outputtext value="{!FLOOR(attachment.BodyLength / 1024)} KB" styleclass="size"></apex:outputtext>
+                                    </p>
+                                </apex:outputpanel>
+                          </apex:repeat>
+                          <apex:repeat value="{!campQuiz.lstContentDocumentLink}" var="contentDocumentLink">
+                                <apex:outputpanel layout="block" styleclass="attachment-item" html-data-content-type="{!contentDocumentLink.ContentDocument.FileType}">
+                                    <apex:outputpanel rendered="{!contentDocumentLink.ContentDocument.FileType == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}" styleclass="fa fa-file-word-o"></apex:outputpanel>
+                                    <apex:outputpanel rendered="{!contentDocumentLink.ContentDocument.FileType == 'EXCEL'}" styleclass="fa fa-file-excel-o"></apex:outputpanel>
+                                    <p>
+                                        <apex:outputlink value="/sfc/servlet.shepherd/version/download/{!contentDocumentLink.ContentDocument.LatestPublishedVersionId}?asPdf=false&operationContext=CHATTER" target="_blank" > {!contentDocumentLink.ContentDocument.Title} </apex:outputlink>
+                                    </p>
+                                    <p>
+                                        <apex:outputtext styleclass="description"><span>{!contentDocumentLink.ContentDocument.Description}</span></apex:outputtext>
+                                    </p>
+                                    <p>
+                                        <apex:outputtext value="{!FLOOR(contentDocumentLink.ContentDocument.ContentSize / 1024)} KB" styleclass="size"></apex:outputtext>
+                                    </p>
+                                </apex:outputpanel>
+                          </apex:repeat>
+                        </span>
+                        <br/><br/>
+                    </apex:outputPanel>
+
+                    <apex:commandButton styleclass="open-application" value="{!$Label.fgm_portal__fc_createapplication_buttonlabel}" disabled="{!IsCampaignExpired}" rendered="{!IsCampaignExpired}" style="width:auto;float:right"></apex:commandButton>
+
+                    <apex:commandLink action="{!createApplication}" styleclass="open-application" value="{!$Label.fgm_portal__fc_createapplication_buttonlabel}" rendered="{!NOT( IsCampaignExpired )}" style="width:auto;float:right">
+                        <apex:param name="selectesQuizParam" id="selectesQuizParam" value="{!campQuiz.QuizId}" assignTo="{!QuizId}"/>
+                    </apex:commandLink>
+                </apex:outputpanel>
+            </apex:panelGrid>
+        </apex:repeat>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,9 @@
+<apex:page standardController="Quiz__c" extensions="QuizDesignFormExtension" showHeader="true" sidebar="true" standardStylesheets="false" lightningStylesheets="true" action="{!initialize}">
+<style type="text/css">
+    .headerSearchContainer, #setupLink {
+        display: none !important;
+    }
+</style>
+
+<apex:include pageName="{!$Page.PageLayoutInitialized}" rendered="{!initialized}"/>
+</apex:page>

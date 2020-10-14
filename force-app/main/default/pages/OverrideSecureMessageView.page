@@ -1,0 +1,1 @@
+<apex:page standardController="Secure_Message__c" extensions="OverrideViewExtension"  action="{!if(IsCommunityuser, communityUrl,URLFOR($Action.FGM_Portal__Secure_Message__c.View,FGM_Portal__Secure_Message__c.Id, [retURL=''], true))}" sidebar="false" showHeader="false"></apex:page>

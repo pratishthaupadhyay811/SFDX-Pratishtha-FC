@@ -1,0 +1,30 @@
+<apex:page controller="ObjectDataTranslationController" >
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/angular/angular.min.1.7.8.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/angular/angular-animate-1.7.8.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/toaster/toaster.js')}" />
+
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/application_js/translationMapping_10.15.js')}" />
+
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/enzi-lookup.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/simple-undo.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/vendor_js/ckeditor/ckeditor.js')}" />
+
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/application_css/salesforce-lightning-design-system.css')}"/> 
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/application_css/object-data-translation.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/application_js/object-data-translation.js')}" />
+     <script>
+        var JSON_LanguageOptions = '{!languageOptionsJSON}';
+        var loadingDiv = $('<div class="spinnerContainer"><div class="spinner"><div class="rect1"></div><div class="rect2"></div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div><br /><span class="spanText">Processing...</span></div></div>');
+       $(".bodyDiv").prepend(loadingDiv);
+    </script>
+    <apex:form id="mainForm" >
+        <apex:panelgrid columns="2" styleclass="sectionheader" >
+            <apex:sectionheader title="Translation Field Mapping" subtitle="Object Data Mapping Wizard" />
+        </apex:panelgrid>
+        <div ng-app="transApp" ng-controller="ObjDataTranslateController">
+            <top-bar></top-bar>
+            <field-row></field-row>
+        </div>
+    </apex:form>
+</apex:page>

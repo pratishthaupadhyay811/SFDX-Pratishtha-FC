@@ -1,0 +1,11 @@
+<apex:page standardcontroller="Portal_User__c" extensions="CommunitySignupConfirmExtension" standardstylesheets="false" lightningStylesheets="true" sidebar="false" showheader="false" cache="false" language="{!portalLanguage}">
+<style type="text/css">
+    .headerSearchContainer, #setupLink {
+        display: none !important;
+    }
+</style>
+<apex:form rendered="{!NOT(initialized)}">
+    <c:ConfirmModal actionToInvoke="{!initialize}" message="{!$Label.fgm_portal__fc_communitysignupconfirm_confirm}" cancelLabel="{!$Label.fgm_portal__fc_cancel_buttonlabel}" isCancel="false"/>
+</apex:form>
+<apex:include pageName="{!$Page.CommunitySignupConfirmInitialized}" rendered="{!initialized}"/>
+</apex:page>

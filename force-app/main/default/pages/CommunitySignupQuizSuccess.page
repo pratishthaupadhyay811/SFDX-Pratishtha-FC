@@ -1,0 +1,25 @@
+<apex:page standardController="Quiz__c" extensions="CommunitySignupQuizSuccessExtension" standardStylesheets="false" sidebar="false" showHeader="false" cache="false" language="{!portalLanguage}" >
+   <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+   <c:GlobalResources IsLocal="{!$CurrentPage.parameters.local}"/>
+   <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <script>
+        $("body").addClass("bg-page");
+
+    </script>
+
+    <apex:form id="mainForm" forceSSL="true">
+        <div id="registration" class="container">
+            <div id="registration-wrapper">
+                <apex:image url="{!ImageLogoUrl}" styleClass="logo-home" />
+                <br/><br/>
+                <apex:outputtext value="{!$Label.fgm_portal__signupquiz_successmsg}" > </apex:outputtext>
+                <br/><br/>
+                <apex:commandButton value="{!$Label.fgm_portal__fc_continue_buttonlabel}" action="{!continueSignUp}" styleClass="btn btnNew"></apex:commandButton>
+                <br/><br/><br/>
+                <div class="quiz-footer">
+                    <apex:outputtext value="{!$Label.fgm_portal__signupquizfooter}" > </apex:outputtext>
+                </div>
+            </div>
+        </div>
+    </apex:form>
+</apex:page>

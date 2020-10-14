@@ -1,0 +1,1 @@
+<apex:page standardController="Question_Attachment__c" extensions="OverrideViewExtension"  action="{!if(IsCommunityuser, communityUrl,URLFOR($Action.FGM_Portal__Question_Attachment__c.View,FGM_Portal__Question_Attachment__c.Id, [retURL=''], true))}" sidebar="false" showHeader="false"></apex:page>

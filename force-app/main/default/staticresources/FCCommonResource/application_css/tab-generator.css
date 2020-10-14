@@ -1,0 +1,11 @@
+tfoot {
+    display: table-footer-group !important;
+}
+.ui-tooltip {
+    background-color: #363636 !important;
+    color: white;
+    border-radius: 5px;
+    opacity: 0.9;
+    font: 12px "Helvetica Neue", Sans-Serif;
+    box-shadow: 0 0 3px #303030;
+}

@@ -1,0 +1,432 @@
+<apex:page doctype="html-5.0" standardcontroller="Portal_User__c" extensions="CommunitySignupExtension,GlobalResourcesController" showheader="false" standardstylesheets="false" language="{!portalLanguage}" cache="false" action="{!initialize}">
+    <head><title>{!$Label.FC_GranteeSignup_PageTitle}</title></head>
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/tooltipster/tooltipster.min.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/jquery/jquery-3.4.0.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.FCCommonResource,'/vendor_css/bootstrap/bootstrap.min.css')}" />
+    <apex:variable var="renderLoginStylesheet" value="" rendered="{!NOT(OR(ISBLANK(loginStylesheetResourceName), ISBLANK(loginStylesheetRelativePath)))}">
+        <apex:stylesheet value="{!'/resource/' + loginStylesheetResourceName + IF(BEGINS(loginStylesheetRelativePath, '/'), '', '/') + loginStylesheetRelativePath}"/>
+    </apex:variable>
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/bootstrap/bootstrap-3.4.1.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource,'/jquery.mask.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.FCCommonResource, '/vendor_js/tooltipster-master/tooltipster-SVG.min.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/JS/global-script.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.FCCommonResource, '/application_js/community-signup.js')}" />
+    <c:GlobalResources islocal="{!$CurrentPage.parameters.local}" />
+    <script type="text/javascript" defer="defer">
+    var theControllerValue = '{!JSENCODE(strFields)}';
+    var country;
+    var state;
+    $(document).ready(function () {
+        loadDataFields();
+        initializeForm();
+    });
+
+    $("body").addClass("bg-page");
+    </script>
+    <apex:form id="mainForm" forcessl="true">
+        <script> initializeForm();loadDataFields(); </script>
+        <div id="registration" class="container">
+            <div id="registration-wrapper" role="form" class="form">
+                <div Class="{!IF(ImageLogoUrl ==null ,'logo-home','')}">
+                       <apex:image url="{!ImageLogoUrl}" rendered="{!IF(ImageLogoUrl !=null ,true,false)}" styleClass="logo-home"/>
+                   </div>
+                <div style="display: inline-block;">
+                    <ol class="breadcrumb">
+                        <li><apex:outputlink value="{!URLFOR($Page.CommunitySignup)}">{!$Label.fgm_portal__fc_signuppage_headerlabel}</apex:outputlink></li>
+                        <li class="{!IF(portalStep == 1,'active','inactive')}">{!$Label.FC_SignupPage_HeaderLabel_Step1}</li>
+                        <li class="{!IF(portalStep == 2,'active','inactive')}">{!$Label.FC_SignupPage_HeaderLabel_Step2}</li>
+                        <li class="{!IF(portalStep == 3,'active','inactive')}">{!$Label.FC_SignupPage_HeaderLabel_Step3}</li>
+                    </ol>
+                </div>
+                <!-- To control Individiual Or organization userType -->
+                <div class="userType">
+                    <apex:actionregion >
+                        <apex:selectradio value="{!userProfile}">
+                            <apex:selectoptions value="{!items}" />
+                            <apex:actionsupport event="onchange" action="{!initialize}" rerender="mainForm" status="profileLayout" />
+                        </apex:selectradio>
+                        <apex:actionstatus id="profileLayout">
+                            <apex:facet name="start">
+                                <apex:outputpanel layout="none">
+                                    <apex:image value="/img/loading.gif" styleclass="loding_alignment"></apex:image>
+                                </apex:outputpanel>
+                            </apex:facet>
+                        </apex:actionstatus>
+                    </apex:actionregion>
+                </div>
+                <hr size="1" class="divider"></hr>
+                <div class="row">
+                    <div class="col-sm-5 signup-panel-1">
+                        <div style="width:99%">
+                            <apex:outputpanel id="messageBlock">
+                                <div><apex:messages styleclass="errorMessageBlock" /></div>
+                            </apex:outputpanel>
+                        </div>
+                        <apex:outputpanel id="organizationblock">
+                            <apex:outputpanel rendered="{!profileType == 'Organization'}">
+                                <script>disablePaste();</script>
+                                <apex:repeat var="field" value="{!$ObjectType.Portal_User__c.FieldSets.Communities_Sign_Up_Step_1}" rendered="{!portalStep == 1}">
+                                    <apex:actionregion >
+                                        <div class="form-group input-field" data-object-name="FGM_Portal__Portal_User__c" data-field-name="{!field}" data-field-type="{!field.Type}" data-required="{!OR(field.required, field.dbrequired)}">
+                                            <apex:outputpanel rendered="{!field.Type != 'boolean'}">
+                                                <label class="control-label">{!field.Label} <apex:outputpanel rendered="{!(field.Required || field.FieldPath == 'FGM_Portal__LastName__c')}"> <div class="fcRecord_required-marker_new fcRecord_new_required" title="{!$Label.fgm_portal__fc_required_field_label}">*</div></apex:outputpanel></label>
+                                                <apex:outputpanel rendered="{!mapPortalUserHelpText != null && mapPortalUserHelpText[field] != 'Blank'}">
+                                                    <label class="help-text tooltip" title="{!mapPortalUserHelpText[field]}">?</label>
+                                                </apex:outputpanel>
+                                                <apex:outputpanel rendered="{!(field.FieldPath == 'FGM_Portal__Organization_Legal_Name__c' || field.FieldPath == 'FGM_Portal__EIN__c')}">
+                                                    <!-- ADD styleClass="justifiedMsg-wrapper" FOR CSS -->
+                                                    <div class="signup_div">
+                                                        <apex:outputpanel rendered="{!field.FieldPath == 'FGM_Portal__Organization_Legal_Name__c'}">
+                                                            <apex:actionstatus id="OrgGuideStarStatus" rendered="{!hasGuideStarNamedCredential}">
+                                                                <apex:facet name="stop">
+                                                                    <apex:outputpanel layout="none">
+                                                                        <apex:commandlink action="{!getGuideStarInfo}" status="OrgGuideStarStatus" rerender="guideStarSearchResult,messageBlock" title="{!$Label.fgm_portal__fc_guidestartbuttonhelptext_label}" value="{!$Label.fgm_portal__fc_guidestatinfo_label}" styleclass="btn btn-primary guidestar_btn">
+                                                                            <apex:param assignto="{!guideStarField}" name="guidestarField" value="{!field.FieldPath}" />
+                                                                        </apex:commandlink>
+                                                                    </apex:outputpanel>
+                                                                </apex:facet>
+                                                                <apex:facet name="start">
+                                                                    <apex:outputpanel layout="none">
+                                                                        <apex:commandlink onclick="return false;" title="{!$Label.fgm_portal__fc_guidestartbuttonhelptext_label}" value="{!$Label.fgm_portal__fc_guidestatinfo_label}" styleclass="btn btn-primary guidestar_btn signup_cursor"> <i class="fa fa-spinner fa-spin"></i> </apex:commandlink>
+                                                                    </apex:outputpanel>
+                                                                </apex:facet>
+                                                            </apex:actionstatus>
+                                                        </apex:outputpanel>
+                                                        <apex:outputpanel rendered="{!field.FieldPath == 'FGM_Portal__EIN__c'}">
+                                                            <apex:actionstatus id="EinGuideStarStatus" rendered="{!hasGuideStarNamedCredential}">
+                                                                <apex:facet name="stop">
+                                                                    <apex:outputpanel layout="none">
+                                                                        <apex:commandlink action="{!getGuideStarInfo}" status="EinGuideStarStatus" rerender="guideStarSearchResult,messageBlock" title="{!$Label.fgm_portal__fc_guidestartbuttonhelptext_label}" value="{!$Label.fgm_portal__fc_guidestatinfo_label}" styleclass="btn btn-primary guidestar_btn">
+                                                                            <apex:param assignto="{!guideStarField}" name="guidestarField" value="{!field.FieldPath}" />
+                                                                        </apex:commandlink>
+                                                                    </apex:outputpanel>
+                                                                </apex:facet>
+                                                                <apex:facet name="start">
+                                                                    <apex:outputpanel layout="none">
+                                                                        <apex:commandlink onclick="return false;" title="{!$Label.fgm_portal__fc_guidestartbuttonhelptext_label}" value="{!$Label.fgm_portal__fc_guidestatinfo_label}" styleclass="btn btn-primary guidestar_btn signup_cursor"> <i class="fa fa-spinner fa-spin"></i> </apex:commandlink>
+                                                                    </apex:outputpanel>
+                                                                </apex:facet>
+                                                            </apex:actionstatus>
+                                                        </apex:outputpanel>
+                                                        <apex:inputfield styleclass="signup_padding_right" value="{!portalUser[field]}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                    </div>
+                                                </apex:outputpanel>
+                                                <apex:outputpanel rendered="{!(field.FieldPath != 'FGM_Portal__Organization_Legal_Name__c' && field.FieldPath != 'FGM_Portal__EIN__c')}">
+                                                    <apex:inputfield value="{!portalUser[field]}" rendered="{!(field.FieldPath != 'FGM_Portal__Country__c' && field.FieldPath != 'FGM_Portal__State__c' && field.FieldPath != 'FGM_Portal__Confirm_Email__c' && field.FieldPath != 'FGM_Portal__Confirm_Password__c')}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                    <apex:inputfield styleClass="confirmField" value="{!portalUser[field]}" rendered="{!field.FieldPath == 'FGM_Portal__Confirm_Email__c' || field.FieldPath == 'FGM_Portal__Confirm_Password__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                    <apex:inputfield styleclass="form-control" value="{!user[countryField]}" onchange="getCountry(this);" rendered="{!field.FieldPath == 'FGM_Portal__Country__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                    <apex:inputfield id="countrystate" styleclass="form-control" value="{!user[stateField]}" onchange="getState(this);" rendered="{!field.FieldPath == 'FGM_Portal__State__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                </apex:outputpanel>
+                                            </apex:outputpanel>
+                                            <apex:outputpanel rendered="{!field.Type == 'boolean'}">
+                                                <apex:inputfield value="{!portalUser[field]}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                <label class="control-label">{!field.Label} <apex:outputpanel rendered="{!field.Required}"> <div class="fcRecord_required-marker_new fcRecord_new_required" title="{!$Label.fgm_portal__fc_required_field_label}">*</div></apex:outputpanel> </label>
+                                                <apex:outputpanel rendered="{!mapPortalUserHelpText != null && mapPortalUserHelpText[field] != 'Blank'}">
+                                                    <label class="help-text tooltip" title="{!mapPortalUserHelpText[field]}">?</label>
+                                                </apex:outputpanel>
+                                            </apex:outputpanel>
+                                        </div>
+                                    </apex:actionregion>
+                                </apex:repeat>
+                                 <apex:repeat var="field" value="{!$ObjectType.Portal_User__c.FieldSets.Communities_Sign_Up_Step_2}" rendered="{!portalStep == 2}">
+                                    <apex:actionregion >
+                                        <div class="form-group input-field" data-object-name="FGM_Portal__Portal_User__c" data-field-name="{!field}" data-field-type="{!field.Type}" data-required="{!OR(field.required, field.dbrequired)}">
+                                            <apex:outputpanel rendered="{!field.Type != 'boolean'}">
+                                                <label class="control-label">{!field.Label} <apex:outputpanel rendered="{!(field.Required || field.FieldPath == 'FGM_Portal__LastName__c')}"> <div class="fcRecord_required-marker_new fcRecord_new_required" title="{!$Label.fgm_portal__fc_required_field_label}">*</div></apex:outputpanel></label>
+                                                <apex:outputpanel rendered="{!mapPortalUserHelpText != null && mapPortalUserHelpText[field] != 'Blank'}">
+                                                    <label class="help-text tooltip" title="{!mapPortalUserHelpText[field]}">?</label>
+                                                </apex:outputpanel>
+                                                <apex:outputpanel rendered="{!(field.FieldPath == 'FGM_Portal__Organization_Legal_Name__c' || field.FieldPath == 'FGM_Portal__EIN__c')}">
+                                                    <div class="signup_div">
+                                                        <apex:outputpanel rendered="{!field.FieldPath == 'FGM_Portal__Organization_Legal_Name__c'}">
+                                                            <apex:actionstatus id="OrgGuideStarStatus" rendered="{!hasGuideStarNamedCredential}">
+                                                                <apex:facet name="stop">
+                                                                    <apex:outputpanel layout="none">
+                                                                        <apex:commandlink action="{!getGuideStarInfo}" status="OrgGuideStarStatus" rerender="guideStarSearchResult" title="{!$Label.fgm_portal__fc_guidestartbuttonhelptext_label}" value="{!$Label.fgm_portal__fc_guidestatinfo_label}" styleclass="btn btn-primary guidestar_btn">
+                                                                            <apex:param assignto="{!guideStarField}" name="guidestarField" value="{!field.FieldPath}" />
+                                                                        </apex:commandlink>
+                                                                    </apex:outputpanel>
+                                                                </apex:facet>
+                                                                <apex:facet name="start">
+                                                                    <apex:outputpanel layout="none">
+                                                                        <apex:commandlink onclick="return false;" title="{!$Label.fgm_portal__fc_guidestartbuttonhelptext_label}" value="{!$Label.fgm_portal__fc_guidestatinfo_label}" styleclass="btn btn-primary guidestar_btn fa-circle-o-notch signup_cursor"> <i class="fa fa-spinner fa-spin"></i> </apex:commandlink>
+                                                                    </apex:outputpanel>
+                                                                </apex:facet>
+                                                            </apex:actionstatus>
+                                                        </apex:outputpanel>
+                                                        <apex:outputpanel rendered="{!field.FieldPath == 'FGM_Portal__EIN__c'}">
+                                                            <apex:actionstatus id="EinGuideStarStatus" rendered="{!hasGuideStarNamedCredential}">
+                                                                <apex:facet name="stop">
+                                                                    <apex:outputpanel layout="none">
+                                                                        <apex:commandlink action="{!getGuideStarInfo}" status="EinGuideStarStatus" rerender="guideStarSearchResult,messageBlock" title="{!$Label.fgm_portal__fc_guidestartbuttonhelptext_label}" value="{!$Label.fgm_portal__fc_guidestatinfo_label}" styleclass="btn btn-primary guidestar_btn">
+                                                                            <apex:param assignto="{!guideStarField}" name="guidestarField" value="{!field.FieldPath}" />
+                                                                        </apex:commandlink>
+                                                                    </apex:outputpanel>
+                                                                </apex:facet>
+                                                                <apex:facet name="start">
+                                                                    <apex:outputpanel layout="none">
+                                                                        <apex:commandlink onclick="return false;" title="{!$Label.fgm_portal__fc_guidestartbuttonhelptext_label}" value="{!$Label.fgm_portal__fc_guidestatinfo_label}" styleclass="btn btn-primary guidestar_btn signup_cursor"> <i class="fa fa-spinner fa-spin"></i> </apex:commandlink>
+                                                                    </apex:outputpanel>
+                                                                </apex:facet>
+                                                            </apex:actionstatus>
+                                                        </apex:outputpanel>
+                                                        <apex:inputfield styleclass="signup_padding_right" value="{!portalUser[field]}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                    </div>
+                                                </apex:outputpanel>
+                                                <apex:outputpanel rendered="{!(field.FieldPath != 'FGM_Portal__Organization_Legal_Name__c' && field.FieldPath != 'FGM_Portal__EIN__c')}">
+                                                    <apex:inputfield value="{!portalUser[field]}" rendered="{!(field.FieldPath != 'FGM_Portal__Country__c' && field.FieldPath != 'FGM_Portal__State__c' && field.FieldPath != 'FGM_Portal__Confirm_Email__c' && field.FieldPath != 'FGM_Portal__Confirm_Password__c')}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                    <apex:inputfield styleClass="confirmField" value="{!portalUser[field]}" rendered="{!field.FieldPath == 'FGM_Portal__Confirm_Email__c' || field.FieldPath == 'FGM_Portal__Confirm_Password__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                    <apex:inputfield styleclass="form-control" value="{!user[countryField]}" onchange="getCountry(this);" rendered="{!field.FieldPath == 'FGM_Portal__Country__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                    <apex:inputfield id="countrystate" styleclass="form-control" value="{!user[stateField]}" onchange="getState(this);" rendered="{!field.FieldPath == 'FGM_Portal__State__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                </apex:outputpanel>
+                                            </apex:outputpanel>
+                                            <apex:outputpanel rendered="{!field.Type == 'boolean'}">
+                                                <apex:inputfield value="{!portalUser[field]}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                <label class="control-label">{!field.Label} <apex:outputpanel rendered="{!field.Required}"> <div class="fcRecord_required-marker_new fcRecord_new_required" title="{!$Label.fgm_portal__fc_required_field_label}">*</div></apex:outputpanel> </label>
+                                                <apex:outputpanel rendered="{!mapPortalUserHelpText != null && mapPortalUserHelpText[field] != 'Blank'}">
+                                                    <label class="help-text tooltip" title="{!mapPortalUserHelpText[field]}">?</label>
+                                                </apex:outputpanel>
+                                            </apex:outputpanel>
+                                        </div>
+                                    </apex:actionregion>
+                                </apex:repeat>
+                                <apex:repeat var="field" value="{!$ObjectType.Portal_User__c.FieldSets.Communities_Sign_Up_Step_3}" rendered="{!portalStep == 3}">
+                                    <apex:actionregion >
+                                        <div class="form-group input-field" data-object-name="FGM_Portal__Portal_User__c" data-field-type="{!field.Type}" data-required="{!OR(field.required, field.dbrequired)}">
+                                            <apex:outputpanel rendered="{!field.Type != 'boolean'}">
+                                                <label class="control-label">{!field.Label} <apex:outputpanel rendered="{!field.Required}"> <div class="fcRecord_required-marker_new fcRecord_new_required" title="{!$Label.fgm_portal__fc_required_field_label}">*</div></apex:outputpanel> </label>
+                                                <apex:outputpanel rendered="{!mapPortalUserHelpText != null && mapPortalUserHelpText[field] != 'Blank'}">
+                                                    <label class="help-text tooltip" title="{!mapPortalUserHelpText[field]}">?</label>
+                                                </apex:outputpanel>
+                                                <apex:outputpanel rendered="{!(field.FieldPath == 'FGM_Portal__Organization_Legal_Name__c' || field.FieldPath == 'FGM_Portal__EIN__c')}">
+                                                    <div class="signup_div">
+                                                        <apex:outputpanel rendered="{!field.FieldPath == 'FGM_Portal__Organization_Legal_Name__c'}">
+                                                            <apex:actionstatus id="OrgGuideStarStatus" rendered="{!hasGuideStarNamedCredential}">
+                                                                <apex:facet name="stop">
+                                                                    <apex:outputpanel layout="none">
+                                                                        <apex:commandlink action="{!getGuideStarInfo}" status="OrgGuideStarStatus" rerender="guideStarSearchResult,message" title="{!$Label.fgm_portal__fc_guidestartbuttonhelptext_label}" value="{!$Label.fgm_portal__fc_guidestatinfo_label}" styleclass="btn btn-primary guidestar_btn">
+                                                                            <apex:param assignto="{!guideStarField}" name="guidestarField" value="{!field.FieldPath}" />
+                                                                        </apex:commandlink>
+                                                                    </apex:outputpanel>
+                                                                </apex:facet>
+                                                                <apex:facet name="start">
+                                                                    <apex:outputpanel layout="none">
+                                                                        <apex:commandlink onclick="return false;" title="{!$Label.fgm_portal__fc_guidestartbuttonhelptext_label}" value="{!$Label.fgm_portal__fc_guidestatinfo_label}" styleclass="btn btn-primary guidestar_btn fa-circle-o-notch signup_cursor"> <i class="fa fa-spinner fa-spin"></i> </apex:commandlink>
+                                                                    </apex:outputpanel>
+                                                                </apex:facet>
+                                                            </apex:actionstatus>
+                                                        </apex:outputpanel>
+                                                        <apex:outputpanel rendered="{!field.FieldPath == 'FGM_Portal__EIN__c'}">
+                                                            <apex:actionstatus id="EinGuideStarStatus" rendered="{!hasGuideStarNamedCredential}">
+                                                                <apex:facet name="stop">
+                                                                    <apex:outputpanel layout="none">
+                                                                        <apex:commandlink action="{!getGuideStarInfo}" status="EinGuideStarStatus" rerender="guideStarSearchResult,messageBlock" title="{!$Label.fgm_portal__fc_guidestartbuttonhelptext_label}" value="{!$Label.fgm_portal__fc_guidestatinfo_label}" styleclass="btn btn-primary guidestar_btn">
+                                                                            <apex:param assignto="{!guideStarField}" name="guidestarField" value="{!field.FieldPath}" />
+                                                                        </apex:commandlink>
+                                                                    </apex:outputpanel>
+                                                                </apex:facet>
+                                                                <apex:facet name="start">
+                                                                    <apex:outputpanel layout="none">
+                                                                        <apex:commandlink onclick="return false;" title="{!$Label.fgm_portal__fc_guidestartbuttonhelptext_label}" value="{!$Label.fgm_portal__fc_guidestatinfo_label}" styleclass="btn btn-primary guidestar_btn signup_cursor"> <i class="fa fa-spinner fa-spin"></i> </apex:commandlink>
+                                                                    </apex:outputpanel>
+                                                                </apex:facet>
+                                                            </apex:actionstatus>
+                                                        </apex:outputpanel>
+                                                        <apex:inputfield styleclass="signup_padding_right" value="{!portalUser[field]}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                    </div>
+                                                </apex:outputpanel>
+                                                <apex:outputpanel rendered="{!(field.FieldPath != 'FGM_Portal__Organization_Legal_Name__c' && field.FieldPath != 'FGM_Portal__EIN__c' && field.Type != 'encryptedstring')}">
+                                                    <apex:inputfield value="{!portalUser[field]}" rendered="{!(field.FieldPath != 'FGM_Portal__Country__c' && field.FieldPath != 'FGM_Portal__State__c' && field.FieldPath != 'FGM_Portal__Confirm_Email__c')}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                    <apex:inputfield styleClass="confirmField" value="{!portalUser[field]}" rendered="{!field.FieldPath == 'FGM_Portal__Confirm_Email__c' || field.FieldPath == 'FGM_Portal__Confirm_Password__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                    <apex:inputfield styleclass="form-control" value="{!user[countryField]}" onchange="getCountry(this);" rendered="{!field.FieldPath == 'FGM_Portal__Country__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                    <apex:inputfield id="countrystate" styleclass="form-control" value="{!user[stateField]}" onchange="getState(this);" rendered="{!field.FieldPath == 'FGM_Portal__State__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                </apex:outputpanel>
+                                                <apex:outputpanel rendered="{!(field.FieldPath != 'FGM_Portal__Organization_Legal_Name__c' && field.FieldPath != 'FGM_Portal__EIN__c') && field.Type == 'encryptedstring'}">
+                                                    <apex:inputsecret value="{!portalUser[field]}" rendered="{!field.FieldPath != 'FGM_Portal__Confirm_Password__c'}"/>
+                                                    <apex:inputsecret value="{!portalUser[field]}" styleClass="confirmField" rendered="{!field.FieldPath == 'FGM_Portal__Confirm_Password__c'}"/>
+                                                </apex:outputpanel>
+                                            </apex:outputpanel>
+                                            <apex:outputpanel rendered="{!field.Type == 'boolean'}">
+                                                <apex:outputpanel rendered="{!field.FieldPath == 'FGM_Portal__Terms_And_Conditions__c'}">
+                                                    <apex:inputfield value="{!portalUser[field]}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                                    <label class="control-label">{!field.Label} <apex:outputpanel rendered="{!field.Required}"> <div class="fcRecord_required-marker_new fcRecord_new_required" title="{!$Label.fgm_portal__fc_required_field_label}">*</div></apex:outputpanel> </label>
+                                                    <apex:outputpanel rendered="{!mapPortalUserHelpText != null && mapPortalUserHelpText[field] != 'Blank'}">
+                                                        <label class="help-text tooltip" title="{!mapPortalUserHelpText[field]}">?</label>
+                                                    </apex:outputpanel>
+                                                    <apex:outputpanel rendered="{! NOT(ISNULL(agreementUrl) || ISBLANK(agreementUrl) || agreementUrl=='')}" id="termConditionLinkPanel">
+                                                        <apex:commandlink onclick="return window.open('{!agreementUrl}','_blank','height=500,width=700,location=no,resizable=yes,toolbar=no,status=no,menubar=no,scrollbars=1', 1); " title="{!$Label.fgm_portal__fc_terms_and_conditions_helptext}" value="{!$Label.fgm_portal__fc_terms_and_conditions_label}" styleclass="link" immediate="true">  </apex:commandlink>
+                                                    </apex:outputpanel>
+                                                </apex:outputpanel>
+                                            </apex:outputpanel>
+                                        </div>
+                                    </apex:actionregion>
+                                </apex:repeat>
+                                <!--  To Show the guideStar Search Result   -->
+                                <apex:outputpanel id="guideStarSearchResult">
+                                    <apex:actionregion >
+                                        <apex:outputpanel rendered="{!lstGuideStarSearchResult != null}">
+                                            <div class="modal-backdrop fade in"></div>
+                                            <div id="myModal" class="modal fade in" tabindex="-1">
+                                                <div class="modal-header" align="right">
+                                                    <apex:actionstatus id="processGuideStarSearch">
+                                                        <apex:facet name="start">
+                                                            <apex:outputpanel layout="none">
+                                                                <i class="fa fa-spinner fa-spin"></i>
+                                                                <apex:outputlabel value="{!$Label.fgm_portal__fc_processing_buttonlabel}" styleclass="signup_outputlable"></apex:outputlabel>
+                                                            </apex:outputpanel>
+                                                        </apex:facet>
+                                                    </apex:actionstatus>
+                                                    <apex:actionstatus id="closeGuideStarSearch">
+                                                        <apex:facet name="start">
+                                                            <apex:outputpanel layout="none">
+                                                                <i class="fa fa-spinner fa-spin"></i>
+                                                                <apex:outputlabel value="{!$Label.fgm_portal__fc_closing_label}" styleclass="signup_outputlable"></apex:outputlabel>
+                                                            </apex:outputpanel>
+                                                        </apex:facet>
+                                                    </apex:actionstatus>
+                                                    <apex:commandlink styleclass="close" value="x" action="{!closeGuideStarResult}" rerender="guideStarSearchResult" status="closeGuideStarSearch" immediate="true" />
+                                                </div>
+                                                <div class="guidestar_instruction" align="center">
+                                                    <apex:outputlabel value="{!guidestarSearchResultInstruction}"></apex:outputlabel>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <apex:variable var="recordIndex" value="{!0}" />
+                                                    <apex:repeat var="guideStarInfo" value="{!lstGuideStarSearchResult}">
+                                                        <div class="fields_guidestar">
+                                                            <span class="guidestar_organization">
+                                                                <apex:commandlink action="{!processGuideStarSearch}" rerender="mainForm" status="processGuideStarSearch" value="{!guideStarInfo['organization_name']}" styleclass="guidestar_link" immediate="true">
+                                                                    <apex:param name="recordIndex" value="{!recordIndex}" />
+                                                                </apex:commandlink> <apex:variable var="recordIndex" value="{!recordIndex + 1}" />
+                                                            </span>
+                                                        </div>
+                                                    </apex:repeat>
+                                                </div>
+                                            </div>
+                                        </apex:outputpanel>
+                                    </apex:actionregion>
+                                </apex:outputpanel>
+                            </apex:outputpanel>
+                            <!--  Fields block for Individual User -->
+                        </apex:outputpanel>
+                        <apex:outputpanel id="individualBlock" rendered="{!profileType == 'Individual'}">
+                            <apex:repeat var="field" value="{!$ObjectType.Portal_User__c.FieldSets.Communities_Sign_Up_Step_1_Individual}" rendered="{!portalStep == 1}">
+                                <apex:actionregion >
+                                    <div class="form-group input-field hidden" data-object-name="FGM_Portal__Portal_User__c" data-field-name="{!field}" data-field-type="{!field.Type}" data-required="{!OR(field.required, field.dbrequired)}">
+                                        <apex:outputpanel rendered="{!field.Type != 'boolean'}">
+                                            <label class="control-label">{!field.Label} <apex:outputpanel rendered="{!(field.Required || field.FieldPath == 'FGM_Portal__LastName__c')}"> <div class="fcRecord_required-marker_new fcRecord_new_required" title="{!$Label.fgm_portal__fc_required_field_label}">*</div></apex:outputpanel> </label>
+                                            <apex:outputpanel rendered="{!mapPortalUserHelpText != null && mapPortalUserHelpText[field] != 'Blank'}">
+                                                <label class="help-text tooltip" title="{!mapPortalUserHelpText[field]}">?</label>
+                                            </apex:outputpanel>
+                                            <apex:inputfield value="{!portalUser[field]}" rendered="{!(field.FieldPath != 'FGM_Portal__Country__c' && field.FieldPath != 'FGM_Portal__State__c' && field.FieldPath != 'FGM_Portal__Confirm_Email__c' && field.FieldPath != 'FGM_Portal__Confirm_Password__c')}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            <apex:inputfield styleClass="confirmField" value="{!portalUser[field]}" rendered="{!field.FieldPath == 'FGM_Portal__Confirm_Email__c' || field.FieldPath == 'FGM_Portal__Confirm_Password__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            <apex:inputfield styleclass="form-control" value="{!user[countryField]}" onchange="getCountry(this);" rendered="{!field.FieldPath == 'FGM_Portal__Country__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            <apex:inputfield id="countrystate" styleclass="form-control" value="{!user[stateField]}" onchange="getState(this);" rendered="{!field.FieldPath == 'FGM_Portal__State__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                        </apex:outputpanel>
+                                        <apex:outputpanel rendered="{!field.Type == 'boolean'}">
+                                            <apex:inputfield value="{!portalUser[field]}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            <label class="control-label">{!field.Label} <apex:outputpanel rendered="{!field.Required}"> <div class="fcRecord_required-marker_new fcRecord_new_required" title="{!$Label.fgm_portal__fc_required_field_label}">*</div></apex:outputpanel></label>
+                                            <apex:outputpanel rendered="{!mapPortalUserHelpText != null && mapPortalUserHelpText[field] != 'Blank'}">
+                                                <label class="help-text tooltip" title="{!mapPortalUserHelpText[field]}">?</label>
+                                            </apex:outputpanel>
+                                        </apex:outputpanel>
+                                    </div>
+                                </apex:actionregion>
+                            </apex:repeat>
+                            <apex:repeat var="field" value="{!$ObjectType.Portal_User__c.FieldSets.Communities_Sign_Up_Step_2_Individual}" rendered="{!portalStep == 2}">
+                                <apex:actionregion >
+                                    <div class="form-group input-field hidden" data-object-name="FGM_Portal__Portal_User__c" data-field-name="{!field}" data-field-type="{!field.Type}" data-required="{!OR(field.required, field.dbrequired)}">
+                                        <apex:outputpanel rendered="{!field.Type != 'boolean'}">
+                                            <label class="control-label">{!field.Label} <apex:outputpanel rendered="{!(field.Required || field.FieldPath == 'FGM_Portal__LastName__c')}"> <div class="fcRecord_required-marker_new fcRecord_new_required" title="{!$Label.fgm_portal__fc_required_field_label}">*</div></apex:outputpanel> </label>
+                                            <apex:outputpanel rendered="{!mapPortalUserHelpText != null && mapPortalUserHelpText[field] != 'Blank'}">
+                                                <label class="help-text tooltip" title="{!mapPortalUserHelpText[field]}">?</label>
+                                            </apex:outputpanel>
+                                            <apex:inputfield value="{!portalUser[field]}" rendered="{!(field.FieldPath != 'FGM_Portal__Country__c' && field.FieldPath != 'FGM_Portal__State__c' && field.FieldPath != 'FGM_Portal__Confirm_Email__c' && field.FieldPath != 'FGM_Portal__Confirm_Password__c')}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            <apex:inputfield styleClass="confirmField" value="{!portalUser[field]}" rendered="{!field.FieldPath == 'FGM_Portal__Confirm_Email__c' || field.FieldPath == 'FGM_Portal__Confirm_Password__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            <apex:inputfield styleclass="form-control" value="{!user[countryField]}" onchange="getCountry(this);" rendered="{!field.FieldPath == 'FGM_Portal__Country__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            <apex:inputfield id="countrystate" styleclass="form-control" value="{!user[stateField]}" onchange="getState(this);" rendered="{!field.FieldPath == 'FGM_Portal__State__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                        </apex:outputpanel>
+                                        <apex:outputpanel rendered="{!field.Type == 'boolean'}">
+                                            <apex:inputfield value="{!portalUser[field]}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            <label class="control-label">{!field.Label} <apex:outputpanel rendered="{!field.Required}"> <div class="fcRecord_required-marker_new fcRecord_new_required" title="{!$Label.fgm_portal__fc_required_field_label}">*</div></apex:outputpanel> </label>
+                                            <apex:outputpanel rendered="{!mapPortalUserHelpText != null && mapPortalUserHelpText[field] != 'Blank'}">
+                                                <label class="help-text tooltip" title="{!mapPortalUserHelpText[field]}">?</label>
+                                            </apex:outputpanel>
+                                        </apex:outputpanel>
+                                    </div>
+                                </apex:actionregion>
+                            </apex:repeat>
+                            <apex:repeat var="field" value="{!$ObjectType.Portal_User__c.FieldSets.Communities_Sign_Up_Step_3_Individual}" rendered="{!portalStep == 3}">
+                                <apex:actionregion >
+                                    <div class="form-group input-field hidden" data-object-name="FGM_Portal__Portal_User__c" data-field-name="{!field}" data-field-type="{!field.Type}" data-required="{!OR(field.required, field.dbrequired)}">
+                                        <apex:outputpanel rendered="{!field.Type != 'boolean'}">
+                                            <label class="control-label">{!field.Label}
+                                                <apex:outputpanel rendered="{!(field.Required || field.FieldPath == 'FGM_Portal__LastName__c')}">
+                                                    <div class="fcRecord_required-marker_new fcRecord_new_required" title="{!$Label.fgm_portal__fc_required_field_label}">*</div>
+                                                </apex:outputpanel>
+                                            </label>
+                                            <apex:outputpanel rendered="{!mapPortalUserHelpText != null && mapPortalUserHelpText[field] != 'Blank'}">
+                                                <label class="help-text tooltip" title="{!mapPortalUserHelpText[field]}">?</label>
+                                            </apex:outputpanel>
+                                            <apex:inputfield value="{!portalUser[field]}" rendered="{!(field.FieldPath != 'FGM_Portal__Country__c' && field.FieldPath != 'FGM_Portal__State__c' && field.FieldPath != 'FGM_Portal__Confirm_Email__c' && field.FieldPath != 'FGM_Portal__Confirm_Password__c')}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            <apex:inputfield styleClass="confirmField" value="{!portalUser[field]}" rendered="{!field.FieldPath == 'FGM_Portal__Confirm_Email__c' || field.FieldPath == 'FGM_Portal__Confirm_Password__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            <apex:inputfield styleclass="form-control" value="{!user[countryField]}" onchange="getCountry(this);" rendered="{!field.FieldPath == 'FGM_Portal__Country__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            <apex:inputfield id="countrystate" styleclass="form-control" value="{!user[stateField]}" onchange="getState(this);" rendered="{!field.FieldPath == 'FGM_Portal__State__c'}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                        </apex:outputpanel>
+                                        <apex:outputpanel rendered="{!field.Type == 'boolean'}">
+                                         <apex:outputpanel rendered="{!field.FieldPath == 'FGM_Portal__Terms_And_Conditions__c'}">
+                                            <apex:inputfield value="{!portalUser[field]}" required="{!OR(field.required, field.dbrequired)}"></apex:inputfield>
+                                            <label class="control-label">{!field.Label} <apex:outputpanel rendered="{!field.Required}"> <div class="fcRecord_required-marker_new fcRecord_new_required" title="{!$Label.fgm_portal__fc_required_field_label}">*</div></apex:outputpanel> </label>
+                                            <apex:outputpanel rendered="{!mapPortalUserHelpText != null && mapPortalUserHelpText[field] != 'Blank'}">
+                                                <label class="help-text tooltip" title="{!mapPortalUserHelpText[field]}">?</label>
+                                            </apex:outputpanel>
+                                            <apex:outputpanel rendered="{! NOT(ISNULL(agreementUrl) || ISBLANK(agreementUrl) || agreementUrl=='')}" id="termConditionLinkPanel1">
+                                                        <apex:commandlink onclick="openLink(this);" title="{!$Label.fgm_portal__fc_terms_and_conditions_helptext}" value="{!$Label.fgm_portal__fc_terms_and_conditions_label}" styleclass="link" immediate="true"> </apex:commandlink>
+                                            </apex:outputpanel>
+                                             <script>
+                                                function openLink(event)
+                                                {
+                                                     return window.open('{!agreementUrl}','_blank','height=500,width=700,location=no,resizable=yes,toolbar=no,status=no,menubar=no,scrollbars=1', 1);
+                                                }
+                                             </script>
+                                         </apex:outputpanel>
+                                        </apex:outputpanel>
+                                    </div>
+                                </apex:actionregion>
+                            </apex:repeat>
+                        </apex:outputpanel>
+                        <apex:actionfunction action="{!next}" name="next" rerender="mainForm,nextprvstart" status="nextprvstop">
+                            <apex:param name="cntryst" value="" />
+                        </apex:actionfunction>
+                        <apex:actionfunction action="{!register}" name="register" rerender="mainForm,nextprvstart" status="nextprvstop">
+                            <apex:param name="countrystate" value="" />
+                        </apex:actionfunction>
+                        <apex:commandlink value="{!$Label.fgm_portal__fc_next_buttonlabel}" styleclass="btn btnNew" onclick="nextCS();return false;" rendered="{!NOT(portalStep == 3)}"></apex:commandlink>
+                        <apex:commandbutton value="{!$Label.fgm_portal__fc_register_buttonlabel}" styleclass="btn btnNew" onclick="registerCS();return false;" rendered="{!AND(portalStep == 3)}"></apex:commandbutton>
+                        <apex:commandlink value="{!$Label.fgm_portal__fc_stepbacklinkbuttonlabel}" action="{!prev}" rendered="{!NOT(portalStep == 1)}" rerender="mainForm,nextprvstart" status="nextprvstop" immediate="true"></apex:commandlink>
+                        <apex:actionstatus id="nextprvstart">
+                            <apex:facet name="start">
+                                <apex:image value="/img/loading.gif" styleclass="loding_alignment"></apex:image>
+                            </apex:facet>
+                        </apex:actionstatus>
+                        <apex:actionstatus id="nextprvstop">
+                            <apex:facet name="start">
+                                <apex:image value="/img/loading.gif" styleclass="loding_alignment"></apex:image>
+                            </apex:facet>
+                        </apex:actionstatus>
+                        <hr size="1" class="divider"></hr>
+                        <div class="signup_div_forgotpassword">
+                            <span><a href="{!JSENCODE(URLFOR($Page.CommunityForgotPassword,null,[ln=portalLanguage]))}">{!$Label.FC_Signin_can_t_access_account_ButtonLabel}</a></span>
+                            <span>&nbsp;|&nbsp;</span> <span><a href="{!JSENCODE(URLFOR($Page.CommunitySignin))}">{!$Label.FC_ExistingMember_LinkButtonLabel}</a></span>
+                        </div>
+                    </div>
+                    <!-- Customizable info text on right side of portal registration -->
+                    <div class="col-sm-6 col-sm-offset-1 signup-panel-2">
+                        <apex:outputpanel id="informationTextPanelOrganization" rendered="{!profileType == 'Organization' || profileType == 'Individual'}">
+                        <p ><apex:outputField value="{!CustomHTMLDescription.RichDescription__c}"></apex:outputField></p>
+                        </apex:outputpanel>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </apex:form>
+</apex:page>
